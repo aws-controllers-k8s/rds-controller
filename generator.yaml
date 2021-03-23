@@ -1,0 +1,33 @@
+ignore:
+  resource_names:
+    - CustomAvailabilityZone
+    - DBCluster
+    - DBClusterEndpoint
+    - DBClusterParameterGroup
+    - DBClusterSnapshot
+    - DBInstance
+    - DBInstanceReadReplica
+    - DBParameterGroup
+    - DBProxy
+    - DBProxyEndpoint
+    - DBSecurityGroup
+    - DBSnapshot
+    #- DBSubnetGroup
+    - EventSubscription
+    - GlobalCluster
+    - OptionGroup
+resources:
+  DBSubnetGroup:
+    renames:
+      operations:
+        DescribeDBSubnetGroups:
+          input_fields:
+            DBSubnetGroupName: Name
+            DBSubnetGroupDescription: Description
+        CreateDBSubnetGroup:
+          input_fields:
+            DBSubnetGroupName: Name
+            DBSubnetGroupDescription: Description
+        DeleteDBSubnetGroup:
+          input_fields:
+            DBSubnetGroupName: Name

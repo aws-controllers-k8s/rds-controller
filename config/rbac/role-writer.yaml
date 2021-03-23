@@ -1,0 +1,28 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: ack-rds-writer
+  namespace: default
+rules:
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbsubnetgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbsubnetgroups
+  verbs:
+  - get
+  - patch
+  - update
