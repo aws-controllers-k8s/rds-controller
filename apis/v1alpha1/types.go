@@ -271,17 +271,19 @@ type DBProxyTargetGroup struct {
 	TargetGroupName *string `json:"targetGroupName,omitempty"`
 }
 
-type DBSecurityGroup struct {
-	DBSecurityGroupARN         *string `json:"dbSecurityGroupARN,omitempty"`
-	DBSecurityGroupDescription *string `json:"dbSecurityGroupDescription,omitempty"`
-	DBSecurityGroupName        *string `json:"dbSecurityGroupName,omitempty"`
-	OwnerID                    *string `json:"ownerID,omitempty"`
-	VPCID                      *string `json:"vpcID,omitempty"`
-}
-
 type DBSecurityGroupMembership struct {
 	DBSecurityGroupName *string `json:"dbSecurityGroupName,omitempty"`
 	Status              *string `json:"status,omitempty"`
+}
+
+type DBSecurityGroup_SDK struct {
+	DBSecurityGroupARN         *string             `json:"dbSecurityGroupARN,omitempty"`
+	DBSecurityGroupDescription *string             `json:"dbSecurityGroupDescription,omitempty"`
+	DBSecurityGroupName        *string             `json:"dbSecurityGroupName,omitempty"`
+	EC2SecurityGroups          []*EC2SecurityGroup `json:"ec2SecurityGroups,omitempty"`
+	IPRanges                   []*IPRange          `json:"iPRanges,omitempty"`
+	OwnerID                    *string             `json:"ownerID,omitempty"`
+	VPCID                      *string             `json:"vpcID,omitempty"`
 }
 
 type DBSnapshot struct {
