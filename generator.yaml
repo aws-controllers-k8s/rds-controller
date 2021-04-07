@@ -10,13 +10,27 @@ ignore:
     - DBParameterGroup
     - DBProxy
     - DBProxyEndpoint
-    - DBSecurityGroup
+    #- DBSecurityGroup
     - DBSnapshot
     #- DBSubnetGroup
     - EventSubscription
     - GlobalCluster
     - OptionGroup
 resources:
+  DBSecurityGroup:
+    renames:
+      operations:
+        DescribeDBSecurityGroups:
+          input_fields:
+            DBSecurityGroupName: Name
+            DBSecurityGroupDescription: Description
+        CreateDBSecurityGroup:
+          input_fields:
+            DBSecurityGroupName: Name
+            DBSecurityGroupDescription: Description
+        DeleteDBSecurityGroup:
+          input_fields:
+            DBSecurityGroupName: Name
   DBSubnetGroup:
     renames:
       operations:

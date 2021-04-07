@@ -29,6 +29,7 @@ import (
 	svctypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/rds-controller/pkg/resource"
 
+	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_security_group"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_subnet_group"
 )
 
