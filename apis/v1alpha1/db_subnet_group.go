@@ -22,13 +22,22 @@ import (
 
 // DBSubnetGroupSpec defines the desired state of DBSubnetGroup
 type DBSubnetGroupSpec struct {
+	// The description for the DB subnet group.
 	// +kubebuilder:validation:Required
 	Description *string `json:"description"`
+	// The name for the DB subnet group. This value is stored as a lowercase string.
+	//
+	// Constraints: Must contain no more than 255 letters, numbers, periods, underscores,
+	// spaces, or hyphens. Must not be default.
+	//
+	// Example: mySubnetgroup
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
+	// The EC2 Subnet IDs for the DB subnet group.
 	// +kubebuilder:validation:Required
 	SubnetIDs []*string `json:"subnetIDs"`
-	Tags      []*Tag    `json:"tags,omitempty"`
+	// Tags to assign to the DB subnet group.
+	Tags []*Tag `json:"tags,omitempty"`
 }
 
 // DBSubnetGroupStatus defines the observed state of DBSubnetGroup
@@ -41,10 +50,13 @@ type DBSubnetGroupStatus struct {
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
-	Conditions        []*ackv1alpha1.Condition `json:"conditions"`
-	SubnetGroupStatus *string                  `json:"subnetGroupStatus,omitempty"`
-	Subnets           []*Subnet                `json:"subnets,omitempty"`
-	VPCID             *string                  `json:"vpcID,omitempty"`
+	Conditions []*ackv1alpha1.Condition `json:"conditions"`
+	// Provides the status of the DB subnet group.
+	SubnetGroupStatus *string `json:"subnetGroupStatus,omitempty"`
+	// Contains a list of Subnet elements.
+	Subnets []*Subnet `json:"subnets,omitempty"`
+	// Provides the VpcId of the DB subnet group.
+	VPCID *string `json:"vpcID,omitempty"`
 }
 
 // DBSubnetGroup is the Schema for the DBSubnetGroups API
