@@ -11,14 +11,6 @@ on:
         description: 'Git ref for checking out the community repo. Default is main'
         required: false
         default: ''
-      codeGeneratorRepo:
-        description: 'Git repository for checking out the code-generator repo'
-        required: false
-        default: 'aws-controllers-k8s/code-generator'
-      codeGeneratorRef:
-        description: 'Git ref for checking out the code-generator repo. Default is main'
-        required: false
-        default: ''
       testInfraRepo:
         description: 'Git repository for checking out the test-infra repo'
         required: false
@@ -56,26 +48,12 @@ jobs:
           ref: ${{ github.event.inputs.communityRef }}
           path: './src/github.com/aws-controllers-k8s/community'
 
-      - name: checkout code-generator
-        uses: actions/checkout@v2
-        with:
-          repository: ${{ github.event.inputs.codeGeneratorRepo }}
-          ref: ${{ github.event.inputs.codeGeneratorRef }}
-          path: './src/github.com/aws-controllers-k8s/code-generator'
-
       - name: checkout test-infra
         uses: actions/checkout@v2
         with:
           repository: ${{ github.event.inputs.testInfraRepo }}
           ref: ${{ github.event.inputs.testInfraRef }}
           path: './src/github.com/aws-controllers-k8s/test-infra'
-
-      - name: build controller
-        working-directory: './src/github.com/aws-controllers-k8s/community'
-        run: ./scripts/build-controller.sh $SERVICE
-        env:
-          SERVICE: ${{ matrix.service }}
-          GOPATH: ${{ github.workspace }}
 
       - name: execute e2e tests
         working-directory: './src/github.com/aws-controllers-k8s/community'
