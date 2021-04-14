@@ -1,0 +1,67 @@
+name: e2e-test
+on:
+  # Allow manual trigger of e2e tests
+  workflow_dispatch:
+    inputs:
+      communityRepo:
+        description: 'Git repository for checking out the community repo'
+        required: false
+        default: 'aws-controllers-k8s/community'
+      communityRef:
+        description: 'Git ref for checking out the community repo. Default is main'
+        required: false
+        default: ''
+      testInfraRepo:
+        description: 'Git repository for checking out the test-infra repo'
+        required: false
+        default: 'aws-controllers-k8s/test-infra'
+      testInfraRef:
+        description: 'Git ref for checking out the test-infra repo. Default is main'
+        required: false
+        default: ''
+
+jobs:
+  e2e-test:
+    name: controller e2e test
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+         - rds
+    runs-on: [aws-controllers-k8s]
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: checkout service
+        uses: actions/checkout@v2
+        with:
+          path: './src/github.com/aws-controllers-k8s/${{ matrix.service }}-controller'
+
+      - name: checkout community
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.communityRepo }}
+          ref: ${{ github.event.inputs.communityRef }}
+          path: './src/github.com/aws-controllers-k8s/community'
+
+      - name: checkout test-infra
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.testInfraRepo }}
+          ref: ${{ github.event.inputs.testInfraRef }}
+          path: './src/github.com/aws-controllers-k8s/test-infra'
+
+      - name: execute e2e tests
+        working-directory: './src/github.com/aws-controllers-k8s/community'
+        run: |
+          export AWS_ROLE_ARN=$(aws ssm get-parameter --name ACK_ROLE_ARN --query "Parameter.Value" --output text)
+          export AWS_ROLE_ARN_ALT=$(aws ssm get-parameter --name ACK_ROLE_ARN_ALT --query "Parameter.Value" --output text)
+          ./scripts/kind-build-test.sh $SERVICE
+        env:
+          SERVICE: ${{ matrix.service }}
+          GOPATH: ${{ github.workspace }}
+          PRESERVE: 'false'
