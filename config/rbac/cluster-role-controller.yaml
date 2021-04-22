@@ -25,6 +25,26 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbparametergroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbparametergroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
   - dbsecuritygroups
   verbs:
   - create
