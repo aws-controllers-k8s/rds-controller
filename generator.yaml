@@ -7,7 +7,7 @@ ignore:
     - DBClusterSnapshot
     - DBInstance
     - DBInstanceReadReplica
-    - DBParameterGroup
+    #- DBParameterGroup
     - DBProxy
     - DBProxyEndpoint
     #- DBSecurityGroup
@@ -17,13 +17,30 @@ ignore:
     - GlobalCluster
     - OptionGroup
 resources:
+  DBParameterGroup:
+    renames:
+      operations:
+        DescribeDBParameterGroups:
+          input_fields:
+            DBParameterGroupName: Name
+        CreateDBParameterGroup:
+          input_fields:
+            DBParameterGroupName: Name
+            DBParameterGroupFamily: Family
+        DeleteDBParameterGroup:
+          input_fields:
+            DBParameterGroupName: Name
+    fields:
+      Parameters:
+        from:
+          operation: ModifyDBParameterGroup
+          path: Parameters
   DBSecurityGroup:
     renames:
       operations:
         DescribeDBSecurityGroups:
           input_fields:
             DBSecurityGroupName: Name
-            DBSecurityGroupDescription: Description
         CreateDBSecurityGroup:
           input_fields:
             DBSecurityGroupName: Name
@@ -37,7 +54,6 @@ resources:
         DescribeDBSubnetGroups:
           input_fields:
             DBSubnetGroupName: Name
-            DBSubnetGroupDescription: Description
         CreateDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name

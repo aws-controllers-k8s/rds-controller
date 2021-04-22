@@ -92,6 +92,7 @@ type DBCluster struct {
 	ReaderEndpoint                  *string `json:"readerEndpoint,omitempty"`
 	ReplicationSourceIdentifier     *string `json:"replicationSourceIdentifier,omitempty"`
 	Status                          *string `json:"status,omitempty"`
+	StorageEncrypted                *bool   `json:"storageEncrypted,omitempty"`
 	TagList                         []*Tag  `json:"tagList,omitempty"`
 }
 
@@ -109,6 +110,7 @@ type DBClusterEndpoint struct {
 type DBClusterMember struct {
 	DBClusterParameterGroupStatus *string `json:"dbClusterParameterGroupStatus,omitempty"`
 	DBInstanceIdentifier          *string `json:"dbInstanceIdentifier,omitempty"`
+	IsClusterWriter               *bool   `json:"isClusterWriter,omitempty"`
 	PromotionTier                 *int64  `json:"promotionTier,omitempty"`
 }
 
@@ -131,19 +133,21 @@ type DBClusterRole struct {
 }
 
 type DBClusterSnapshot struct {
-	DBClusterIdentifier         *string `json:"dbClusterIdentifier,omitempty"`
-	DBClusterSnapshotARN        *string `json:"dbClusterSnapshotARN,omitempty"`
-	DBClusterSnapshotIdentifier *string `json:"dbClusterSnapshotIdentifier,omitempty"`
-	Engine                      *string `json:"engine,omitempty"`
-	EngineVersion               *string `json:"engineVersion,omitempty"`
-	KMSKeyID                    *string `json:"kmsKeyID,omitempty"`
-	LicenseModel                *string `json:"licenseModel,omitempty"`
-	MasterUsername              *string `json:"masterUsername,omitempty"`
-	SnapshotType                *string `json:"snapshotType,omitempty"`
-	SourceDBClusterSnapshotARN  *string `json:"sourceDBClusterSnapshotARN,omitempty"`
-	Status                      *string `json:"status,omitempty"`
-	TagList                     []*Tag  `json:"tagList,omitempty"`
-	VPCID                       *string `json:"vpcID,omitempty"`
+	DBClusterIdentifier              *string `json:"dbClusterIdentifier,omitempty"`
+	DBClusterSnapshotARN             *string `json:"dbClusterSnapshotARN,omitempty"`
+	DBClusterSnapshotIdentifier      *string `json:"dbClusterSnapshotIdentifier,omitempty"`
+	Engine                           *string `json:"engine,omitempty"`
+	EngineVersion                    *string `json:"engineVersion,omitempty"`
+	IAMDatabaseAuthenticationEnabled *bool   `json:"iamDatabaseAuthenticationEnabled,omitempty"`
+	KMSKeyID                         *string `json:"kmsKeyID,omitempty"`
+	LicenseModel                     *string `json:"licenseModel,omitempty"`
+	MasterUsername                   *string `json:"masterUsername,omitempty"`
+	SnapshotType                     *string `json:"snapshotType,omitempty"`
+	SourceDBClusterSnapshotARN       *string `json:"sourceDBClusterSnapshotARN,omitempty"`
+	Status                           *string `json:"status,omitempty"`
+	StorageEncrypted                 *bool   `json:"storageEncrypted,omitempty"`
+	TagList                          []*Tag  `json:"tagList,omitempty"`
+	VPCID                            *string `json:"vpcID,omitempty"`
 }
 
 type DBClusterSnapshotAttribute struct {
@@ -155,18 +159,25 @@ type DBClusterSnapshotAttributesResult struct {
 }
 
 type DBEngineVersion struct {
-	DBEngineDescription        *string `json:"dbEngineDescription,omitempty"`
-	DBEngineVersionDescription *string `json:"dbEngineVersionDescription,omitempty"`
-	DBParameterGroupFamily     *string `json:"dbParameterGroupFamily,omitempty"`
-	Engine                     *string `json:"engine,omitempty"`
-	EngineVersion              *string `json:"engineVersion,omitempty"`
-	Status                     *string `json:"status,omitempty"`
+	DBEngineDescription                *string   `json:"dbEngineDescription,omitempty"`
+	DBEngineVersionDescription         *string   `json:"dbEngineVersionDescription,omitempty"`
+	DBParameterGroupFamily             *string   `json:"dbParameterGroupFamily,omitempty"`
+	Engine                             *string   `json:"engine,omitempty"`
+	EngineVersion                      *string   `json:"engineVersion,omitempty"`
+	Status                             *string   `json:"status,omitempty"`
+	SupportedEngineModes               []*string `json:"supportedEngineModes,omitempty"`
+	SupportsGlobalDatabases            *bool     `json:"supportsGlobalDatabases,omitempty"`
+	SupportsLogExportsToCloudwatchLogs *bool     `json:"supportsLogExportsToCloudwatchLogs,omitempty"`
+	SupportsParallelQuery              *bool     `json:"supportsParallelQuery,omitempty"`
+	SupportsReadReplica                *bool     `json:"supportsReadReplica,omitempty"`
 }
 
 type DBInstance struct {
+	AutoMinorVersionUpgrade               *bool              `json:"autoMinorVersionUpgrade,omitempty"`
 	AvailabilityZone                      *string            `json:"availabilityZone,omitempty"`
 	CACertificateIdentifier               *string            `json:"caCertificateIdentifier,omitempty"`
 	CharacterSetName                      *string            `json:"characterSetName,omitempty"`
+	CopyTagsToSnapshot                    *bool              `json:"copyTagsToSnapshot,omitempty"`
 	DBClusterIdentifier                   *string            `json:"dbClusterIdentifier,omitempty"`
 	DBInstanceARN                         *string            `json:"dbInstanceARN,omitempty"`
 	DBInstanceClass                       *string            `json:"dbInstanceClass,omitempty"`
@@ -175,9 +186,11 @@ type DBInstance struct {
 	DBName                                *string            `json:"dbName,omitempty"`
 	DBSubnetGroup                         *DBSubnetGroup_SDK `json:"dbSubnetGroup,omitempty"`
 	DBIResourceID                         *string            `json:"dbiResourceID,omitempty"`
+	DeletionProtection                    *bool              `json:"deletionProtection,omitempty"`
 	Engine                                *string            `json:"engine,omitempty"`
 	EngineVersion                         *string            `json:"engineVersion,omitempty"`
 	EnhancedMonitoringResourceARN         *string            `json:"enhancedMonitoringResourceARN,omitempty"`
+	IAMDatabaseAuthenticationEnabled      *bool              `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	IOPS                                  *int64             `json:"iops,omitempty"`
 	KMSKeyID                              *string            `json:"kmsKeyID,omitempty"`
 	LicenseModel                          *string            `json:"licenseModel,omitempty"`
@@ -185,14 +198,17 @@ type DBInstance struct {
 	MaxAllocatedStorage                   *int64             `json:"maxAllocatedStorage,omitempty"`
 	MonitoringInterval                    *int64             `json:"monitoringInterval,omitempty"`
 	MonitoringRoleARN                     *string            `json:"monitoringRoleARN,omitempty"`
+	MultiAZ                               *bool              `json:"multiAZ,omitempty"`
 	NcharCharacterSetName                 *string            `json:"ncharCharacterSetName,omitempty"`
 	PerformanceInsightsKMSKeyID           *string            `json:"performanceInsightsKMSKeyID,omitempty"`
 	PerformanceInsightsRetentionPeriod    *int64             `json:"performanceInsightsRetentionPeriod,omitempty"`
 	PreferredBackupWindow                 *string            `json:"preferredBackupWindow,omitempty"`
 	PreferredMaintenanceWindow            *string            `json:"preferredMaintenanceWindow,omitempty"`
 	PromotionTier                         *int64             `json:"promotionTier,omitempty"`
+	PubliclyAccessible                    *bool              `json:"publiclyAccessible,omitempty"`
 	ReadReplicaSourceDBInstanceIdentifier *string            `json:"readReplicaSourceDBInstanceIdentifier,omitempty"`
 	SecondaryAvailabilityZone             *string            `json:"secondaryAvailabilityZone,omitempty"`
+	StorageEncrypted                      *bool              `json:"storageEncrypted,omitempty"`
 	StorageType                           *string            `json:"storageType,omitempty"`
 	TagList                               []*Tag             `json:"tagList,omitempty"`
 	TDECredentialARN                      *string            `json:"tdeCredentialARN,omitempty"`
@@ -200,25 +216,27 @@ type DBInstance struct {
 }
 
 type DBInstanceAutomatedBackup struct {
-	AvailabilityZone              *string `json:"availabilityZone,omitempty"`
-	BackupRetentionPeriod         *int64  `json:"backupRetentionPeriod,omitempty"`
-	DBInstanceARN                 *string `json:"dbInstanceARN,omitempty"`
-	DBInstanceAutomatedBackupsARN *string `json:"dbInstanceAutomatedBackupsARN,omitempty"`
-	DBInstanceIdentifier          *string `json:"dbInstanceIdentifier,omitempty"`
-	DBIResourceID                 *string `json:"dbiResourceID,omitempty"`
-	Engine                        *string `json:"engine,omitempty"`
-	EngineVersion                 *string `json:"engineVersion,omitempty"`
-	IOPS                          *int64  `json:"iops,omitempty"`
-	KMSKeyID                      *string `json:"kmsKeyID,omitempty"`
-	LicenseModel                  *string `json:"licenseModel,omitempty"`
-	MasterUsername                *string `json:"masterUsername,omitempty"`
-	OptionGroupName               *string `json:"optionGroupName,omitempty"`
-	Region                        *string `json:"region,omitempty"`
-	Status                        *string `json:"status,omitempty"`
-	StorageType                   *string `json:"storageType,omitempty"`
-	TDECredentialARN              *string `json:"tdeCredentialARN,omitempty"`
-	Timezone                      *string `json:"timezone,omitempty"`
-	VPCID                         *string `json:"vpcID,omitempty"`
+	AvailabilityZone                 *string `json:"availabilityZone,omitempty"`
+	BackupRetentionPeriod            *int64  `json:"backupRetentionPeriod,omitempty"`
+	DBInstanceARN                    *string `json:"dbInstanceARN,omitempty"`
+	DBInstanceAutomatedBackupsARN    *string `json:"dbInstanceAutomatedBackupsARN,omitempty"`
+	DBInstanceIdentifier             *string `json:"dbInstanceIdentifier,omitempty"`
+	DBIResourceID                    *string `json:"dbiResourceID,omitempty"`
+	Encrypted                        *bool   `json:"encrypted,omitempty"`
+	Engine                           *string `json:"engine,omitempty"`
+	EngineVersion                    *string `json:"engineVersion,omitempty"`
+	IAMDatabaseAuthenticationEnabled *bool   `json:"iamDatabaseAuthenticationEnabled,omitempty"`
+	IOPS                             *int64  `json:"iops,omitempty"`
+	KMSKeyID                         *string `json:"kmsKeyID,omitempty"`
+	LicenseModel                     *string `json:"licenseModel,omitempty"`
+	MasterUsername                   *string `json:"masterUsername,omitempty"`
+	OptionGroupName                  *string `json:"optionGroupName,omitempty"`
+	Region                           *string `json:"region,omitempty"`
+	Status                           *string `json:"status,omitempty"`
+	StorageType                      *string `json:"storageType,omitempty"`
+	TDECredentialARN                 *string `json:"tdeCredentialARN,omitempty"`
+	Timezone                         *string `json:"timezone,omitempty"`
+	VPCID                            *string `json:"vpcID,omitempty"`
 }
 
 type DBInstanceAutomatedBackupsReplication struct {
@@ -233,27 +251,30 @@ type DBInstanceRole struct {
 
 type DBInstanceStatusInfo struct {
 	Message    *string `json:"message,omitempty"`
+	Normal     *bool   `json:"normal,omitempty"`
 	Status     *string `json:"status,omitempty"`
 	StatusType *string `json:"statusType,omitempty"`
 }
 
-type DBParameterGroup struct {
+type DBParameterGroupStatus_SDK struct {
+	DBParameterGroupName *string `json:"dbParameterGroupName,omitempty"`
+	ParameterApplyStatus *string `json:"parameterApplyStatus,omitempty"`
+}
+
+type DBParameterGroup_SDK struct {
 	DBParameterGroupARN    *string `json:"dbParameterGroupARN,omitempty"`
 	DBParameterGroupFamily *string `json:"dbParameterGroupFamily,omitempty"`
 	DBParameterGroupName   *string `json:"dbParameterGroupName,omitempty"`
 	Description            *string `json:"description,omitempty"`
 }
 
-type DBParameterGroupStatus struct {
-	DBParameterGroupName *string `json:"dbParameterGroupName,omitempty"`
-	ParameterApplyStatus *string `json:"parameterApplyStatus,omitempty"`
-}
-
 type DBProxy struct {
 	DBProxyARN   *string `json:"dbProxyARN,omitempty"`
 	DBProxyName  *string `json:"dbProxyName,omitempty"`
+	DebugLogging *bool   `json:"debugLogging,omitempty"`
 	Endpoint     *string `json:"endpoint,omitempty"`
 	EngineFamily *string `json:"engineFamily,omitempty"`
+	RequireTLS   *bool   `json:"requireTLS,omitempty"`
 	RoleARN      *string `json:"roleARN,omitempty"`
 }
 
@@ -266,6 +287,7 @@ type DBProxyTarget struct {
 
 type DBProxyTargetGroup struct {
 	DBProxyName     *string `json:"dbProxyName,omitempty"`
+	IsDefault       *bool   `json:"isDefault,omitempty"`
 	Status          *string `json:"status,omitempty"`
 	TargetGroupARN  *string `json:"targetGroupARN,omitempty"`
 	TargetGroupName *string `json:"targetGroupName,omitempty"`
@@ -287,27 +309,29 @@ type DBSecurityGroup_SDK struct {
 }
 
 type DBSnapshot struct {
-	AvailabilityZone           *string `json:"availabilityZone,omitempty"`
-	DBInstanceIdentifier       *string `json:"dbInstanceIdentifier,omitempty"`
-	DBSnapshotARN              *string `json:"dbSnapshotARN,omitempty"`
-	DBSnapshotIdentifier       *string `json:"dbSnapshotIdentifier,omitempty"`
-	DBIResourceID              *string `json:"dbiResourceID,omitempty"`
-	Engine                     *string `json:"engine,omitempty"`
-	EngineVersion              *string `json:"engineVersion,omitempty"`
-	IOPS                       *int64  `json:"iops,omitempty"`
-	KMSKeyID                   *string `json:"kmsKeyID,omitempty"`
-	LicenseModel               *string `json:"licenseModel,omitempty"`
-	MasterUsername             *string `json:"masterUsername,omitempty"`
-	OptionGroupName            *string `json:"optionGroupName,omitempty"`
-	SnapshotType               *string `json:"snapshotType,omitempty"`
-	SourceDBSnapshotIdentifier *string `json:"sourceDBSnapshotIdentifier,omitempty"`
-	SourceRegion               *string `json:"sourceRegion,omitempty"`
-	Status                     *string `json:"status,omitempty"`
-	StorageType                *string `json:"storageType,omitempty"`
-	TagList                    []*Tag  `json:"tagList,omitempty"`
-	TDECredentialARN           *string `json:"tdeCredentialARN,omitempty"`
-	Timezone                   *string `json:"timezone,omitempty"`
-	VPCID                      *string `json:"vpcID,omitempty"`
+	AvailabilityZone                 *string `json:"availabilityZone,omitempty"`
+	DBInstanceIdentifier             *string `json:"dbInstanceIdentifier,omitempty"`
+	DBSnapshotARN                    *string `json:"dbSnapshotARN,omitempty"`
+	DBSnapshotIdentifier             *string `json:"dbSnapshotIdentifier,omitempty"`
+	DBIResourceID                    *string `json:"dbiResourceID,omitempty"`
+	Encrypted                        *bool   `json:"encrypted,omitempty"`
+	Engine                           *string `json:"engine,omitempty"`
+	EngineVersion                    *string `json:"engineVersion,omitempty"`
+	IAMDatabaseAuthenticationEnabled *bool   `json:"iamDatabaseAuthenticationEnabled,omitempty"`
+	IOPS                             *int64  `json:"iops,omitempty"`
+	KMSKeyID                         *string `json:"kmsKeyID,omitempty"`
+	LicenseModel                     *string `json:"licenseModel,omitempty"`
+	MasterUsername                   *string `json:"masterUsername,omitempty"`
+	OptionGroupName                  *string `json:"optionGroupName,omitempty"`
+	SnapshotType                     *string `json:"snapshotType,omitempty"`
+	SourceDBSnapshotIdentifier       *string `json:"sourceDBSnapshotIdentifier,omitempty"`
+	SourceRegion                     *string `json:"sourceRegion,omitempty"`
+	Status                           *string `json:"status,omitempty"`
+	StorageType                      *string `json:"storageType,omitempty"`
+	TagList                          []*Tag  `json:"tagList,omitempty"`
+	TDECredentialARN                 *string `json:"tdeCredentialARN,omitempty"`
+	Timezone                         *string `json:"timezone,omitempty"`
+	VPCID                            *string `json:"vpcID,omitempty"`
 }
 
 type DBSnapshotAttribute struct {
@@ -351,8 +375,9 @@ type Endpoint struct {
 }
 
 type EngineDefaults struct {
-	DBParameterGroupFamily *string `json:"dbParameterGroupFamily,omitempty"`
-	Marker                 *string `json:"marker,omitempty"`
+	DBParameterGroupFamily *string      `json:"dbParameterGroupFamily,omitempty"`
+	Marker                 *string      `json:"marker,omitempty"`
+	Parameters             []*Parameter `json:"parameters,omitempty"`
 }
 
 type Event struct {
@@ -368,6 +393,7 @@ type EventCategoriesMap struct {
 type EventSubscription struct {
 	CustSubscriptionID       *string `json:"custSubscriptionID,omitempty"`
 	CustomerAWSID            *string `json:"customerAWSID,omitempty"`
+	Enabled                  *bool   `json:"enabled,omitempty"`
 	EventSubscriptionARN     *string `json:"eventSubscriptionARN,omitempty"`
 	SnsTopicARN              *string `json:"snsTopicARN,omitempty"`
 	SourceType               *string `json:"sourceType,omitempty"`
@@ -404,6 +430,7 @@ type GlobalCluster struct {
 
 type GlobalClusterMember struct {
 	DBClusterARN *string `json:"dbClusterARN,omitempty"`
+	IsWriter     *bool   `json:"isWriter,omitempty"`
 }
 
 type IPRange struct {
@@ -434,6 +461,8 @@ type Option struct {
 	OptionDescription *string `json:"optionDescription,omitempty"`
 	OptionName        *string `json:"optionName,omitempty"`
 	OptionVersion     *string `json:"optionVersion,omitempty"`
+	Permanent         *bool   `json:"permanent,omitempty"`
+	Persistent        *bool   `json:"persistent,omitempty"`
 	Port              *int64  `json:"port,omitempty"`
 }
 
@@ -444,12 +473,13 @@ type OptionConfiguration struct {
 }
 
 type OptionGroup struct {
-	EngineName             *string `json:"engineName,omitempty"`
-	MajorEngineVersion     *string `json:"majorEngineVersion,omitempty"`
-	OptionGroupARN         *string `json:"optionGroupARN,omitempty"`
-	OptionGroupDescription *string `json:"optionGroupDescription,omitempty"`
-	OptionGroupName        *string `json:"optionGroupName,omitempty"`
-	VPCID                  *string `json:"vpcID,omitempty"`
+	AllowsVPCAndNonVPCInstanceMemberships *bool   `json:"allowsVPCAndNonVPCInstanceMemberships,omitempty"`
+	EngineName                            *string `json:"engineName,omitempty"`
+	MajorEngineVersion                    *string `json:"majorEngineVersion,omitempty"`
+	OptionGroupARN                        *string `json:"optionGroupARN,omitempty"`
+	OptionGroupDescription                *string `json:"optionGroupDescription,omitempty"`
+	OptionGroupName                       *string `json:"optionGroupName,omitempty"`
+	VPCID                                 *string `json:"vpcID,omitempty"`
 }
 
 type OptionGroupMembership struct {
@@ -458,18 +488,25 @@ type OptionGroupMembership struct {
 }
 
 type OptionGroupOption struct {
-	DefaultPort                       *int64  `json:"defaultPort,omitempty"`
-	Description                       *string `json:"description,omitempty"`
-	EngineName                        *string `json:"engineName,omitempty"`
-	MajorEngineVersion                *string `json:"majorEngineVersion,omitempty"`
-	MinimumRequiredMinorEngineVersion *string `json:"minimumRequiredMinorEngineVersion,omitempty"`
-	Name                              *string `json:"name,omitempty"`
+	DefaultPort                           *int64  `json:"defaultPort,omitempty"`
+	Description                           *string `json:"description,omitempty"`
+	EngineName                            *string `json:"engineName,omitempty"`
+	MajorEngineVersion                    *string `json:"majorEngineVersion,omitempty"`
+	MinimumRequiredMinorEngineVersion     *string `json:"minimumRequiredMinorEngineVersion,omitempty"`
+	Name                                  *string `json:"name,omitempty"`
+	Permanent                             *bool   `json:"permanent,omitempty"`
+	Persistent                            *bool   `json:"persistent,omitempty"`
+	PortRequired                          *bool   `json:"portRequired,omitempty"`
+	RequiresAutoMinorEngineVersionUpgrade *bool   `json:"requiresAutoMinorEngineVersionUpgrade,omitempty"`
+	VPCOnly                               *bool   `json:"vpcOnly,omitempty"`
 }
 
 type OptionGroupOptionSetting struct {
 	AllowedValues      *string `json:"allowedValues,omitempty"`
 	ApplyType          *string `json:"applyType,omitempty"`
 	DefaultValue       *string `json:"defaultValue,omitempty"`
+	IsModifiable       *bool   `json:"isModifiable,omitempty"`
+	IsRequired         *bool   `json:"isRequired,omitempty"`
 	SettingDescription *string `json:"settingDescription,omitempty"`
 	SettingName        *string `json:"settingName,omitempty"`
 }
@@ -480,25 +517,39 @@ type OptionSetting struct {
 	DataType      *string `json:"dataType,omitempty"`
 	DefaultValue  *string `json:"defaultValue,omitempty"`
 	Description   *string `json:"description,omitempty"`
+	IsCollection  *bool   `json:"isCollection,omitempty"`
+	IsModifiable  *bool   `json:"isModifiable,omitempty"`
 	Name          *string `json:"name,omitempty"`
 	Value         *string `json:"value,omitempty"`
 }
 
 type OptionVersion struct {
-	Version *string `json:"version,omitempty"`
+	IsDefault *bool   `json:"isDefault,omitempty"`
+	Version   *string `json:"version,omitempty"`
 }
 
 type OrderableDBInstanceOption struct {
-	AvailabilityZoneGroup *string `json:"availabilityZoneGroup,omitempty"`
-	DBInstanceClass       *string `json:"dbInstanceClass,omitempty"`
-	Engine                *string `json:"engine,omitempty"`
-	EngineVersion         *string `json:"engineVersion,omitempty"`
-	LicenseModel          *string `json:"licenseModel,omitempty"`
-	MaxIOPSPerDBInstance  *int64  `json:"maxIOPSPerDBInstance,omitempty"`
-	MaxStorageSize        *int64  `json:"maxStorageSize,omitempty"`
-	MinIOPSPerDBInstance  *int64  `json:"minIOPSPerDBInstance,omitempty"`
-	MinStorageSize        *int64  `json:"minStorageSize,omitempty"`
-	StorageType           *string `json:"storageType,omitempty"`
+	AvailabilityZoneGroup             *string   `json:"availabilityZoneGroup,omitempty"`
+	DBInstanceClass                   *string   `json:"dbInstanceClass,omitempty"`
+	Engine                            *string   `json:"engine,omitempty"`
+	EngineVersion                     *string   `json:"engineVersion,omitempty"`
+	LicenseModel                      *string   `json:"licenseModel,omitempty"`
+	MaxIOPSPerDBInstance              *int64    `json:"maxIOPSPerDBInstance,omitempty"`
+	MaxStorageSize                    *int64    `json:"maxStorageSize,omitempty"`
+	MinIOPSPerDBInstance              *int64    `json:"minIOPSPerDBInstance,omitempty"`
+	MinStorageSize                    *int64    `json:"minStorageSize,omitempty"`
+	MultiAZCapable                    *bool     `json:"multiAZCapable,omitempty"`
+	OutpostCapable                    *bool     `json:"outpostCapable,omitempty"`
+	ReadReplicaCapable                *bool     `json:"readReplicaCapable,omitempty"`
+	StorageType                       *string   `json:"storageType,omitempty"`
+	SupportedEngineModes              []*string `json:"supportedEngineModes,omitempty"`
+	SupportsEnhancedMonitoring        *bool     `json:"supportsEnhancedMonitoring,omitempty"`
+	SupportsGlobalDatabases           *bool     `json:"supportsGlobalDatabases,omitempty"`
+	SupportsIAMDatabaseAuthentication *bool     `json:"supportsIAMDatabaseAuthentication,omitempty"`
+	SupportsIOPS                      *bool     `json:"supportsIOPS,omitempty"`
+	SupportsPerformanceInsights       *bool     `json:"supportsPerformanceInsights,omitempty"`
+	SupportsStorageEncryption         *bool     `json:"supportsStorageEncryption,omitempty"`
+	VPC                               *bool     `json:"vpc,omitempty"`
 }
 
 type Outpost struct {
@@ -506,14 +557,17 @@ type Outpost struct {
 }
 
 type Parameter struct {
-	AllowedValues        *string `json:"allowedValues,omitempty"`
-	ApplyType            *string `json:"applyType,omitempty"`
-	DataType             *string `json:"dataType,omitempty"`
-	Description          *string `json:"description,omitempty"`
-	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`
-	ParameterName        *string `json:"parameterName,omitempty"`
-	ParameterValue       *string `json:"parameterValue,omitempty"`
-	Source               *string `json:"source,omitempty"`
+	AllowedValues        *string   `json:"allowedValues,omitempty"`
+	ApplyMethod          *string   `json:"applyMethod,omitempty"`
+	ApplyType            *string   `json:"applyType,omitempty"`
+	DataType             *string   `json:"dataType,omitempty"`
+	Description          *string   `json:"description,omitempty"`
+	IsModifiable         *bool     `json:"isModifiable,omitempty"`
+	MinimumEngineVersion *string   `json:"minimumEngineVersion,omitempty"`
+	ParameterName        *string   `json:"parameterName,omitempty"`
+	ParameterValue       *string   `json:"parameterValue,omitempty"`
+	Source               *string   `json:"source,omitempty"`
+	SupportedEngineModes []*string `json:"supportedEngineModes,omitempty"`
 }
 
 type PendingMaintenanceAction struct {
@@ -554,6 +608,7 @@ type ReservedDBInstance struct {
 	CurrencyCode                  *string `json:"currencyCode,omitempty"`
 	DBInstanceClass               *string `json:"dbInstanceClass,omitempty"`
 	LeaseID                       *string `json:"leaseID,omitempty"`
+	MultiAZ                       *bool   `json:"multiAZ,omitempty"`
 	OfferingType                  *string `json:"offeringType,omitempty"`
 	ProductDescription            *string `json:"productDescription,omitempty"`
 	ReservedDBInstanceARN         *string `json:"reservedDBInstanceARN,omitempty"`
@@ -565,6 +620,7 @@ type ReservedDBInstance struct {
 type ReservedDBInstancesOffering struct {
 	CurrencyCode                  *string `json:"currencyCode,omitempty"`
 	DBInstanceClass               *string `json:"dbInstanceClass,omitempty"`
+	MultiAZ                       *bool   `json:"multiAZ,omitempty"`
 	OfferingType                  *string `json:"offeringType,omitempty"`
 	ProductDescription            *string `json:"productDescription,omitempty"`
 	ReservedDBInstancesOfferingID *string `json:"reservedDBInstancesOfferingID,omitempty"`
@@ -589,9 +645,10 @@ type ScalingConfigurationInfo struct {
 }
 
 type SourceRegion struct {
-	Endpoint   *string `json:"endpoint,omitempty"`
-	RegionName *string `json:"regionName,omitempty"`
-	Status     *string `json:"status,omitempty"`
+	Endpoint                                      *string `json:"endpoint,omitempty"`
+	RegionName                                    *string `json:"regionName,omitempty"`
+	Status                                        *string `json:"status,omitempty"`
+	SupportsDBInstanceAutomatedBackupsReplication *bool   `json:"supportsDBInstanceAutomatedBackupsReplication,omitempty"`
 }
 
 type Subnet struct {
@@ -615,9 +672,11 @@ type Timezone struct {
 }
 
 type UpgradeTarget struct {
-	Description   *string `json:"description,omitempty"`
-	Engine        *string `json:"engine,omitempty"`
-	EngineVersion *string `json:"engineVersion,omitempty"`
+	AutoUpgrade           *bool   `json:"autoUpgrade,omitempty"`
+	Description           *string `json:"description,omitempty"`
+	Engine                *string `json:"engine,omitempty"`
+	EngineVersion         *string `json:"engineVersion,omitempty"`
+	IsMajorVersionUpgrade *bool   `json:"isMajorVersionUpgrade,omitempty"`
 }
 
 type UserAuthConfig struct {
@@ -646,5 +705,6 @@ type VPNDetails struct {
 }
 
 type ValidStorageOptions struct {
-	StorageType *string `json:"storageType,omitempty"`
+	StorageType                *string `json:"storageType,omitempty"`
+	SupportsStorageAutoscaling *bool   `json:"supportsStorageAutoscaling,omitempty"`
 }

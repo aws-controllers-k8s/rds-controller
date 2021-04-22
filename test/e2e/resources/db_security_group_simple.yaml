@@ -5,4 +5,3 @@ metadata:
 spec:
   name: $DB_SECURITY_GROUP_NAME
   description: $DB_SECURITY_GROUP_DESC
-
