@@ -17,11 +17,39 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - namespaces
   verbs:
   - get
   - list
   - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbinstances/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - rds.services.k8s.aws
   resources:
@@ -78,6 +106,26 @@ rules:
   - rds.services.k8s.aws
   resources:
   - dbsubnetgroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - services.k8s.aws
+  resources:
+  - adoptedresources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - services.k8s.aws
+  resources:
+  - adoptedresources/status
   verbs:
   - get
   - patch

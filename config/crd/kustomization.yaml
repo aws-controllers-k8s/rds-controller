@@ -1,6 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+bases:
+  - common
 resources:
+  - bases/rds.services.k8s.aws_dbinstances.yaml
   - bases/rds.services.k8s.aws_dbparametergroups.yaml
   - bases/rds.services.k8s.aws_dbsecuritygroups.yaml
   - bases/rds.services.k8s.aws_dbsubnetgroups.yaml

@@ -17,11 +17,17 @@ package db_parameter_group
 
 import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	ackerrors "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8srt "k8s.io/apimachinery/pkg/runtime"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+)
+
+// Hack to avoid import errors during build...
+var (
+	_ = &ackerrors.MissingNameIdentifier
 )
 
 // resource implements the `aws-controller-k8s/runtime/pkg/types.AWSResource`
@@ -66,4 +72,19 @@ func (r *resource) RuntimeMetaObject() acktypes.RuntimeMetaObject {
 // Conditions returns the ACK Conditions collection for the AWSResource
 func (r *resource) Conditions() []*ackv1alpha1.Condition {
 	return r.ko.Status.Conditions
+}
+
+// SetObjectMeta sets the ObjectMeta field for the resource
+func (r *resource) SetObjectMeta(meta metav1.ObjectMeta) {
+	r.ko.ObjectMeta = meta
+}
+
+// SetIdentifiers sets the Spec or Status field that is referenced as the unique
+// resource identifier
+func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error {
+	if identifier.NameOrID == nil {
+		return ackerrors.MissingNameIdentifier
+	}
+	r.ko.Spec.Name = identifier.NameOrID
+	return nil
 }

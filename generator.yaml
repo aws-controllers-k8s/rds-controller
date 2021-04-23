@@ -5,7 +5,7 @@ ignore:
     - DBClusterEndpoint
     - DBClusterParameterGroup
     - DBClusterSnapshot
-    - DBInstance
+    #- DBInstance
     - DBInstanceReadReplica
     #- DBParameterGroup
     - DBProxy
@@ -16,7 +16,41 @@ ignore:
     - EventSubscription
     - GlobalCluster
     - OptionGroup
+  field_paths:
+operations:
+  DeleteDBInstance:
+    override_values:
+      # Clearly this is not ideal, but will suffice until we add custom hook
+      # points to the build_request methods to enable a genmeration of the
+      # final snapshot identifier to use.
+      SkipFinalSnapshot: true
 resources:
+  DBInstance:
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/db_instance/sdk_update_pre_build_request.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
+    renames:
+      operations:
+        CreateDBInstance:
+          input_fields:
+            # The data type of the create input and create output shape of the
+            # DBSecurityGroups field is different which causes errors when
+            # compiling
+            DBSecurityGroups: DBSecurityGroupNames
+    exceptions:
+      terminal_codes:
+        - InvalidParameter
+        - InvalidParameterValue
+        - InvalidParameterCombination
+        - InvalidDBInstanceState
+        - DBSecurityGroupNotFound
+        - DBSubnetGroupNotFoundFault
+        - DBParameterGroupNotFound
+    fields:
+      MasterUserPassword:
+        is_secret: true
   DBParameterGroup:
     renames:
       operations:
