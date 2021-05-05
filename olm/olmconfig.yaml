@@ -1,0 +1,46 @@
+---
+annotations:
+  capabilityLevel: Basic Install
+  shortDescription: AWS RDS controller is a service controller for managing RDS resources
+    in Kubernetes
+displayName: AWS Controllers for Kubernetes - Amazon RDS
+description: |-
+  Manage Amazon Relational Database Service ("RDS") resources in AWS from within your Kubernetes cluster.
+
+
+  **About Amazon RDS**
+
+
+  Amazon Relational Database Service (Amazon RDS) makes it easy to set up,
+  operate, and scale a relational database in the cloud. It provides
+  cost-efficient and resizable capacity while automating time-consuming
+  administration tasks such as hardware provisioning, database setup, patching
+  and backups. It frees you to focus on your applications so you can give them
+  the fast performance, high availability, security and compatibility they need.
+
+
+  Amazon RDS is available on several database instance types - optimized for
+  memory, performance or I/O -and provides you with six familiar database
+  engines to choose from, including Amazon Aurora, PostgreSQL, MySQL, MariaDB,
+  Oracle Database, and SQL Server. You can use the AWS Database Migration
+  Service to easily migrate or replicate your existing databases to Amazon RDS.
+
+
+  **About the AWS Controllers for Kubernetes**
+
+
+  This controller is a component of the [AWS Controller for Kubernetes](https://github.com/aws/aws-controllers-k8s)
+  project. This project is currently in **developer preview**. 
+samples:
+- kind: DBParameterGroup
+  spec: '{}'
+- kind: DBSecurityGroup
+  spec: '{}'
+- kind: DBSubnetGroup
+  spec: '{}'
+maintainers:
+- name: "Your Team Name"
+  email: "your-team@example.com"
+links:
+- name: Amazon RDS Developer Resources
+  url: https://aws.amazon.com/rds/developer-resources/
