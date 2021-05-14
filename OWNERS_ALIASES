@@ -1,11 +1,12 @@
 # See the OWNERS docs at https://go.k8s.io/owners#owners_aliases
 
 aliases:
-  # TODO: remove this alias, it will go stale in your repo, and in your repo
-  # you should have your own set of approvers (see OWNERS)
-  # in the original template repo, we must maintain this list to approve changes
-  # to the template itself
-  github-admin-team:
+  # Always allow the core ACK maintainers to have access to your repository
+  core-ack-team:
     - jaypipes
     - mhausenblas
     - a-hilaly
+    - RedbackThomson
+    - vijtrip2
+  # TODO: Add your team members to your team controller alias
+  service-team: []
