@@ -1,0 +1,19 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: ack-rds-reader
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbinstances
+  - dbparametergroups
+  - dbsecuritygroups
+  - dbsubnetgroups
+  verbs:
+  - get
+  - list
+  - watch
