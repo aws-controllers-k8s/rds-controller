@@ -9,6 +9,7 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbinstances
   - dbparametergroups
   - dbsecuritygroups
   - dbsubnetgroups
@@ -23,6 +24,7 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbinstances
   - dbparametergroups
   - dbsecuritygroups
   - dbsubnetgroups

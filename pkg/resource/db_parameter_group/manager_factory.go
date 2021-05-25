@@ -49,7 +49,7 @@ func (f *resourceManagerFactory) ManagerFor(
 	cfg ackcfg.Config,
 	log logr.Logger,
 	metrics *ackmetrics.Metrics,
-	rr acktypes.AWSResourceReconciler,
+	rr acktypes.Reconciler,
 	sess *session.Session,
 	id ackv1alpha1.AWSAccountID,
 	region ackv1alpha1.AWSRegion,
@@ -72,6 +72,11 @@ func (f *resourceManagerFactory) ManagerFor(
 	}
 	f.rmCache[rmId] = rm
 	return rm, nil
+}
+
+// IsAdoptable returns true if the resource is able to be adopted
+func (f *resourceManagerFactory) IsAdoptable() bool {
+	return true
 }
 
 func newResourceManagerFactory() *resourceManagerFactory {

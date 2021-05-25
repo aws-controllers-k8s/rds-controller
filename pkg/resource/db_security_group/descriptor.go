@@ -16,6 +16,7 @@
 package db_security_group
 
 import (
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -141,4 +142,22 @@ func (d *resourceDescriptor) MarkUnmanaged(
 		panic("nil RuntimeMetaObject in AWSResource")
 	}
 	k8sctrlutil.RemoveFinalizer(obj, finalizerString)
+}
+
+// MarkAdopted places descriptors on the custom resource that indicate the
+// resource was not created from within ACK.
+func (d *resourceDescriptor) MarkAdopted(
+	res acktypes.AWSResource,
+) {
+	obj := res.RuntimeMetaObject()
+	if obj == nil {
+		// Should not happen. If it does, there is a bug in the code
+		panic("nil RuntimeMetaObject in AWSResource")
+	}
+	curr := obj.GetAnnotations()
+	if curr == nil {
+		curr = make(map[string]string)
+	}
+	curr[ackv1alpha1.AnnotationAdopted] = "true"
+	obj.SetAnnotations(curr)
 }

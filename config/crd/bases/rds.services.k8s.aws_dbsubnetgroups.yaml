@@ -53,6 +53,8 @@ spec:
               tags:
                 description: Tags to assign to the DB subnet group.
                 items:
+                  description: Metadata assigned to an Amazon RDS resource consisting
+                    of a key-value pair.
                   properties:
                     key:
                       type: string
@@ -130,8 +132,13 @@ spec:
               subnets:
                 description: Contains a list of Subnet elements.
                 items:
+                  description: This data type is used as a response element for the
+                    DescribeDBSubnetGroups operation.
                   properties:
                     subnetAvailabilityZone:
+                      description: "Contains Availability Zone information. \n This
+                        data type is used as an element in the OrderableDBInstanceOption
+                        data type."
                       properties:
                         name:
                           type: string
@@ -139,6 +146,10 @@ spec:
                     subnetIdentifier:
                       type: string
                     subnetOutpost:
+                      description: "A data type that represents an Outpost. \n For
+                        more information about RDS on Outposts, see Amazon RDS on
+                        AWS Outposts (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html)
+                        in the Amazon RDS User Guide."
                       properties:
                         arn:
                           type: string

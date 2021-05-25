@@ -66,6 +66,10 @@ spec:
                   and changes are applied when you reboot the DB instance without
                   failover."
                 items:
+                  description: "This data type is used as a request parameter in the
+                    ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This
+                    data type is used as a response element in the DescribeEngineDefaultParameters
+                    and DescribeDBParameters actions."
                   properties:
                     allowedValues:
                       type: string
@@ -96,6 +100,8 @@ spec:
               tags:
                 description: Tags to assign to the DB parameter group.
                 items:
+                  description: Metadata assigned to an Amazon RDS resource consisting
+                    of a key-value pair.
                   properties:
                     key:
                       type: string
