@@ -17,7 +17,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - secrets
+  - namespaces
   verbs:
   - get
   - list
@@ -25,7 +25,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - namespaces
+  - secrets
   verbs:
   - get
   - list

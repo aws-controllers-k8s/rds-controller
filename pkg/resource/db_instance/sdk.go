@@ -22,12 +22,14 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	svcsdkapi "github.com/aws/aws-sdk-go/service/rds"
 )
 
 // Hack to avoid import errors during build...
@@ -39,25 +41,29 @@ var (
 	_ = &svcapitypes.DBInstance{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
+	_ = svcsdkapi.New
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
 func (rm *resourceManager) sdkFind(
 	ctx context.Context,
 	r *resource,
-) (*resource, error) {
+) (latest *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkFind")
+	defer exit(err)
 	input, err := rm.newListRequestPayload(r)
 	if err != nil {
 		return nil, err
 	}
-
-	resp, respErr := rm.sdkapi.DescribeDBInstancesWithContext(ctx, input)
-	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBInstances", respErr)
-	if respErr != nil {
-		if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.Code() == "DBInstanceNotFound" {
+	var resp *svcsdkapi.DescribeDBInstancesOutput
+	resp, err = rm.sdkapi.DescribeDBInstancesWithContext(ctx, input)
+	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBInstances", err)
+	if err != nil {
+		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBInstanceNotFound" {
 			return nil, ackerr.NotFound
 		}
-		return nil, respErr
+		return nil, err
 	}
 
 	// Merge in the information we read from the API call above to the copy of
@@ -658,7 +664,6 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-
 	return &resource{ko}, nil
 }
 
@@ -677,675 +682,25 @@ func (rm *resourceManager) newListRequestPayload(
 }
 
 // sdkCreate creates the supplied resource in the backend AWS service API and
-// returns a new resource with any fields in the Status field filled in
+// returns a copy of the resource with resource fields (in both Spec and
+// Status) filled in with values from the CREATE API operation's Output shape.
 func (rm *resourceManager) sdkCreate(
 	ctx context.Context,
-	r *resource,
-) (*resource, error) {
-	input, err := rm.newCreateRequestPayload(ctx, r)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, respErr := rm.sdkapi.CreateDBInstanceWithContext(ctx, input)
-	rm.metrics.RecordAPICall("CREATE", "CreateDBInstance", respErr)
-	if respErr != nil {
-		return nil, respErr
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := r.ko.DeepCopy()
-
-	if resp.DBInstance.AssociatedRoles != nil {
-		f1 := []*svcapitypes.DBInstanceRole{}
-		for _, f1iter := range resp.DBInstance.AssociatedRoles {
-			f1elem := &svcapitypes.DBInstanceRole{}
-			if f1iter.FeatureName != nil {
-				f1elem.FeatureName = f1iter.FeatureName
-			}
-			if f1iter.RoleArn != nil {
-				f1elem.RoleARN = f1iter.RoleArn
-			}
-			if f1iter.Status != nil {
-				f1elem.Status = f1iter.Status
-			}
-			f1 = append(f1, f1elem)
-		}
-		ko.Status.AssociatedRoles = f1
-	} else {
-		ko.Status.AssociatedRoles = nil
-	}
-	if resp.DBInstance.CACertificateIdentifier != nil {
-		ko.Status.CACertificateIdentifier = resp.DBInstance.CACertificateIdentifier
-	} else {
-		ko.Status.CACertificateIdentifier = nil
-	}
-	if resp.DBInstance.CustomerOwnedIpEnabled != nil {
-		ko.Status.CustomerOwnedIPEnabled = resp.DBInstance.CustomerOwnedIpEnabled
-	} else {
-		ko.Status.CustomerOwnedIPEnabled = nil
-	}
-	if ko.Status.ACKResourceMetadata == nil {
-		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
-	}
-	if resp.DBInstance.DBInstanceArn != nil {
-		arn := ackv1alpha1.AWSResourceName(*resp.DBInstance.DBInstanceArn)
-		ko.Status.ACKResourceMetadata.ARN = &arn
-	}
-	if resp.DBInstance.DBInstanceAutomatedBackupsReplications != nil {
-		f11 := []*svcapitypes.DBInstanceAutomatedBackupsReplication{}
-		for _, f11iter := range resp.DBInstance.DBInstanceAutomatedBackupsReplications {
-			f11elem := &svcapitypes.DBInstanceAutomatedBackupsReplication{}
-			if f11iter.DBInstanceAutomatedBackupsArn != nil {
-				f11elem.DBInstanceAutomatedBackupsARN = f11iter.DBInstanceAutomatedBackupsArn
-			}
-			f11 = append(f11, f11elem)
-		}
-		ko.Status.DBInstanceAutomatedBackupsReplications = f11
-	} else {
-		ko.Status.DBInstanceAutomatedBackupsReplications = nil
-	}
-	if resp.DBInstance.DBInstanceStatus != nil {
-		ko.Status.DBInstanceStatus = resp.DBInstance.DBInstanceStatus
-	} else {
-		ko.Status.DBInstanceStatus = nil
-	}
-	if resp.DBInstance.DBParameterGroups != nil {
-		f16 := []*svcapitypes.DBParameterGroupStatus_SDK{}
-		for _, f16iter := range resp.DBInstance.DBParameterGroups {
-			f16elem := &svcapitypes.DBParameterGroupStatus_SDK{}
-			if f16iter.DBParameterGroupName != nil {
-				f16elem.DBParameterGroupName = f16iter.DBParameterGroupName
-			}
-			if f16iter.ParameterApplyStatus != nil {
-				f16elem.ParameterApplyStatus = f16iter.ParameterApplyStatus
-			}
-			f16 = append(f16, f16elem)
-		}
-		ko.Status.DBParameterGroups = f16
-	} else {
-		ko.Status.DBParameterGroups = nil
-	}
-	if resp.DBInstance.DBSubnetGroup != nil {
-		f18 := &svcapitypes.DBSubnetGroup_SDK{}
-		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupArn != nil {
-			f18.DBSubnetGroupARN = resp.DBInstance.DBSubnetGroup.DBSubnetGroupArn
-		}
-		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupDescription != nil {
-			f18.DBSubnetGroupDescription = resp.DBInstance.DBSubnetGroup.DBSubnetGroupDescription
-		}
-		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupName != nil {
-			f18.DBSubnetGroupName = resp.DBInstance.DBSubnetGroup.DBSubnetGroupName
-		}
-		if resp.DBInstance.DBSubnetGroup.SubnetGroupStatus != nil {
-			f18.SubnetGroupStatus = resp.DBInstance.DBSubnetGroup.SubnetGroupStatus
-		}
-		if resp.DBInstance.DBSubnetGroup.Subnets != nil {
-			f18f4 := []*svcapitypes.Subnet{}
-			for _, f18f4iter := range resp.DBInstance.DBSubnetGroup.Subnets {
-				f18f4elem := &svcapitypes.Subnet{}
-				if f18f4iter.SubnetAvailabilityZone != nil {
-					f18f4elemf0 := &svcapitypes.AvailabilityZone{}
-					if f18f4iter.SubnetAvailabilityZone.Name != nil {
-						f18f4elemf0.Name = f18f4iter.SubnetAvailabilityZone.Name
-					}
-					f18f4elem.SubnetAvailabilityZone = f18f4elemf0
-				}
-				if f18f4iter.SubnetIdentifier != nil {
-					f18f4elem.SubnetIdentifier = f18f4iter.SubnetIdentifier
-				}
-				if f18f4iter.SubnetOutpost != nil {
-					f18f4elemf2 := &svcapitypes.Outpost{}
-					if f18f4iter.SubnetOutpost.Arn != nil {
-						f18f4elemf2.ARN = f18f4iter.SubnetOutpost.Arn
-					}
-					f18f4elem.SubnetOutpost = f18f4elemf2
-				}
-				if f18f4iter.SubnetStatus != nil {
-					f18f4elem.SubnetStatus = f18f4iter.SubnetStatus
-				}
-				f18f4 = append(f18f4, f18f4elem)
-			}
-			f18.Subnets = f18f4
-		}
-		if resp.DBInstance.DBSubnetGroup.VpcId != nil {
-			f18.VPCID = resp.DBInstance.DBSubnetGroup.VpcId
-		}
-		ko.Status.DBSubnetGroup = f18
-	} else {
-		ko.Status.DBSubnetGroup = nil
-	}
-	if resp.DBInstance.DbInstancePort != nil {
-		ko.Status.DBInstancePort = resp.DBInstance.DbInstancePort
-	} else {
-		ko.Status.DBInstancePort = nil
-	}
-	if resp.DBInstance.DbiResourceId != nil {
-		ko.Status.DBIResourceID = resp.DBInstance.DbiResourceId
-	} else {
-		ko.Status.DBIResourceID = nil
-	}
-	if resp.DBInstance.DomainMemberships != nil {
-		f22 := []*svcapitypes.DomainMembership{}
-		for _, f22iter := range resp.DBInstance.DomainMemberships {
-			f22elem := &svcapitypes.DomainMembership{}
-			if f22iter.Domain != nil {
-				f22elem.Domain = f22iter.Domain
-			}
-			if f22iter.FQDN != nil {
-				f22elem.FQDN = f22iter.FQDN
-			}
-			if f22iter.IAMRoleName != nil {
-				f22elem.IAMRoleName = f22iter.IAMRoleName
-			}
-			if f22iter.Status != nil {
-				f22elem.Status = f22iter.Status
-			}
-			f22 = append(f22, f22elem)
-		}
-		ko.Status.DomainMemberships = f22
-	} else {
-		ko.Status.DomainMemberships = nil
-	}
-	if resp.DBInstance.EnabledCloudwatchLogsExports != nil {
-		f23 := []*string{}
-		for _, f23iter := range resp.DBInstance.EnabledCloudwatchLogsExports {
-			var f23elem string
-			f23elem = *f23iter
-			f23 = append(f23, &f23elem)
-		}
-		ko.Status.EnabledCloudwatchLogsExports = f23
-	} else {
-		ko.Status.EnabledCloudwatchLogsExports = nil
-	}
-	if resp.DBInstance.Endpoint != nil {
-		f24 := &svcapitypes.Endpoint{}
-		if resp.DBInstance.Endpoint.Address != nil {
-			f24.Address = resp.DBInstance.Endpoint.Address
-		}
-		if resp.DBInstance.Endpoint.HostedZoneId != nil {
-			f24.HostedZoneID = resp.DBInstance.Endpoint.HostedZoneId
-		}
-		if resp.DBInstance.Endpoint.Port != nil {
-			f24.Port = resp.DBInstance.Endpoint.Port
-		}
-		ko.Status.Endpoint = f24
-	} else {
-		ko.Status.Endpoint = nil
-	}
-	if resp.DBInstance.EnhancedMonitoringResourceArn != nil {
-		ko.Status.EnhancedMonitoringResourceARN = resp.DBInstance.EnhancedMonitoringResourceArn
-	} else {
-		ko.Status.EnhancedMonitoringResourceARN = nil
-	}
-	if resp.DBInstance.IAMDatabaseAuthenticationEnabled != nil {
-		ko.Status.IAMDatabaseAuthenticationEnabled = resp.DBInstance.IAMDatabaseAuthenticationEnabled
-	} else {
-		ko.Status.IAMDatabaseAuthenticationEnabled = nil
-	}
-	if resp.DBInstance.InstanceCreateTime != nil {
-		ko.Status.InstanceCreateTime = &metav1.Time{*resp.DBInstance.InstanceCreateTime}
-	} else {
-		ko.Status.InstanceCreateTime = nil
-	}
-	if resp.DBInstance.LatestRestorableTime != nil {
-		ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBInstance.LatestRestorableTime}
-	} else {
-		ko.Status.LatestRestorableTime = nil
-	}
-	if resp.DBInstance.ListenerEndpoint != nil {
-		f34 := &svcapitypes.Endpoint{}
-		if resp.DBInstance.ListenerEndpoint.Address != nil {
-			f34.Address = resp.DBInstance.ListenerEndpoint.Address
-		}
-		if resp.DBInstance.ListenerEndpoint.HostedZoneId != nil {
-			f34.HostedZoneID = resp.DBInstance.ListenerEndpoint.HostedZoneId
-		}
-		if resp.DBInstance.ListenerEndpoint.Port != nil {
-			f34.Port = resp.DBInstance.ListenerEndpoint.Port
-		}
-		ko.Status.ListenerEndpoint = f34
-	} else {
-		ko.Status.ListenerEndpoint = nil
-	}
-	if resp.DBInstance.OptionGroupMemberships != nil {
-		f41 := []*svcapitypes.OptionGroupMembership{}
-		for _, f41iter := range resp.DBInstance.OptionGroupMemberships {
-			f41elem := &svcapitypes.OptionGroupMembership{}
-			if f41iter.OptionGroupName != nil {
-				f41elem.OptionGroupName = f41iter.OptionGroupName
-			}
-			if f41iter.Status != nil {
-				f41elem.Status = f41iter.Status
-			}
-			f41 = append(f41, f41elem)
-		}
-		ko.Status.OptionGroupMemberships = f41
-	} else {
-		ko.Status.OptionGroupMemberships = nil
-	}
-	if resp.DBInstance.PendingModifiedValues != nil {
-		f42 := &svcapitypes.PendingModifiedValues{}
-		if resp.DBInstance.PendingModifiedValues.AllocatedStorage != nil {
-			f42.AllocatedStorage = resp.DBInstance.PendingModifiedValues.AllocatedStorage
-		}
-		if resp.DBInstance.PendingModifiedValues.BackupRetentionPeriod != nil {
-			f42.BackupRetentionPeriod = resp.DBInstance.PendingModifiedValues.BackupRetentionPeriod
-		}
-		if resp.DBInstance.PendingModifiedValues.CACertificateIdentifier != nil {
-			f42.CACertificateIdentifier = resp.DBInstance.PendingModifiedValues.CACertificateIdentifier
-		}
-		if resp.DBInstance.PendingModifiedValues.DBInstanceClass != nil {
-			f42.DBInstanceClass = resp.DBInstance.PendingModifiedValues.DBInstanceClass
-		}
-		if resp.DBInstance.PendingModifiedValues.DBInstanceIdentifier != nil {
-			f42.DBInstanceIdentifier = resp.DBInstance.PendingModifiedValues.DBInstanceIdentifier
-		}
-		if resp.DBInstance.PendingModifiedValues.DBSubnetGroupName != nil {
-			f42.DBSubnetGroupName = resp.DBInstance.PendingModifiedValues.DBSubnetGroupName
-		}
-		if resp.DBInstance.PendingModifiedValues.EngineVersion != nil {
-			f42.EngineVersion = resp.DBInstance.PendingModifiedValues.EngineVersion
-		}
-		if resp.DBInstance.PendingModifiedValues.IAMDatabaseAuthenticationEnabled != nil {
-			f42.IAMDatabaseAuthenticationEnabled = resp.DBInstance.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
-		}
-		if resp.DBInstance.PendingModifiedValues.Iops != nil {
-			f42.IOPS = resp.DBInstance.PendingModifiedValues.Iops
-		}
-		if resp.DBInstance.PendingModifiedValues.LicenseModel != nil {
-			f42.LicenseModel = resp.DBInstance.PendingModifiedValues.LicenseModel
-		}
-		if resp.DBInstance.PendingModifiedValues.MasterUserPassword != nil {
-			f42.MasterUserPassword = resp.DBInstance.PendingModifiedValues.MasterUserPassword
-		}
-		if resp.DBInstance.PendingModifiedValues.MultiAZ != nil {
-			f42.MultiAZ = resp.DBInstance.PendingModifiedValues.MultiAZ
-		}
-		if resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
-			f42f12 := &svcapitypes.PendingCloudwatchLogsExports{}
-			if resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-				f42f12f0 := []*string{}
-				for _, f42f12f0iter := range resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-					var f42f12f0elem string
-					f42f12f0elem = *f42f12f0iter
-					f42f12f0 = append(f42f12f0, &f42f12f0elem)
-				}
-				f42f12.LogTypesToDisable = f42f12f0
-			}
-			if resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-				f42f12f1 := []*string{}
-				for _, f42f12f1iter := range resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-					var f42f12f1elem string
-					f42f12f1elem = *f42f12f1iter
-					f42f12f1 = append(f42f12f1, &f42f12f1elem)
-				}
-				f42f12.LogTypesToEnable = f42f12f1
-			}
-			f42.PendingCloudwatchLogsExports = f42f12
-		}
-		if resp.DBInstance.PendingModifiedValues.Port != nil {
-			f42.Port = resp.DBInstance.PendingModifiedValues.Port
-		}
-		if resp.DBInstance.PendingModifiedValues.ProcessorFeatures != nil {
-			f42f14 := []*svcapitypes.ProcessorFeature{}
-			for _, f42f14iter := range resp.DBInstance.PendingModifiedValues.ProcessorFeatures {
-				f42f14elem := &svcapitypes.ProcessorFeature{}
-				if f42f14iter.Name != nil {
-					f42f14elem.Name = f42f14iter.Name
-				}
-				if f42f14iter.Value != nil {
-					f42f14elem.Value = f42f14iter.Value
-				}
-				f42f14 = append(f42f14, f42f14elem)
-			}
-			f42.ProcessorFeatures = f42f14
-		}
-		if resp.DBInstance.PendingModifiedValues.StorageType != nil {
-			f42.StorageType = resp.DBInstance.PendingModifiedValues.StorageType
-		}
-		ko.Status.PendingModifiedValues = f42
-	} else {
-		ko.Status.PendingModifiedValues = nil
-	}
-	if resp.DBInstance.PerformanceInsightsEnabled != nil {
-		ko.Status.PerformanceInsightsEnabled = resp.DBInstance.PerformanceInsightsEnabled
-	} else {
-		ko.Status.PerformanceInsightsEnabled = nil
-	}
-	if resp.DBInstance.ReadReplicaDBClusterIdentifiers != nil {
-		f51 := []*string{}
-		for _, f51iter := range resp.DBInstance.ReadReplicaDBClusterIdentifiers {
-			var f51elem string
-			f51elem = *f51iter
-			f51 = append(f51, &f51elem)
-		}
-		ko.Status.ReadReplicaDBClusterIdentifiers = f51
-	} else {
-		ko.Status.ReadReplicaDBClusterIdentifiers = nil
-	}
-	if resp.DBInstance.ReadReplicaDBInstanceIdentifiers != nil {
-		f52 := []*string{}
-		for _, f52iter := range resp.DBInstance.ReadReplicaDBInstanceIdentifiers {
-			var f52elem string
-			f52elem = *f52iter
-			f52 = append(f52, &f52elem)
-		}
-		ko.Status.ReadReplicaDBInstanceIdentifiers = f52
-	} else {
-		ko.Status.ReadReplicaDBInstanceIdentifiers = nil
-	}
-	if resp.DBInstance.ReadReplicaSourceDBInstanceIdentifier != nil {
-		ko.Status.ReadReplicaSourceDBInstanceIdentifier = resp.DBInstance.ReadReplicaSourceDBInstanceIdentifier
-	} else {
-		ko.Status.ReadReplicaSourceDBInstanceIdentifier = nil
-	}
-	if resp.DBInstance.ReplicaMode != nil {
-		ko.Status.ReplicaMode = resp.DBInstance.ReplicaMode
-	} else {
-		ko.Status.ReplicaMode = nil
-	}
-	if resp.DBInstance.SecondaryAvailabilityZone != nil {
-		ko.Status.SecondaryAvailabilityZone = resp.DBInstance.SecondaryAvailabilityZone
-	} else {
-		ko.Status.SecondaryAvailabilityZone = nil
-	}
-	if resp.DBInstance.StatusInfos != nil {
-		f56 := []*svcapitypes.DBInstanceStatusInfo{}
-		for _, f56iter := range resp.DBInstance.StatusInfos {
-			f56elem := &svcapitypes.DBInstanceStatusInfo{}
-			if f56iter.Message != nil {
-				f56elem.Message = f56iter.Message
-			}
-			if f56iter.Normal != nil {
-				f56elem.Normal = f56iter.Normal
-			}
-			if f56iter.Status != nil {
-				f56elem.Status = f56iter.Status
-			}
-			if f56iter.StatusType != nil {
-				f56elem.StatusType = f56iter.StatusType
-			}
-			f56 = append(f56, f56elem)
-		}
-		ko.Status.StatusInfos = f56
-	} else {
-		ko.Status.StatusInfos = nil
-	}
-	if resp.DBInstance.TagList != nil {
-		f59 := []*svcapitypes.Tag{}
-		for _, f59iter := range resp.DBInstance.TagList {
-			f59elem := &svcapitypes.Tag{}
-			if f59iter.Key != nil {
-				f59elem.Key = f59iter.Key
-			}
-			if f59iter.Value != nil {
-				f59elem.Value = f59iter.Value
-			}
-			f59 = append(f59, f59elem)
-		}
-		ko.Status.TagList = f59
-	} else {
-		ko.Status.TagList = nil
-	}
-	if resp.DBInstance.VpcSecurityGroups != nil {
-		f62 := []*svcapitypes.VPCSecurityGroupMembership{}
-		for _, f62iter := range resp.DBInstance.VpcSecurityGroups {
-			f62elem := &svcapitypes.VPCSecurityGroupMembership{}
-			if f62iter.Status != nil {
-				f62elem.Status = f62iter.Status
-			}
-			if f62iter.VpcSecurityGroupId != nil {
-				f62elem.VPCSecurityGroupID = f62iter.VpcSecurityGroupId
-			}
-			f62 = append(f62, f62elem)
-		}
-		ko.Status.VPCSecurityGroups = f62
-	} else {
-		ko.Status.VPCSecurityGroups = nil
-	}
-
-	rm.setStatusDefaults(ko)
-
-	return &resource{ko}, nil
-}
-
-// newCreateRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Create API call for the resource
-func (rm *resourceManager) newCreateRequestPayload(
-	ctx context.Context,
-	r *resource,
-) (*svcsdk.CreateDBInstanceInput, error) {
-	res := &svcsdk.CreateDBInstanceInput{}
-
-	if r.ko.Spec.AllocatedStorage != nil {
-		res.SetAllocatedStorage(*r.ko.Spec.AllocatedStorage)
-	}
-	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
-		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
-	}
-	if r.ko.Spec.AvailabilityZone != nil {
-		res.SetAvailabilityZone(*r.ko.Spec.AvailabilityZone)
-	}
-	if r.ko.Spec.BackupRetentionPeriod != nil {
-		res.SetBackupRetentionPeriod(*r.ko.Spec.BackupRetentionPeriod)
-	}
-	if r.ko.Spec.CharacterSetName != nil {
-		res.SetCharacterSetName(*r.ko.Spec.CharacterSetName)
-	}
-	if r.ko.Spec.CopyTagsToSnapshot != nil {
-		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
-	}
-	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
-	}
-	if r.ko.Spec.DBInstanceClass != nil {
-		res.SetDBInstanceClass(*r.ko.Spec.DBInstanceClass)
-	}
-	if r.ko.Spec.DBInstanceIdentifier != nil {
-		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
-	}
-	if r.ko.Spec.DBName != nil {
-		res.SetDBName(*r.ko.Spec.DBName)
-	}
-	if r.ko.Spec.DBParameterGroupName != nil {
-		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
-	}
-	if r.ko.Spec.DBSecurityGroupNames != nil {
-		f11 := []*string{}
-		for _, f11iter := range r.ko.Spec.DBSecurityGroupNames {
-			var f11elem string
-			f11elem = *f11iter
-			f11 = append(f11, &f11elem)
-		}
-		res.SetDBSecurityGroups(f11)
-	}
-	if r.ko.Spec.DBSubnetGroupName != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
-	}
-	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
-	}
-	if r.ko.Spec.Domain != nil {
-		res.SetDomain(*r.ko.Spec.Domain)
-	}
-	if r.ko.Spec.DomainIAMRoleName != nil {
-		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
-	}
-	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
-		f16 := []*string{}
-		for _, f16iter := range r.ko.Spec.EnableCloudwatchLogsExports {
-			var f16elem string
-			f16elem = *f16iter
-			f16 = append(f16, &f16elem)
-		}
-		res.SetEnableCloudwatchLogsExports(f16)
-	}
-	if r.ko.Spec.EnableCustomerOwnedIP != nil {
-		res.SetEnableCustomerOwnedIp(*r.ko.Spec.EnableCustomerOwnedIP)
-	}
-	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
-		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
-	}
-	if r.ko.Spec.EnablePerformanceInsights != nil {
-		res.SetEnablePerformanceInsights(*r.ko.Spec.EnablePerformanceInsights)
-	}
-	if r.ko.Spec.Engine != nil {
-		res.SetEngine(*r.ko.Spec.Engine)
-	}
-	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
-	}
-	if r.ko.Spec.IOPS != nil {
-		res.SetIops(*r.ko.Spec.IOPS)
-	}
-	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
-	}
-	if r.ko.Spec.LicenseModel != nil {
-		res.SetLicenseModel(*r.ko.Spec.LicenseModel)
-	}
-	if r.ko.Spec.MasterUserPassword != nil {
-		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
-		if err != nil {
-			return nil, err
-		}
-		if tmpSecret != "" {
-			res.SetMasterUserPassword(tmpSecret)
-		}
-	}
-	if r.ko.Spec.MasterUsername != nil {
-		res.SetMasterUsername(*r.ko.Spec.MasterUsername)
-	}
-	if r.ko.Spec.MaxAllocatedStorage != nil {
-		res.SetMaxAllocatedStorage(*r.ko.Spec.MaxAllocatedStorage)
-	}
-	if r.ko.Spec.MonitoringInterval != nil {
-		res.SetMonitoringInterval(*r.ko.Spec.MonitoringInterval)
-	}
-	if r.ko.Spec.MonitoringRoleARN != nil {
-		res.SetMonitoringRoleArn(*r.ko.Spec.MonitoringRoleARN)
-	}
-	if r.ko.Spec.MultiAZ != nil {
-		res.SetMultiAZ(*r.ko.Spec.MultiAZ)
-	}
-	if r.ko.Spec.NcharCharacterSetName != nil {
-		res.SetNcharCharacterSetName(*r.ko.Spec.NcharCharacterSetName)
-	}
-	if r.ko.Spec.OptionGroupName != nil {
-		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
-	}
-	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
-		res.SetPerformanceInsightsKMSKeyId(*r.ko.Spec.PerformanceInsightsKMSKeyID)
-	}
-	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
-		res.SetPerformanceInsightsRetentionPeriod(*r.ko.Spec.PerformanceInsightsRetentionPeriod)
-	}
-	if r.ko.Spec.Port != nil {
-		res.SetPort(*r.ko.Spec.Port)
-	}
-	if r.ko.Spec.PreferredBackupWindow != nil {
-		res.SetPreferredBackupWindow(*r.ko.Spec.PreferredBackupWindow)
-	}
-	if r.ko.Spec.PreferredMaintenanceWindow != nil {
-		res.SetPreferredMaintenanceWindow(*r.ko.Spec.PreferredMaintenanceWindow)
-	}
-	if r.ko.Spec.ProcessorFeatures != nil {
-		f38 := []*svcsdk.ProcessorFeature{}
-		for _, f38iter := range r.ko.Spec.ProcessorFeatures {
-			f38elem := &svcsdk.ProcessorFeature{}
-			if f38iter.Name != nil {
-				f38elem.SetName(*f38iter.Name)
-			}
-			if f38iter.Value != nil {
-				f38elem.SetValue(*f38iter.Value)
-			}
-			f38 = append(f38, f38elem)
-		}
-		res.SetProcessorFeatures(f38)
-	}
-	if r.ko.Spec.PromotionTier != nil {
-		res.SetPromotionTier(*r.ko.Spec.PromotionTier)
-	}
-	if r.ko.Spec.PubliclyAccessible != nil {
-		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
-	}
-	if r.ko.Spec.StorageEncrypted != nil {
-		res.SetStorageEncrypted(*r.ko.Spec.StorageEncrypted)
-	}
-	if r.ko.Spec.StorageType != nil {
-		res.SetStorageType(*r.ko.Spec.StorageType)
-	}
-	if r.ko.Spec.Tags != nil {
-		f43 := []*svcsdk.Tag{}
-		for _, f43iter := range r.ko.Spec.Tags {
-			f43elem := &svcsdk.Tag{}
-			if f43iter.Key != nil {
-				f43elem.SetKey(*f43iter.Key)
-			}
-			if f43iter.Value != nil {
-				f43elem.SetValue(*f43iter.Value)
-			}
-			f43 = append(f43, f43elem)
-		}
-		res.SetTags(f43)
-	}
-	if r.ko.Spec.TDECredentialARN != nil {
-		res.SetTdeCredentialArn(*r.ko.Spec.TDECredentialARN)
-	}
-	if r.ko.Spec.TDECredentialPassword != nil {
-		res.SetTdeCredentialPassword(*r.ko.Spec.TDECredentialPassword)
-	}
-	if r.ko.Spec.Timezone != nil {
-		res.SetTimezone(*r.ko.Spec.Timezone)
-	}
-	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		f47 := []*string{}
-		for _, f47iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var f47elem string
-			f47elem = *f47iter
-			f47 = append(f47, &f47elem)
-		}
-		res.SetVpcSecurityGroupIds(f47)
-	}
-
-	return res, nil
-}
-
-// sdkUpdate patches the supplied resource in the backend AWS service API and
-// returns a new resource with updated fields.
-func (rm *resourceManager) sdkUpdate(
-	ctx context.Context,
 	desired *resource,
-	latest *resource,
-	delta *ackcompare.Delta,
-) (*resource, error) {
-	if instanceDeleting(latest) {
-		msg := "DB instance is currently being deleted"
-		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitWhileDeleting
-	}
-	if instanceCreating(latest) {
-		msg := "DB instance is currently being created"
-		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
-	}
-	if instanceHasTerminalStatus(latest) {
-		msg := "DB instance is in '" + *latest.ko.Status.DBInstanceStatus + "' status"
-		setTerminalCondition(desired, corev1.ConditionTrue, &msg, nil)
-		setSyncedCondition(desired, corev1.ConditionTrue, nil, nil)
-		return desired, nil
-	}
-
-	input, err := rm.newUpdateRequestPayload(ctx, desired)
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkCreate")
+	defer exit(err)
+	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, respErr := rm.sdkapi.ModifyDBInstanceWithContext(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "ModifyDBInstance", respErr)
-	if respErr != nil {
-		return nil, respErr
+	var resp *svcsdkapi.CreateDBInstanceOutput
+	resp, err = rm.sdkapi.CreateDBInstanceWithContext(ctx, input)
+	rm.metrics.RecordAPICall("CREATE", "CreateDBInstance", err)
+	if err != nil {
+		return nil, err
 	}
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
@@ -1761,7 +1116,665 @@ func (rm *resourceManager) sdkUpdate(
 	}
 
 	rm.setStatusDefaults(ko)
+	return &resource{ko}, nil
+}
 
+// newCreateRequestPayload returns an SDK-specific struct for the HTTP request
+// payload of the Create API call for the resource
+func (rm *resourceManager) newCreateRequestPayload(
+	ctx context.Context,
+	r *resource,
+) (*svcsdk.CreateDBInstanceInput, error) {
+	res := &svcsdk.CreateDBInstanceInput{}
+
+	if r.ko.Spec.AllocatedStorage != nil {
+		res.SetAllocatedStorage(*r.ko.Spec.AllocatedStorage)
+	}
+	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
+		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+	}
+	if r.ko.Spec.AvailabilityZone != nil {
+		res.SetAvailabilityZone(*r.ko.Spec.AvailabilityZone)
+	}
+	if r.ko.Spec.BackupRetentionPeriod != nil {
+		res.SetBackupRetentionPeriod(*r.ko.Spec.BackupRetentionPeriod)
+	}
+	if r.ko.Spec.CharacterSetName != nil {
+		res.SetCharacterSetName(*r.ko.Spec.CharacterSetName)
+	}
+	if r.ko.Spec.CopyTagsToSnapshot != nil {
+		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+	}
+	if r.ko.Spec.DBClusterIdentifier != nil {
+		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+	}
+	if r.ko.Spec.DBInstanceClass != nil {
+		res.SetDBInstanceClass(*r.ko.Spec.DBInstanceClass)
+	}
+	if r.ko.Spec.DBInstanceIdentifier != nil {
+		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
+	}
+	if r.ko.Spec.DBName != nil {
+		res.SetDBName(*r.ko.Spec.DBName)
+	}
+	if r.ko.Spec.DBParameterGroupName != nil {
+		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
+	}
+	if r.ko.Spec.DBSecurityGroupNames != nil {
+		f11 := []*string{}
+		for _, f11iter := range r.ko.Spec.DBSecurityGroupNames {
+			var f11elem string
+			f11elem = *f11iter
+			f11 = append(f11, &f11elem)
+		}
+		res.SetDBSecurityGroups(f11)
+	}
+	if r.ko.Spec.DBSubnetGroupName != nil {
+		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+	}
+	if r.ko.Spec.DeletionProtection != nil {
+		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+	}
+	if r.ko.Spec.Domain != nil {
+		res.SetDomain(*r.ko.Spec.Domain)
+	}
+	if r.ko.Spec.DomainIAMRoleName != nil {
+		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+	}
+	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
+		f16 := []*string{}
+		for _, f16iter := range r.ko.Spec.EnableCloudwatchLogsExports {
+			var f16elem string
+			f16elem = *f16iter
+			f16 = append(f16, &f16elem)
+		}
+		res.SetEnableCloudwatchLogsExports(f16)
+	}
+	if r.ko.Spec.EnableCustomerOwnedIP != nil {
+		res.SetEnableCustomerOwnedIp(*r.ko.Spec.EnableCustomerOwnedIP)
+	}
+	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
+		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+	}
+	if r.ko.Spec.EnablePerformanceInsights != nil {
+		res.SetEnablePerformanceInsights(*r.ko.Spec.EnablePerformanceInsights)
+	}
+	if r.ko.Spec.Engine != nil {
+		res.SetEngine(*r.ko.Spec.Engine)
+	}
+	if r.ko.Spec.EngineVersion != nil {
+		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+	}
+	if r.ko.Spec.IOPS != nil {
+		res.SetIops(*r.ko.Spec.IOPS)
+	}
+	if r.ko.Spec.KMSKeyID != nil {
+		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+	}
+	if r.ko.Spec.LicenseModel != nil {
+		res.SetLicenseModel(*r.ko.Spec.LicenseModel)
+	}
+	if r.ko.Spec.MasterUserPassword != nil {
+		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
+		if err != nil {
+			return nil, err
+		}
+		if tmpSecret != "" {
+			res.SetMasterUserPassword(tmpSecret)
+		}
+	}
+	if r.ko.Spec.MasterUsername != nil {
+		res.SetMasterUsername(*r.ko.Spec.MasterUsername)
+	}
+	if r.ko.Spec.MaxAllocatedStorage != nil {
+		res.SetMaxAllocatedStorage(*r.ko.Spec.MaxAllocatedStorage)
+	}
+	if r.ko.Spec.MonitoringInterval != nil {
+		res.SetMonitoringInterval(*r.ko.Spec.MonitoringInterval)
+	}
+	if r.ko.Spec.MonitoringRoleARN != nil {
+		res.SetMonitoringRoleArn(*r.ko.Spec.MonitoringRoleARN)
+	}
+	if r.ko.Spec.MultiAZ != nil {
+		res.SetMultiAZ(*r.ko.Spec.MultiAZ)
+	}
+	if r.ko.Spec.NcharCharacterSetName != nil {
+		res.SetNcharCharacterSetName(*r.ko.Spec.NcharCharacterSetName)
+	}
+	if r.ko.Spec.OptionGroupName != nil {
+		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+	}
+	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+		res.SetPerformanceInsightsKMSKeyId(*r.ko.Spec.PerformanceInsightsKMSKeyID)
+	}
+	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+		res.SetPerformanceInsightsRetentionPeriod(*r.ko.Spec.PerformanceInsightsRetentionPeriod)
+	}
+	if r.ko.Spec.Port != nil {
+		res.SetPort(*r.ko.Spec.Port)
+	}
+	if r.ko.Spec.PreferredBackupWindow != nil {
+		res.SetPreferredBackupWindow(*r.ko.Spec.PreferredBackupWindow)
+	}
+	if r.ko.Spec.PreferredMaintenanceWindow != nil {
+		res.SetPreferredMaintenanceWindow(*r.ko.Spec.PreferredMaintenanceWindow)
+	}
+	if r.ko.Spec.ProcessorFeatures != nil {
+		f38 := []*svcsdk.ProcessorFeature{}
+		for _, f38iter := range r.ko.Spec.ProcessorFeatures {
+			f38elem := &svcsdk.ProcessorFeature{}
+			if f38iter.Name != nil {
+				f38elem.SetName(*f38iter.Name)
+			}
+			if f38iter.Value != nil {
+				f38elem.SetValue(*f38iter.Value)
+			}
+			f38 = append(f38, f38elem)
+		}
+		res.SetProcessorFeatures(f38)
+	}
+	if r.ko.Spec.PromotionTier != nil {
+		res.SetPromotionTier(*r.ko.Spec.PromotionTier)
+	}
+	if r.ko.Spec.PubliclyAccessible != nil {
+		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+	}
+	if r.ko.Spec.StorageEncrypted != nil {
+		res.SetStorageEncrypted(*r.ko.Spec.StorageEncrypted)
+	}
+	if r.ko.Spec.StorageType != nil {
+		res.SetStorageType(*r.ko.Spec.StorageType)
+	}
+	if r.ko.Spec.Tags != nil {
+		f43 := []*svcsdk.Tag{}
+		for _, f43iter := range r.ko.Spec.Tags {
+			f43elem := &svcsdk.Tag{}
+			if f43iter.Key != nil {
+				f43elem.SetKey(*f43iter.Key)
+			}
+			if f43iter.Value != nil {
+				f43elem.SetValue(*f43iter.Value)
+			}
+			f43 = append(f43, f43elem)
+		}
+		res.SetTags(f43)
+	}
+	if r.ko.Spec.TDECredentialARN != nil {
+		res.SetTdeCredentialArn(*r.ko.Spec.TDECredentialARN)
+	}
+	if r.ko.Spec.TDECredentialPassword != nil {
+		res.SetTdeCredentialPassword(*r.ko.Spec.TDECredentialPassword)
+	}
+	if r.ko.Spec.Timezone != nil {
+		res.SetTimezone(*r.ko.Spec.Timezone)
+	}
+	if r.ko.Spec.VPCSecurityGroupIDs != nil {
+		f47 := []*string{}
+		for _, f47iter := range r.ko.Spec.VPCSecurityGroupIDs {
+			var f47elem string
+			f47elem = *f47iter
+			f47 = append(f47, &f47elem)
+		}
+		res.SetVpcSecurityGroupIds(f47)
+	}
+
+	return res, nil
+}
+
+// sdkUpdate patches the supplied resource in the backend AWS service API and
+// returns a new resource with updated fields.
+func (rm *resourceManager) sdkUpdate(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+	delta *ackcompare.Delta,
+) (updated *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkUpdate")
+	defer exit(err)
+	if instanceDeleting(latest) {
+		msg := "DB instance is currently being deleted"
+		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitWhileDeleting
+	}
+	if instanceCreating(latest) {
+		msg := "DB instance is currently being created"
+		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitUntilCanModify(latest)
+	}
+	if instanceHasTerminalStatus(latest) {
+		msg := "DB instance is in '" + *latest.ko.Status.DBInstanceStatus + "' status"
+		setTerminalCondition(desired, corev1.ConditionTrue, &msg, nil)
+		setSyncedCondition(desired, corev1.ConditionTrue, nil, nil)
+		return desired, nil
+	}
+
+	input, err := rm.newUpdateRequestPayload(ctx, desired)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp *svcsdkapi.ModifyDBInstanceOutput
+	_ = resp
+	resp, err = rm.sdkapi.ModifyDBInstanceWithContext(ctx, input)
+	rm.metrics.RecordAPICall("UPDATE", "ModifyDBInstance", err)
+	if err != nil {
+		return nil, err
+	}
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := desired.ko.DeepCopy()
+
+	if resp.DBInstance.AssociatedRoles != nil {
+		f1 := []*svcapitypes.DBInstanceRole{}
+		for _, f1iter := range resp.DBInstance.AssociatedRoles {
+			f1elem := &svcapitypes.DBInstanceRole{}
+			if f1iter.FeatureName != nil {
+				f1elem.FeatureName = f1iter.FeatureName
+			}
+			if f1iter.RoleArn != nil {
+				f1elem.RoleARN = f1iter.RoleArn
+			}
+			if f1iter.Status != nil {
+				f1elem.Status = f1iter.Status
+			}
+			f1 = append(f1, f1elem)
+		}
+		ko.Status.AssociatedRoles = f1
+	} else {
+		ko.Status.AssociatedRoles = nil
+	}
+	if resp.DBInstance.CACertificateIdentifier != nil {
+		ko.Status.CACertificateIdentifier = resp.DBInstance.CACertificateIdentifier
+	} else {
+		ko.Status.CACertificateIdentifier = nil
+	}
+	if resp.DBInstance.CustomerOwnedIpEnabled != nil {
+		ko.Status.CustomerOwnedIPEnabled = resp.DBInstance.CustomerOwnedIpEnabled
+	} else {
+		ko.Status.CustomerOwnedIPEnabled = nil
+	}
+	if ko.Status.ACKResourceMetadata == nil {
+		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
+	if resp.DBInstance.DBInstanceArn != nil {
+		arn := ackv1alpha1.AWSResourceName(*resp.DBInstance.DBInstanceArn)
+		ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBInstance.DBInstanceAutomatedBackupsReplications != nil {
+		f11 := []*svcapitypes.DBInstanceAutomatedBackupsReplication{}
+		for _, f11iter := range resp.DBInstance.DBInstanceAutomatedBackupsReplications {
+			f11elem := &svcapitypes.DBInstanceAutomatedBackupsReplication{}
+			if f11iter.DBInstanceAutomatedBackupsArn != nil {
+				f11elem.DBInstanceAutomatedBackupsARN = f11iter.DBInstanceAutomatedBackupsArn
+			}
+			f11 = append(f11, f11elem)
+		}
+		ko.Status.DBInstanceAutomatedBackupsReplications = f11
+	} else {
+		ko.Status.DBInstanceAutomatedBackupsReplications = nil
+	}
+	if resp.DBInstance.DBInstanceStatus != nil {
+		ko.Status.DBInstanceStatus = resp.DBInstance.DBInstanceStatus
+	} else {
+		ko.Status.DBInstanceStatus = nil
+	}
+	if resp.DBInstance.DBParameterGroups != nil {
+		f16 := []*svcapitypes.DBParameterGroupStatus_SDK{}
+		for _, f16iter := range resp.DBInstance.DBParameterGroups {
+			f16elem := &svcapitypes.DBParameterGroupStatus_SDK{}
+			if f16iter.DBParameterGroupName != nil {
+				f16elem.DBParameterGroupName = f16iter.DBParameterGroupName
+			}
+			if f16iter.ParameterApplyStatus != nil {
+				f16elem.ParameterApplyStatus = f16iter.ParameterApplyStatus
+			}
+			f16 = append(f16, f16elem)
+		}
+		ko.Status.DBParameterGroups = f16
+	} else {
+		ko.Status.DBParameterGroups = nil
+	}
+	if resp.DBInstance.DBSubnetGroup != nil {
+		f18 := &svcapitypes.DBSubnetGroup_SDK{}
+		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupArn != nil {
+			f18.DBSubnetGroupARN = resp.DBInstance.DBSubnetGroup.DBSubnetGroupArn
+		}
+		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupDescription != nil {
+			f18.DBSubnetGroupDescription = resp.DBInstance.DBSubnetGroup.DBSubnetGroupDescription
+		}
+		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupName != nil {
+			f18.DBSubnetGroupName = resp.DBInstance.DBSubnetGroup.DBSubnetGroupName
+		}
+		if resp.DBInstance.DBSubnetGroup.SubnetGroupStatus != nil {
+			f18.SubnetGroupStatus = resp.DBInstance.DBSubnetGroup.SubnetGroupStatus
+		}
+		if resp.DBInstance.DBSubnetGroup.Subnets != nil {
+			f18f4 := []*svcapitypes.Subnet{}
+			for _, f18f4iter := range resp.DBInstance.DBSubnetGroup.Subnets {
+				f18f4elem := &svcapitypes.Subnet{}
+				if f18f4iter.SubnetAvailabilityZone != nil {
+					f18f4elemf0 := &svcapitypes.AvailabilityZone{}
+					if f18f4iter.SubnetAvailabilityZone.Name != nil {
+						f18f4elemf0.Name = f18f4iter.SubnetAvailabilityZone.Name
+					}
+					f18f4elem.SubnetAvailabilityZone = f18f4elemf0
+				}
+				if f18f4iter.SubnetIdentifier != nil {
+					f18f4elem.SubnetIdentifier = f18f4iter.SubnetIdentifier
+				}
+				if f18f4iter.SubnetOutpost != nil {
+					f18f4elemf2 := &svcapitypes.Outpost{}
+					if f18f4iter.SubnetOutpost.Arn != nil {
+						f18f4elemf2.ARN = f18f4iter.SubnetOutpost.Arn
+					}
+					f18f4elem.SubnetOutpost = f18f4elemf2
+				}
+				if f18f4iter.SubnetStatus != nil {
+					f18f4elem.SubnetStatus = f18f4iter.SubnetStatus
+				}
+				f18f4 = append(f18f4, f18f4elem)
+			}
+			f18.Subnets = f18f4
+		}
+		if resp.DBInstance.DBSubnetGroup.VpcId != nil {
+			f18.VPCID = resp.DBInstance.DBSubnetGroup.VpcId
+		}
+		ko.Status.DBSubnetGroup = f18
+	} else {
+		ko.Status.DBSubnetGroup = nil
+	}
+	if resp.DBInstance.DbInstancePort != nil {
+		ko.Status.DBInstancePort = resp.DBInstance.DbInstancePort
+	} else {
+		ko.Status.DBInstancePort = nil
+	}
+	if resp.DBInstance.DbiResourceId != nil {
+		ko.Status.DBIResourceID = resp.DBInstance.DbiResourceId
+	} else {
+		ko.Status.DBIResourceID = nil
+	}
+	if resp.DBInstance.DomainMemberships != nil {
+		f22 := []*svcapitypes.DomainMembership{}
+		for _, f22iter := range resp.DBInstance.DomainMemberships {
+			f22elem := &svcapitypes.DomainMembership{}
+			if f22iter.Domain != nil {
+				f22elem.Domain = f22iter.Domain
+			}
+			if f22iter.FQDN != nil {
+				f22elem.FQDN = f22iter.FQDN
+			}
+			if f22iter.IAMRoleName != nil {
+				f22elem.IAMRoleName = f22iter.IAMRoleName
+			}
+			if f22iter.Status != nil {
+				f22elem.Status = f22iter.Status
+			}
+			f22 = append(f22, f22elem)
+		}
+		ko.Status.DomainMemberships = f22
+	} else {
+		ko.Status.DomainMemberships = nil
+	}
+	if resp.DBInstance.EnabledCloudwatchLogsExports != nil {
+		f23 := []*string{}
+		for _, f23iter := range resp.DBInstance.EnabledCloudwatchLogsExports {
+			var f23elem string
+			f23elem = *f23iter
+			f23 = append(f23, &f23elem)
+		}
+		ko.Status.EnabledCloudwatchLogsExports = f23
+	} else {
+		ko.Status.EnabledCloudwatchLogsExports = nil
+	}
+	if resp.DBInstance.Endpoint != nil {
+		f24 := &svcapitypes.Endpoint{}
+		if resp.DBInstance.Endpoint.Address != nil {
+			f24.Address = resp.DBInstance.Endpoint.Address
+		}
+		if resp.DBInstance.Endpoint.HostedZoneId != nil {
+			f24.HostedZoneID = resp.DBInstance.Endpoint.HostedZoneId
+		}
+		if resp.DBInstance.Endpoint.Port != nil {
+			f24.Port = resp.DBInstance.Endpoint.Port
+		}
+		ko.Status.Endpoint = f24
+	} else {
+		ko.Status.Endpoint = nil
+	}
+	if resp.DBInstance.EnhancedMonitoringResourceArn != nil {
+		ko.Status.EnhancedMonitoringResourceARN = resp.DBInstance.EnhancedMonitoringResourceArn
+	} else {
+		ko.Status.EnhancedMonitoringResourceARN = nil
+	}
+	if resp.DBInstance.IAMDatabaseAuthenticationEnabled != nil {
+		ko.Status.IAMDatabaseAuthenticationEnabled = resp.DBInstance.IAMDatabaseAuthenticationEnabled
+	} else {
+		ko.Status.IAMDatabaseAuthenticationEnabled = nil
+	}
+	if resp.DBInstance.InstanceCreateTime != nil {
+		ko.Status.InstanceCreateTime = &metav1.Time{*resp.DBInstance.InstanceCreateTime}
+	} else {
+		ko.Status.InstanceCreateTime = nil
+	}
+	if resp.DBInstance.LatestRestorableTime != nil {
+		ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBInstance.LatestRestorableTime}
+	} else {
+		ko.Status.LatestRestorableTime = nil
+	}
+	if resp.DBInstance.ListenerEndpoint != nil {
+		f34 := &svcapitypes.Endpoint{}
+		if resp.DBInstance.ListenerEndpoint.Address != nil {
+			f34.Address = resp.DBInstance.ListenerEndpoint.Address
+		}
+		if resp.DBInstance.ListenerEndpoint.HostedZoneId != nil {
+			f34.HostedZoneID = resp.DBInstance.ListenerEndpoint.HostedZoneId
+		}
+		if resp.DBInstance.ListenerEndpoint.Port != nil {
+			f34.Port = resp.DBInstance.ListenerEndpoint.Port
+		}
+		ko.Status.ListenerEndpoint = f34
+	} else {
+		ko.Status.ListenerEndpoint = nil
+	}
+	if resp.DBInstance.OptionGroupMemberships != nil {
+		f41 := []*svcapitypes.OptionGroupMembership{}
+		for _, f41iter := range resp.DBInstance.OptionGroupMemberships {
+			f41elem := &svcapitypes.OptionGroupMembership{}
+			if f41iter.OptionGroupName != nil {
+				f41elem.OptionGroupName = f41iter.OptionGroupName
+			}
+			if f41iter.Status != nil {
+				f41elem.Status = f41iter.Status
+			}
+			f41 = append(f41, f41elem)
+		}
+		ko.Status.OptionGroupMemberships = f41
+	} else {
+		ko.Status.OptionGroupMemberships = nil
+	}
+	if resp.DBInstance.PendingModifiedValues != nil {
+		f42 := &svcapitypes.PendingModifiedValues{}
+		if resp.DBInstance.PendingModifiedValues.AllocatedStorage != nil {
+			f42.AllocatedStorage = resp.DBInstance.PendingModifiedValues.AllocatedStorage
+		}
+		if resp.DBInstance.PendingModifiedValues.BackupRetentionPeriod != nil {
+			f42.BackupRetentionPeriod = resp.DBInstance.PendingModifiedValues.BackupRetentionPeriod
+		}
+		if resp.DBInstance.PendingModifiedValues.CACertificateIdentifier != nil {
+			f42.CACertificateIdentifier = resp.DBInstance.PendingModifiedValues.CACertificateIdentifier
+		}
+		if resp.DBInstance.PendingModifiedValues.DBInstanceClass != nil {
+			f42.DBInstanceClass = resp.DBInstance.PendingModifiedValues.DBInstanceClass
+		}
+		if resp.DBInstance.PendingModifiedValues.DBInstanceIdentifier != nil {
+			f42.DBInstanceIdentifier = resp.DBInstance.PendingModifiedValues.DBInstanceIdentifier
+		}
+		if resp.DBInstance.PendingModifiedValues.DBSubnetGroupName != nil {
+			f42.DBSubnetGroupName = resp.DBInstance.PendingModifiedValues.DBSubnetGroupName
+		}
+		if resp.DBInstance.PendingModifiedValues.EngineVersion != nil {
+			f42.EngineVersion = resp.DBInstance.PendingModifiedValues.EngineVersion
+		}
+		if resp.DBInstance.PendingModifiedValues.IAMDatabaseAuthenticationEnabled != nil {
+			f42.IAMDatabaseAuthenticationEnabled = resp.DBInstance.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
+		}
+		if resp.DBInstance.PendingModifiedValues.Iops != nil {
+			f42.IOPS = resp.DBInstance.PendingModifiedValues.Iops
+		}
+		if resp.DBInstance.PendingModifiedValues.LicenseModel != nil {
+			f42.LicenseModel = resp.DBInstance.PendingModifiedValues.LicenseModel
+		}
+		if resp.DBInstance.PendingModifiedValues.MasterUserPassword != nil {
+			f42.MasterUserPassword = resp.DBInstance.PendingModifiedValues.MasterUserPassword
+		}
+		if resp.DBInstance.PendingModifiedValues.MultiAZ != nil {
+			f42.MultiAZ = resp.DBInstance.PendingModifiedValues.MultiAZ
+		}
+		if resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
+			f42f12 := &svcapitypes.PendingCloudwatchLogsExports{}
+			if resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
+				f42f12f0 := []*string{}
+				for _, f42f12f0iter := range resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
+					var f42f12f0elem string
+					f42f12f0elem = *f42f12f0iter
+					f42f12f0 = append(f42f12f0, &f42f12f0elem)
+				}
+				f42f12.LogTypesToDisable = f42f12f0
+			}
+			if resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
+				f42f12f1 := []*string{}
+				for _, f42f12f1iter := range resp.DBInstance.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
+					var f42f12f1elem string
+					f42f12f1elem = *f42f12f1iter
+					f42f12f1 = append(f42f12f1, &f42f12f1elem)
+				}
+				f42f12.LogTypesToEnable = f42f12f1
+			}
+			f42.PendingCloudwatchLogsExports = f42f12
+		}
+		if resp.DBInstance.PendingModifiedValues.Port != nil {
+			f42.Port = resp.DBInstance.PendingModifiedValues.Port
+		}
+		if resp.DBInstance.PendingModifiedValues.ProcessorFeatures != nil {
+			f42f14 := []*svcapitypes.ProcessorFeature{}
+			for _, f42f14iter := range resp.DBInstance.PendingModifiedValues.ProcessorFeatures {
+				f42f14elem := &svcapitypes.ProcessorFeature{}
+				if f42f14iter.Name != nil {
+					f42f14elem.Name = f42f14iter.Name
+				}
+				if f42f14iter.Value != nil {
+					f42f14elem.Value = f42f14iter.Value
+				}
+				f42f14 = append(f42f14, f42f14elem)
+			}
+			f42.ProcessorFeatures = f42f14
+		}
+		if resp.DBInstance.PendingModifiedValues.StorageType != nil {
+			f42.StorageType = resp.DBInstance.PendingModifiedValues.StorageType
+		}
+		ko.Status.PendingModifiedValues = f42
+	} else {
+		ko.Status.PendingModifiedValues = nil
+	}
+	if resp.DBInstance.PerformanceInsightsEnabled != nil {
+		ko.Status.PerformanceInsightsEnabled = resp.DBInstance.PerformanceInsightsEnabled
+	} else {
+		ko.Status.PerformanceInsightsEnabled = nil
+	}
+	if resp.DBInstance.ReadReplicaDBClusterIdentifiers != nil {
+		f51 := []*string{}
+		for _, f51iter := range resp.DBInstance.ReadReplicaDBClusterIdentifiers {
+			var f51elem string
+			f51elem = *f51iter
+			f51 = append(f51, &f51elem)
+		}
+		ko.Status.ReadReplicaDBClusterIdentifiers = f51
+	} else {
+		ko.Status.ReadReplicaDBClusterIdentifiers = nil
+	}
+	if resp.DBInstance.ReadReplicaDBInstanceIdentifiers != nil {
+		f52 := []*string{}
+		for _, f52iter := range resp.DBInstance.ReadReplicaDBInstanceIdentifiers {
+			var f52elem string
+			f52elem = *f52iter
+			f52 = append(f52, &f52elem)
+		}
+		ko.Status.ReadReplicaDBInstanceIdentifiers = f52
+	} else {
+		ko.Status.ReadReplicaDBInstanceIdentifiers = nil
+	}
+	if resp.DBInstance.ReadReplicaSourceDBInstanceIdentifier != nil {
+		ko.Status.ReadReplicaSourceDBInstanceIdentifier = resp.DBInstance.ReadReplicaSourceDBInstanceIdentifier
+	} else {
+		ko.Status.ReadReplicaSourceDBInstanceIdentifier = nil
+	}
+	if resp.DBInstance.ReplicaMode != nil {
+		ko.Status.ReplicaMode = resp.DBInstance.ReplicaMode
+	} else {
+		ko.Status.ReplicaMode = nil
+	}
+	if resp.DBInstance.SecondaryAvailabilityZone != nil {
+		ko.Status.SecondaryAvailabilityZone = resp.DBInstance.SecondaryAvailabilityZone
+	} else {
+		ko.Status.SecondaryAvailabilityZone = nil
+	}
+	if resp.DBInstance.StatusInfos != nil {
+		f56 := []*svcapitypes.DBInstanceStatusInfo{}
+		for _, f56iter := range resp.DBInstance.StatusInfos {
+			f56elem := &svcapitypes.DBInstanceStatusInfo{}
+			if f56iter.Message != nil {
+				f56elem.Message = f56iter.Message
+			}
+			if f56iter.Normal != nil {
+				f56elem.Normal = f56iter.Normal
+			}
+			if f56iter.Status != nil {
+				f56elem.Status = f56iter.Status
+			}
+			if f56iter.StatusType != nil {
+				f56elem.StatusType = f56iter.StatusType
+			}
+			f56 = append(f56, f56elem)
+		}
+		ko.Status.StatusInfos = f56
+	} else {
+		ko.Status.StatusInfos = nil
+	}
+	if resp.DBInstance.TagList != nil {
+		f59 := []*svcapitypes.Tag{}
+		for _, f59iter := range resp.DBInstance.TagList {
+			f59elem := &svcapitypes.Tag{}
+			if f59iter.Key != nil {
+				f59elem.Key = f59iter.Key
+			}
+			if f59iter.Value != nil {
+				f59elem.Value = f59iter.Value
+			}
+			f59 = append(f59, f59elem)
+		}
+		ko.Status.TagList = f59
+	} else {
+		ko.Status.TagList = nil
+	}
+	if resp.DBInstance.VpcSecurityGroups != nil {
+		f62 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f62iter := range resp.DBInstance.VpcSecurityGroups {
+			f62elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f62iter.Status != nil {
+				f62elem.Status = f62iter.Status
+			}
+			if f62iter.VpcSecurityGroupId != nil {
+				f62elem.VPCSecurityGroupID = f62iter.VpcSecurityGroupId
+			}
+			f62 = append(f62, f62elem)
+		}
+		ko.Status.VPCSecurityGroups = f62
+	} else {
+		ko.Status.VPCSecurityGroups = nil
+	}
+
+	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
 }
 
@@ -1912,7 +1925,10 @@ func (rm *resourceManager) newUpdateRequestPayload(
 func (rm *resourceManager) sdkDelete(
 	ctx context.Context,
 	r *resource,
-) error {
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkDelete")
+	defer exit(err)
 	if instanceDeleting(r) {
 		return requeueWaitWhileDeleting
 	}
@@ -1921,9 +1937,9 @@ func (rm *resourceManager) sdkDelete(
 	if err != nil {
 		return err
 	}
-	_, respErr := rm.sdkapi.DeleteDBInstanceWithContext(ctx, input)
-	rm.metrics.RecordAPICall("DELETE", "DeleteDBInstance", respErr)
-	return respErr
+	_, err = rm.sdkapi.DeleteDBInstanceWithContext(ctx, input)
+	rm.metrics.RecordAPICall("DELETE", "DeleteDBInstance", err)
+	return err
 }
 
 // newDeleteRequestPayload returns an SDK-specific struct for the HTTP request

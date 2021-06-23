@@ -20,7 +20,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DBSecurityGroupSpec defines the desired state of DBSecurityGroup
+// DBSecurityGroupSpec defines the desired state of DBSecurityGroup.
+//
+// Contains the details for an Amazon RDS DB security group.
+//
+// This data type is used as a response element in the DescribeDBSecurityGroups
+// action.
 type DBSecurityGroupSpec struct {
 	// The description for the DB security group.
 	// +kubebuilder:validation:Required

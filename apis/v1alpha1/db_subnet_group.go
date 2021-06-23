@@ -20,7 +20,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DBSubnetGroupSpec defines the desired state of DBSubnetGroup
+// DBSubnetGroupSpec defines the desired state of DBSubnetGroup.
+//
+// Contains the details of an Amazon RDS DB subnet group.
+//
+// This data type is used as a response element in the DescribeDBSubnetGroups
+// action.
 type DBSubnetGroupSpec struct {
 	// The description for the DB subnet group.
 	// +kubebuilder:validation:Required

@@ -20,7 +20,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DBParameterGroupSpec defines the desired state of DBParameterGroup
+// DBParameterGroupSpec defines the desired state of DBParameterGroup.
+//
+// Contains the details of an Amazon RDS DB parameter group.
+//
+// This data type is used as a response element in the DescribeDBParameterGroups
+// action.
 type DBParameterGroupSpec struct {
 	// The description for the DB parameter group.
 	// +kubebuilder:validation:Required

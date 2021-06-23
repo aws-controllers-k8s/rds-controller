@@ -34,7 +34,10 @@ spec:
           metadata:
             type: object
           spec:
-            description: DBSecurityGroupSpec defines the desired state of DBSecurityGroup
+            description: "DBSecurityGroupSpec defines the desired state of DBSecurityGroup.
+              \n Contains the details for an Amazon RDS DB security group. \n This
+              data type is used as a response element in the DescribeDBSecurityGroups
+              action."
             properties:
               description:
                 description: The description for the DB security group.

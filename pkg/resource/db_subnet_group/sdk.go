@@ -22,12 +22,14 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	svcsdkapi "github.com/aws/aws-sdk-go/service/rds"
 )
 
 // Hack to avoid import errors during build...
@@ -39,25 +41,29 @@ var (
 	_ = &svcapitypes.DBSubnetGroup{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
+	_ = svcsdkapi.New
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
 func (rm *resourceManager) sdkFind(
 	ctx context.Context,
 	r *resource,
-) (*resource, error) {
+) (latest *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkFind")
+	defer exit(err)
 	input, err := rm.newListRequestPayload(r)
 	if err != nil {
 		return nil, err
 	}
-
-	resp, respErr := rm.sdkapi.DescribeDBSubnetGroupsWithContext(ctx, input)
-	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBSubnetGroups", respErr)
-	if respErr != nil {
-		if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.Code() == "DBSubnetGroupNotFoundFault" {
+	var resp *svcsdkapi.DescribeDBSubnetGroupsOutput
+	resp, err = rm.sdkapi.DescribeDBSubnetGroupsWithContext(ctx, input)
+	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBSubnetGroups", err)
+	if err != nil {
+		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBSubnetGroupNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
-		return nil, respErr
+		return nil, err
 	}
 
 	// Merge in the information we read from the API call above to the copy of
@@ -126,7 +132,6 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-
 	return &resource{ko}, nil
 }
 
@@ -145,137 +150,25 @@ func (rm *resourceManager) newListRequestPayload(
 }
 
 // sdkCreate creates the supplied resource in the backend AWS service API and
-// returns a new resource with any fields in the Status field filled in
+// returns a copy of the resource with resource fields (in both Spec and
+// Status) filled in with values from the CREATE API operation's Output shape.
 func (rm *resourceManager) sdkCreate(
 	ctx context.Context,
-	r *resource,
-) (*resource, error) {
-	input, err := rm.newCreateRequestPayload(ctx, r)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, respErr := rm.sdkapi.CreateDBSubnetGroupWithContext(ctx, input)
-	rm.metrics.RecordAPICall("CREATE", "CreateDBSubnetGroup", respErr)
-	if respErr != nil {
-		return nil, respErr
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := r.ko.DeepCopy()
-
-	if ko.Status.ACKResourceMetadata == nil {
-		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
-	}
-	if resp.DBSubnetGroup.DBSubnetGroupArn != nil {
-		arn := ackv1alpha1.AWSResourceName(*resp.DBSubnetGroup.DBSubnetGroupArn)
-		ko.Status.ACKResourceMetadata.ARN = &arn
-	}
-	if resp.DBSubnetGroup.SubnetGroupStatus != nil {
-		ko.Status.SubnetGroupStatus = resp.DBSubnetGroup.SubnetGroupStatus
-	} else {
-		ko.Status.SubnetGroupStatus = nil
-	}
-	if resp.DBSubnetGroup.Subnets != nil {
-		f4 := []*svcapitypes.Subnet{}
-		for _, f4iter := range resp.DBSubnetGroup.Subnets {
-			f4elem := &svcapitypes.Subnet{}
-			if f4iter.SubnetAvailabilityZone != nil {
-				f4elemf0 := &svcapitypes.AvailabilityZone{}
-				if f4iter.SubnetAvailabilityZone.Name != nil {
-					f4elemf0.Name = f4iter.SubnetAvailabilityZone.Name
-				}
-				f4elem.SubnetAvailabilityZone = f4elemf0
-			}
-			if f4iter.SubnetIdentifier != nil {
-				f4elem.SubnetIdentifier = f4iter.SubnetIdentifier
-			}
-			if f4iter.SubnetOutpost != nil {
-				f4elemf2 := &svcapitypes.Outpost{}
-				if f4iter.SubnetOutpost.Arn != nil {
-					f4elemf2.ARN = f4iter.SubnetOutpost.Arn
-				}
-				f4elem.SubnetOutpost = f4elemf2
-			}
-			if f4iter.SubnetStatus != nil {
-				f4elem.SubnetStatus = f4iter.SubnetStatus
-			}
-			f4 = append(f4, f4elem)
-		}
-		ko.Status.Subnets = f4
-	} else {
-		ko.Status.Subnets = nil
-	}
-	if resp.DBSubnetGroup.VpcId != nil {
-		ko.Status.VPCID = resp.DBSubnetGroup.VpcId
-	} else {
-		ko.Status.VPCID = nil
-	}
-
-	rm.setStatusDefaults(ko)
-
-	return &resource{ko}, nil
-}
-
-// newCreateRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Create API call for the resource
-func (rm *resourceManager) newCreateRequestPayload(
-	ctx context.Context,
-	r *resource,
-) (*svcsdk.CreateDBSubnetGroupInput, error) {
-	res := &svcsdk.CreateDBSubnetGroupInput{}
-
-	if r.ko.Spec.Description != nil {
-		res.SetDBSubnetGroupDescription(*r.ko.Spec.Description)
-	}
-	if r.ko.Spec.Name != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
-	}
-	if r.ko.Spec.SubnetIDs != nil {
-		f2 := []*string{}
-		for _, f2iter := range r.ko.Spec.SubnetIDs {
-			var f2elem string
-			f2elem = *f2iter
-			f2 = append(f2, &f2elem)
-		}
-		res.SetSubnetIds(f2)
-	}
-	if r.ko.Spec.Tags != nil {
-		f3 := []*svcsdk.Tag{}
-		for _, f3iter := range r.ko.Spec.Tags {
-			f3elem := &svcsdk.Tag{}
-			if f3iter.Key != nil {
-				f3elem.SetKey(*f3iter.Key)
-			}
-			if f3iter.Value != nil {
-				f3elem.SetValue(*f3iter.Value)
-			}
-			f3 = append(f3, f3elem)
-		}
-		res.SetTags(f3)
-	}
-
-	return res, nil
-}
-
-// sdkUpdate patches the supplied resource in the backend AWS service API and
-// returns a new resource with updated fields.
-func (rm *resourceManager) sdkUpdate(
-	ctx context.Context,
 	desired *resource,
-	latest *resource,
-	delta *ackcompare.Delta,
-) (*resource, error) {
-
-	input, err := rm.newUpdateRequestPayload(ctx, desired)
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkCreate")
+	defer exit(err)
+	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, respErr := rm.sdkapi.ModifyDBSubnetGroupWithContext(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "ModifyDBSubnetGroup", respErr)
-	if respErr != nil {
-		return nil, respErr
+	var resp *svcsdkapi.CreateDBSubnetGroupOutput
+	resp, err = rm.sdkapi.CreateDBSubnetGroupWithContext(ctx, input)
+	rm.metrics.RecordAPICall("CREATE", "CreateDBSubnetGroup", err)
+	if err != nil {
+		return nil, err
 	}
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
@@ -330,7 +223,126 @@ func (rm *resourceManager) sdkUpdate(
 	}
 
 	rm.setStatusDefaults(ko)
+	return &resource{ko}, nil
+}
 
+// newCreateRequestPayload returns an SDK-specific struct for the HTTP request
+// payload of the Create API call for the resource
+func (rm *resourceManager) newCreateRequestPayload(
+	ctx context.Context,
+	r *resource,
+) (*svcsdk.CreateDBSubnetGroupInput, error) {
+	res := &svcsdk.CreateDBSubnetGroupInput{}
+
+	if r.ko.Spec.Description != nil {
+		res.SetDBSubnetGroupDescription(*r.ko.Spec.Description)
+	}
+	if r.ko.Spec.Name != nil {
+		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
+	}
+	if r.ko.Spec.SubnetIDs != nil {
+		f2 := []*string{}
+		for _, f2iter := range r.ko.Spec.SubnetIDs {
+			var f2elem string
+			f2elem = *f2iter
+			f2 = append(f2, &f2elem)
+		}
+		res.SetSubnetIds(f2)
+	}
+	if r.ko.Spec.Tags != nil {
+		f3 := []*svcsdk.Tag{}
+		for _, f3iter := range r.ko.Spec.Tags {
+			f3elem := &svcsdk.Tag{}
+			if f3iter.Key != nil {
+				f3elem.SetKey(*f3iter.Key)
+			}
+			if f3iter.Value != nil {
+				f3elem.SetValue(*f3iter.Value)
+			}
+			f3 = append(f3, f3elem)
+		}
+		res.SetTags(f3)
+	}
+
+	return res, nil
+}
+
+// sdkUpdate patches the supplied resource in the backend AWS service API and
+// returns a new resource with updated fields.
+func (rm *resourceManager) sdkUpdate(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+	delta *ackcompare.Delta,
+) (updated *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkUpdate")
+	defer exit(err)
+	input, err := rm.newUpdateRequestPayload(ctx, desired)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp *svcsdkapi.ModifyDBSubnetGroupOutput
+	_ = resp
+	resp, err = rm.sdkapi.ModifyDBSubnetGroupWithContext(ctx, input)
+	rm.metrics.RecordAPICall("UPDATE", "ModifyDBSubnetGroup", err)
+	if err != nil {
+		return nil, err
+	}
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := desired.ko.DeepCopy()
+
+	if ko.Status.ACKResourceMetadata == nil {
+		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
+	if resp.DBSubnetGroup.DBSubnetGroupArn != nil {
+		arn := ackv1alpha1.AWSResourceName(*resp.DBSubnetGroup.DBSubnetGroupArn)
+		ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBSubnetGroup.SubnetGroupStatus != nil {
+		ko.Status.SubnetGroupStatus = resp.DBSubnetGroup.SubnetGroupStatus
+	} else {
+		ko.Status.SubnetGroupStatus = nil
+	}
+	if resp.DBSubnetGroup.Subnets != nil {
+		f4 := []*svcapitypes.Subnet{}
+		for _, f4iter := range resp.DBSubnetGroup.Subnets {
+			f4elem := &svcapitypes.Subnet{}
+			if f4iter.SubnetAvailabilityZone != nil {
+				f4elemf0 := &svcapitypes.AvailabilityZone{}
+				if f4iter.SubnetAvailabilityZone.Name != nil {
+					f4elemf0.Name = f4iter.SubnetAvailabilityZone.Name
+				}
+				f4elem.SubnetAvailabilityZone = f4elemf0
+			}
+			if f4iter.SubnetIdentifier != nil {
+				f4elem.SubnetIdentifier = f4iter.SubnetIdentifier
+			}
+			if f4iter.SubnetOutpost != nil {
+				f4elemf2 := &svcapitypes.Outpost{}
+				if f4iter.SubnetOutpost.Arn != nil {
+					f4elemf2.ARN = f4iter.SubnetOutpost.Arn
+				}
+				f4elem.SubnetOutpost = f4elemf2
+			}
+			if f4iter.SubnetStatus != nil {
+				f4elem.SubnetStatus = f4iter.SubnetStatus
+			}
+			f4 = append(f4, f4elem)
+		}
+		ko.Status.Subnets = f4
+	} else {
+		ko.Status.Subnets = nil
+	}
+	if resp.DBSubnetGroup.VpcId != nil {
+		ko.Status.VPCID = resp.DBSubnetGroup.VpcId
+	} else {
+		ko.Status.VPCID = nil
+	}
+
+	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
 }
 
@@ -359,15 +371,17 @@ func (rm *resourceManager) newUpdateRequestPayload(
 func (rm *resourceManager) sdkDelete(
 	ctx context.Context,
 	r *resource,
-) error {
-
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkDelete")
+	defer exit(err)
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return err
 	}
-	_, respErr := rm.sdkapi.DeleteDBSubnetGroupWithContext(ctx, input)
-	rm.metrics.RecordAPICall("DELETE", "DeleteDBSubnetGroup", respErr)
-	return respErr
+	_, err = rm.sdkapi.DeleteDBSubnetGroupWithContext(ctx, input)
+	rm.metrics.RecordAPICall("DELETE", "DeleteDBSubnetGroup", err)
+	return err
 }
 
 // newDeleteRequestPayload returns an SDK-specific struct for the HTTP request
