@@ -34,7 +34,10 @@ spec:
           metadata:
             type: object
           spec:
-            description: DBParameterGroupSpec defines the desired state of DBParameterGroup
+            description: "DBParameterGroupSpec defines the desired state of DBParameterGroup.
+              \n Contains the details of an Amazon RDS DB parameter group. \n This
+              data type is used as a response element in the DescribeDBParameterGroups
+              action."
             properties:
               description:
                 description: The description for the DB parameter group.

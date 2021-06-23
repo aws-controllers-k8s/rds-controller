@@ -34,7 +34,9 @@ spec:
           metadata:
             type: object
           spec:
-            description: DBInstanceSpec defines the desired state of DBInstance
+            description: "DBInstanceSpec defines the desired state of DBInstance.
+              \n Contains the details of an Amazon RDS DB instance. \n This data type
+              is used as a response element in the DescribeDBInstances action."
             properties:
               allocatedStorage:
                 description: "The amount of storage (in gibibytes) to allocate for

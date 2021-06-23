@@ -24,6 +24,7 @@ import (
 // +kubebuilder:rbac:groups=services.k8s.aws,resources=adoptedresources/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 var (
 	reg = ackrt.NewRegistry()

@@ -20,7 +20,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DBInstanceSpec defines the desired state of DBInstance
+// DBInstanceSpec defines the desired state of DBInstance.
+//
+// Contains the details of an Amazon RDS DB instance.
+//
+// This data type is used as a response element in the DescribeDBInstances action.
 type DBInstanceSpec struct {
 	// The amount of storage (in gibibytes) to allocate for the DB instance.
 	//

@@ -34,7 +34,9 @@ spec:
           metadata:
             type: object
           spec:
-            description: DBSubnetGroupSpec defines the desired state of DBSubnetGroup
+            description: "DBSubnetGroupSpec defines the desired state of DBSubnetGroup.
+              \n Contains the details of an Amazon RDS DB subnet group. \n This data
+              type is used as a response element in the DescribeDBSubnetGroups action."
             properties:
               description:
                 description: The description for the DB subnet group.
