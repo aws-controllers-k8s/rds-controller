@@ -60,10 +60,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: AWS_ACCOUNT_ID
+          value: {{ .Values.aws.account_id | quote }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
         - name: ACK_WATCH_NAMESPACE
           value: {{ .Values.watchNamespace }}
+        - name: ACK_ENABLE_DEVELOPMENT_LOGGING
+          value: {{ .Values.log.enable_development_logging | quote }}
+        - name: ACK_LOG_LEVEL
+          value: {{ .Values.log.level | quote }}
         - name: ACK_RESOURCE_TAGS
           value: {{ join "," .Values.resourceTags | quote }}
       terminationGracePeriodSeconds: 10
