@@ -74,6 +74,11 @@ func (r *resource) Conditions() []*ackv1alpha1.Condition {
 	return r.ko.Status.Conditions
 }
 
+// ReplaceConditions sets the Conditions status field for the resource
+func (r *resource) ReplaceConditions(conditions []*ackv1alpha1.Condition) {
+	r.ko.Status.Conditions = conditions
+}
+
 // SetObjectMeta sets the ObjectMeta field for the resource
 func (r *resource) SetObjectMeta(meta metav1.ObjectMeta) {
 	r.ko.ObjectMeta = meta
