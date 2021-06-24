@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/controller
-  tag: rds-v0.0.1
+  tag: rds-v0.0.2
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -15,6 +15,15 @@ deployment:
   annotations: {}
   labels: {}
   containerPort: 8080
+
+metrics:
+  service:
+    # Set to true to automatically create a Kubernetes Service resource for the
+    # Prometheus metrics server endpoint in controller
+    create: false
+    # Which Type to use for the Kubernetes Service?
+    # See: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: "ClusterIP"
 
 resources:
   requests:
@@ -27,6 +36,12 @@ resources:
 aws:
   # If specified, use the AWS region for AWS API calls
   region: ""
+  account_id: ""
+
+# log level for the controller
+log:
+  enable_development_logging: false
+  level: info
 
 # If specified, the service controller will watch for object creation only in the provided namespace
 watchNamespace: ""
