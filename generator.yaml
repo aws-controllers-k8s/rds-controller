@@ -1,7 +1,7 @@
 ignore:
   resource_names:
     - CustomAvailabilityZone
-    - DBCluster
+    #- DBCluster
     - DBClusterEndpoint
     - DBClusterParameterGroup
     - DBClusterSnapshot
@@ -18,6 +18,12 @@ ignore:
     - OptionGroup
   field_paths:
 operations:
+  DeleteDBCluster:
+    override_values:
+      # Clearly this is not ideal, but will suffice until we add custom hook
+      # points to the build_request methods to enable a genmeration of the
+      # final snapshot identifier to use.
+      SkipFinalSnapshot: true
   DeleteDBInstance:
     override_values:
       # Clearly this is not ideal, but will suffice until we add custom hook
@@ -25,6 +31,32 @@ operations:
       # final snapshot identifier to use.
       SkipFinalSnapshot: true
 resources:
+  DBCluster:
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/db_cluster/sdk_update_pre_build_request.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/db_cluster/sdk_delete_pre_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - DBClusterParameterGroupNotFound
+        - DBClusterQuotaExceededFault
+        - DBSubnetGroupNotFoundFault
+        - DBSubnetGroupDoesNotCoverEnoughAZs
+        - DomainNotFoundFault
+        - InsufficientStorageClusterCapacity
+        - InvalidParameter
+        - InvalidParameterValue
+        - InvalidParameterCombination
+        - InvalidDBClusterStateFault
+        - InvalidDBInstanceStateFault
+        - InvalidSubnet
+        - InvalidVPCNetworkStateFault
+        - KMSKeyNotAccessibleFault
+        - StorageQuotaExceeded
+    fields:
+      MasterUserPassword:
+        is_secret: true
   DBInstance:
     hooks:
       sdk_update_pre_build_request:

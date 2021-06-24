@@ -1,0 +1,14 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBCluster
+metadata:
+  name: $DB_CLUSTER_ID
+spec:
+  dbClusterIdentifier: $DB_CLUSTER_ID
+  databaseName: $DB_NAME
+  engine: aurora-mysql
+  engineMode: serverless
+  masterUsername: root
+  masterUserPassword:
+    namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
+    name: $MASTER_USER_PASS_SECRET_NAME
+    key: $MASTER_USER_PASS_SECRET_KEY
