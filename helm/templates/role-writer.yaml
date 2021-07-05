@@ -11,6 +11,8 @@ rules:
   resources:
   - dbclusters
 
+  - dbclusterparametergroups
+
   - dbinstances
 
   - dbparametergroups
@@ -31,6 +33,7 @@ rules:
   - rds.services.k8s.aws
   resources:
   - dbclusters
+  - dbclusterparametergroups
   - dbinstances
   - dbparametergroups
   - dbsecuritygroups

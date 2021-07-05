@@ -40,6 +40,12 @@ spec:
                 description: AWSIdentifiers provide all unique ways to reference an
                   AWS resource.
                 properties:
+                  additionalKeys:
+                    additionalProperties:
+                      type: string
+                    description: AdditionalKeys represents any additional arbitrary
+                      identifiers used when describing the target resource.
+                    type: object
                   arn:
                     description: ARN is the AWS Resource Name for the resource. It
                       is a globally unique identifier.
