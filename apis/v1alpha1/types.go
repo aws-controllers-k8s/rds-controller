@@ -259,7 +259,7 @@ type DBClusterOptionGroupStatus struct {
 //
 // This data type is used as a response element in the DescribeDBClusterParameterGroups
 // action.
-type DBClusterParameterGroup struct {
+type DBClusterParameterGroup_SDK struct {
 	DBClusterParameterGroupARN  *string `json:"dbClusterParameterGroupARN,omitempty"`
 	DBClusterParameterGroupName *string `json:"dbClusterParameterGroupName,omitempty"`
 	DBParameterGroupFamily      *string `json:"dbParameterGroupFamily,omitempty"`

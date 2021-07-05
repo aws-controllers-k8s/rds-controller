@@ -1697,8 +1697,8 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch awsErr.Code() {
-	case "DBClusterParameterGroupNotFound",
-		"DBClusterQuotaExceededFault",
+	case "DBClusterQuotaExceededFault",
+		"DBParameterGroupNotFound",
 		"DBSubnetGroupNotFoundFault",
 		"DBSubnetGroupDoesNotCoverEnoughAZs",
 		"DomainNotFoundFault",
