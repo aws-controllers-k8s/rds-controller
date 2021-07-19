@@ -1,3 +1,3 @@
 	if clusterDeleting(r) {
-		return requeueWaitWhileDeleting
+		return r, requeueWaitWhileDeleting
 	}

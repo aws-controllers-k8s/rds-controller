@@ -142,11 +142,12 @@ func (rm *resourceManager) Update(
 }
 
 // Delete attempts to destroy the supplied AWSResource in the backend AWS
-// service API.
+// service API, returning an AWSResource representing the
+// resource being deleted (if delete is asynchronous and takes time)
 func (rm *resourceManager) Delete(
 	ctx context.Context,
 	res acktypes.AWSResource,
-) error {
+) (acktypes.AWSResource, error) {
 	r := rm.concreteResource(res)
 	if r.ko == nil {
 		// Should never happen... if it does, it's buggy code.

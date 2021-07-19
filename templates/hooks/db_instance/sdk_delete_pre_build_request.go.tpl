@@ -1,4 +1,3 @@
 	if instanceDeleting(r) {
-		return requeueWaitWhileDeleting
+		return r, requeueWaitWhileDeleting
 	}
-
