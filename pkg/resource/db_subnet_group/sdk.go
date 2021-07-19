@@ -370,17 +370,19 @@ func (rm *resourceManager) newUpdateRequestPayload(
 func (rm *resourceManager) sdkDelete(
 	ctx context.Context,
 	r *resource,
-) (err error) {
+) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkDelete")
 	defer exit(err)
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = rm.sdkapi.DeleteDBSubnetGroupWithContext(ctx, input)
+	var resp *svcsdk.DeleteDBSubnetGroupOutput
+	_ = resp
+	resp, err = rm.sdkapi.DeleteDBSubnetGroupWithContext(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBSubnetGroup", err)
-	return err
+	return nil, err
 }
 
 // newDeleteRequestPayload returns an SDK-specific struct for the HTTP request

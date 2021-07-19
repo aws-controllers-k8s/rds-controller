@@ -1924,21 +1924,23 @@ func (rm *resourceManager) newUpdateRequestPayload(
 func (rm *resourceManager) sdkDelete(
 	ctx context.Context,
 	r *resource,
-) (err error) {
+) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkDelete")
 	defer exit(err)
 	if instanceDeleting(r) {
-		return requeueWaitWhileDeleting
+		return r, requeueWaitWhileDeleting
 	}
 
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = rm.sdkapi.DeleteDBInstanceWithContext(ctx, input)
+	var resp *svcsdk.DeleteDBInstanceOutput
+	_ = resp
+	resp, err = rm.sdkapi.DeleteDBInstanceWithContext(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBInstance", err)
-	return err
+	return nil, err
 }
 
 // newDeleteRequestPayload returns an SDK-specific struct for the HTTP request
