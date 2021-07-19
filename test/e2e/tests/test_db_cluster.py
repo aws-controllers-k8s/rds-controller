@@ -36,6 +36,8 @@ DELETE_TIMEOUT_SECONDS = 600
 CREATE_INTERVAL_SLEEP_SECONDS = 15
 CREATE_TIMEOUT_SECONDS = 600
 
+MODIFY_WAIT_AFTER_SECONDS = 20
+
 
 @pytest.fixture(scope="module")
 def rds_client():
@@ -66,6 +68,7 @@ class TestDBCluster:
         mup_sec_ns, mup_sec_name, mup_sec_key = master_user_pass_secret
 
         replacements = REPLACEMENT_VALUES.copy()
+        replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
         replacements["DB_CLUSTER_ID"] = db_cluster_id
         replacements["DB_NAME"] = db_name
         replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = mup_sec_ns
@@ -104,6 +107,22 @@ class TestDBCluster:
             assert len(aws_res['DBClusters']) == 1
             dbc_rec = aws_res['DBClusters'][0]
 
+        # We're now going to modify the CopyTagsToSnapshot field of the DB
+        # instance, wait some time and verify that the RDS server-side resource
+        # shows the new value of the field.
+        assert dbc_rec['CopyTagsToSnapshot'] == False
+        updates = {
+            "spec": {"copyTagsToSnapshot": True},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        aws_res = rds_client.describe_db_clusters(DBClusterIdentifier=db_cluster_id)
+        assert aws_res is not None
+        assert len(aws_res['DBClusters']) == 1
+        dbc_rec = aws_res['DBClusters'][0]
+        assert dbc_rec['CopyTagsToSnapshot'] == True
+
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
 
@@ -126,4 +145,3 @@ class TestDBCluster:
                     pytest.fail("Status is not 'deleting' for DB cluster that was deleted. Status is "+dbc_rec['Status'])
             except rds_client.exceptions.DBClusterNotFoundFault:
                 break
-

@@ -4,6 +4,7 @@ metadata:
   name: $DB_INSTANCE_ID
 spec:
   allocatedStorage: 20
+  copyTagsToSnapshot: $COPY_TAGS_TO_SNAPSHOT
   dbInstanceClass: db.t3.micro
   dbInstanceIdentifier: $DB_INSTANCE_ID
   engine: postgres

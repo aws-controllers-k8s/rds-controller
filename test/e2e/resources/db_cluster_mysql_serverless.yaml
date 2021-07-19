@@ -3,6 +3,7 @@ kind: DBCluster
 metadata:
   name: $DB_CLUSTER_ID
 spec:
+  copyTagsToSnapshot: $COPY_TAGS_TO_SNAPSHOT
   dbClusterIdentifier: $DB_CLUSTER_ID
   databaseName: $DB_NAME
   engine: aurora-mysql

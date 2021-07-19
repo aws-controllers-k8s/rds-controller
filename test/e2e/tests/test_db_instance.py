@@ -40,6 +40,7 @@ CREATE_INTERVAL_SLEEP_SECONDS = 15
 # Time to wait before we get to an expected `available` state.
 CREATE_TIMEOUT_SECONDS = 600
 
+MODIFY_WAIT_AFTER_SECONDS = 20
 
 @pytest.fixture(scope="module")
 def rds_client():
@@ -60,7 +61,7 @@ def master_user_pass_secret():
 @service_marker
 @pytest.mark.canary
 class TestDBInstance:
-    def test_create_delete_postgres13_t3_micro(
+    def test_crud_postgres13_t3_micro(
             self,
             rds_client,
             master_user_pass_secret,
@@ -69,6 +70,7 @@ class TestDBInstance:
         mup_sec_ns, mup_sec_name, mup_sec_key = master_user_pass_secret
 
         replacements = REPLACEMENT_VALUES.copy()
+        replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
         replacements["DB_INSTANCE_ID"] = db_id
         replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = mup_sec_ns
         replacements["MASTER_USER_PASS_SECRET_NAME"] = mup_sec_name
@@ -107,6 +109,22 @@ class TestDBInstance:
             aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
             assert len(aws_res['DBInstances']) == 1
             dbi_rec = aws_res['DBInstances'][0]
+
+        # We're now going to modify the CopyTagsToSnapshot field of the DB
+        # instance, wait some time and verify that the RDS server-side resource
+        # shows the new value of the field.
+        assert dbi_rec['CopyTagsToSnapshot'] == False
+        updates = {
+            "spec": {"copyTagsToSnapshot": True},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
+        assert aws_res is not None
+        assert len(aws_res['DBInstances']) == 1
+        dbi_rec = aws_res['DBInstances'][0]
+        assert dbi_rec['CopyTagsToSnapshot'] == True
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
