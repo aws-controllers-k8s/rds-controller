@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/controller
-  tag: rds-v0.0.3
+  tag: rds-v0.0.4
   pullPolicy: IfNotPresent
   pullSecrets: []
 
