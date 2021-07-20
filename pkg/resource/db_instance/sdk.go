@@ -1788,6 +1788,7 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.AllocatedStorage != nil {
 		res.SetAllocatedStorage(*r.ko.Spec.AllocatedStorage)
 	}
+	res.SetApplyImmediately(true)
 	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
 		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
 	}

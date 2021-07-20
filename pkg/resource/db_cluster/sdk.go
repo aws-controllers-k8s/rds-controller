@@ -1473,6 +1473,7 @@ func (rm *resourceManager) newUpdateRequestPayload(
 ) (*svcsdk.ModifyDBClusterInput, error) {
 	res := &svcsdk.ModifyDBClusterInput{}
 
+	res.SetApplyImmediately(true)
 	if r.ko.Spec.BacktrackWindow != nil {
 		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
 	}

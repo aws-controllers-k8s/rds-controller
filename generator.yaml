@@ -18,12 +18,40 @@ ignore:
     - OptionGroup
   field_paths:
 operations:
+  ModifyDBCluster:
+    override_values:
+      # The whole concept of a "maintenance window" isn't aligned with the
+      # declarative state model in Kubernetes. Users should build "maintenance
+      # window" functionality at a higher layer than the APIs that manage the
+      # lifecycle of individual resources like a DB cluster or DB instance. For
+      # example, users can build maintenance window functionality into their
+      # deployment pipeline solution or GitOps solution.
+      #
+      # We override the value of the ApplyImmediately field in the modify
+      # operations to "true" because we want changes that a Kubernetes user
+      # makes to a resource's Spec to be reconciled by the ACK service
+      # controller, not a different service.
+      ApplyImmediately: true
   DeleteDBCluster:
     override_values:
       # Clearly this is not ideal, but will suffice until we add custom hook
       # points to the build_request methods to enable a genmeration of the
       # final snapshot identifier to use.
       SkipFinalSnapshot: true
+  ModifyDBInstance:
+    override_values:
+      # The whole concept of a "maintenance window" isn't aligned with the
+      # declarative state model in Kubernetes. Users should build "maintenance
+      # window" functionality at a higher layer than the APIs that manage the
+      # lifecycle of individual resources like a DB cluster or DB instance. For
+      # example, users can build maintenance window functionality into their
+      # deployment pipeline solution or GitOps solution.
+      #
+      # We override the value of the ApplyImmediately field in the modify
+      # operations to "true" because we want changes that a Kubernetes user
+      # makes to a resource's Spec to be reconciled by the ACK service
+      # controller, not a different service.
+      ApplyImmediately: true
   DeleteDBInstance:
     override_values:
       # Clearly this is not ideal, but will suffice until we add custom hook
