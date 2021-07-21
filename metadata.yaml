@@ -1,0 +1,8 @@
+service:
+  full_name: "Amazon Relational Database Service"
+  short_name: "RDS"
+  link: "https://aws.amazon.com/rds/"
+  documentation: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/index.html"
+api_versions:
+  - api_version: v1alpha1
+    status: available
