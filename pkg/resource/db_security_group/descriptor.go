@@ -70,16 +70,6 @@ func (d *resourceDescriptor) Delta(a, b acktypes.AWSResource) *ackcompare.Delta 
 	return newResourceDelta(a.(*resource), b.(*resource))
 }
 
-// UpdateCRStatus accepts an AWSResource object and changes the Status
-// sub-object of the AWSResource's Kubernetes custom resource (CR) and
-// returns whether any changes were made
-func (d *resourceDescriptor) UpdateCRStatus(
-	res acktypes.AWSResource,
-) (bool, error) {
-	updated := true
-	return updated, nil
-}
-
 // IsManaged returns true if the supplied AWSResource is under the management
 // of an ACK service controller. What this means in practice is that the
 // underlying custom resource (CR) in the AWSResource has had a

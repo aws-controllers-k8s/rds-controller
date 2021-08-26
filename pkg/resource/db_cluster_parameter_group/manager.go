@@ -18,12 +18,16 @@ package db_cluster_parameter_group
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackcfg "github.com/aws-controllers-k8s/runtime/pkg/config"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackmetrics "github.com/aws-controllers-k8s/runtime/pkg/metrics"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-logr/logr"
@@ -35,6 +39,8 @@ import (
 
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbclusterparametergroups,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbclusterparametergroups/status,verbs=get;update;patch
+
+var lateInitializeFieldNames = []string{}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -167,6 +173,63 @@ func (rm *resourceManager) ARNFromName(name string) string {
 		rm.awsAccountID,
 		name,
 	)
+}
+
+// LateInitialize returns an acktypes.AWSResource after setting the late initialized
+// fields from the readOne call. This method will initialize the optional fields
+// which were not provided by the k8s user but were defaulted by the AWS service.
+// If there are no such fields to be initialized, the returned object is similar to
+// object passed in the parameter.
+func (rm *resourceManager) LateInitialize(
+	ctx context.Context,
+	latest acktypes.AWSResource,
+) (acktypes.AWSResource, error) {
+	rlog := ackrtlog.FromContext(ctx)
+	// If there are no fields to late initialize, do nothing
+	if len(lateInitializeFieldNames) == 0 {
+		rlog.Debug("no late initialization required.")
+		return latest, nil
+	}
+	lateInitConditionReason := ""
+	lateInitConditionMessage := ""
+	observed, err := rm.ReadOne(ctx, latest)
+	if err != nil {
+		lateInitConditionMessage = "Unable to complete Read operation required for late initialization"
+		lateInitConditionReason = "Late Initialization Failure"
+		ackcondition.SetLateInitialized(latest, corev1.ConditionFalse, &lateInitConditionMessage, &lateInitConditionReason)
+		return latest, err
+	}
+	latest = rm.lateInitializeFromReadOneOutput(observed, latest)
+	incompleteInitialization := rm.incompleteLateInitialization(latest)
+	if incompleteInitialization {
+		// Add the condition with LateInitialized=False
+		lateInitConditionMessage = "Late initialization did not complete, requeuing with delay of 5 seconds"
+		lateInitConditionReason = "Delayed Late Initialization"
+		ackcondition.SetLateInitialized(latest, corev1.ConditionFalse, &lateInitConditionMessage, &lateInitConditionReason)
+		return latest, ackrequeue.NeededAfter(nil, time.Duration(5)*time.Second)
+	}
+	// Set LateIntialized condition to True
+	lateInitConditionMessage = "Late initialization successful"
+	lateInitConditionReason = "Late initialization successful"
+	ackcondition.SetLateInitialized(latest, corev1.ConditionTrue, &lateInitConditionMessage, &lateInitConditionReason)
+	return latest, nil
+}
+
+// incompleteLateInitialization return true if there are fields which were supposed to be
+// late initialized but are not. If all the fields are late initialized, false is returned
+func (rm *resourceManager) incompleteLateInitialization(
+	latest acktypes.AWSResource,
+) bool {
+	return false
+}
+
+// lateInitializeFromReadOneOutput late initializes the 'latest' resource from the 'observed'
+// resource and returns 'latest' resource
+func (rm *resourceManager) lateInitializeFromReadOneOutput(
+	observed acktypes.AWSResource,
+	latest acktypes.AWSResource,
+) acktypes.AWSResource {
+	return latest
 }
 
 // newResourceManager returns a new struct implementing

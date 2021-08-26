@@ -50,6 +50,13 @@ func (rm *resourceManager) sdkFind(
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkFind")
 	defer exit(err)
+	// If any required fields in the input shape are missing, AWS resource is
+	// not created yet. Return NotFound here to indicate to callers that the
+	// resource isn't yet created.
+	if rm.requiredFieldsMissingFromReadManyInput(r) {
+		return nil, ackerr.NotFound
+	}
+
 	input, err := rm.newListRequestPayload(r)
 	if err != nil {
 		return nil, err
@@ -98,6 +105,15 @@ func (rm *resourceManager) sdkFind(
 	return &resource{ko}, nil
 }
 
+// requiredFieldsMissingFromReadManyInput returns true if there are any fields
+// for the ReadMany Input shape that are required but not present in the
+// resource's Spec or Status
+func (rm *resourceManager) requiredFieldsMissingFromReadManyInput(
+	r *resource,
+) bool {
+	return false
+}
+
 // newListRequestPayload returns SDK-specific struct for the HTTP request
 // payload of the List API call for the resource
 func (rm *resourceManager) newListRequestPayload(
@@ -144,6 +160,21 @@ func (rm *resourceManager) sdkCreate(
 	if resp.DBClusterParameterGroup.DBClusterParameterGroupArn != nil {
 		arn := ackv1alpha1.AWSResourceName(*resp.DBClusterParameterGroup.DBClusterParameterGroupArn)
 		ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBClusterParameterGroup.DBClusterParameterGroupName != nil {
+		ko.Spec.Name = resp.DBClusterParameterGroup.DBClusterParameterGroupName
+	} else {
+		ko.Spec.Name = nil
+	}
+	if resp.DBClusterParameterGroup.DBParameterGroupFamily != nil {
+		ko.Spec.Family = resp.DBClusterParameterGroup.DBParameterGroupFamily
+	} else {
+		ko.Spec.Family = nil
+	}
+	if resp.DBClusterParameterGroup.Description != nil {
+		ko.Spec.Description = resp.DBClusterParameterGroup.Description
+	} else {
+		ko.Spec.Description = nil
 	}
 
 	rm.setStatusDefaults(ko)
@@ -349,16 +380,21 @@ func (rm *resourceManager) updateConditions(
 		}
 	}
 
-	if rm.terminalAWSError(err) {
+	if rm.terminalAWSError(err) || err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
 		if terminalCondition == nil {
 			terminalCondition = &ackv1alpha1.Condition{
 				Type: ackv1alpha1.ConditionTypeTerminal,
 			}
 			ko.Status.Conditions = append(ko.Status.Conditions, terminalCondition)
 		}
+		var errorMessage = ""
+		if err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
+			errorMessage = err.Error()
+		} else {
+			awsErr, _ := ackerr.AWSError(err)
+			errorMessage = awsErr.Message()
+		}
 		terminalCondition.Status = corev1.ConditionTrue
-		awsErr, _ := ackerr.AWSError(err)
-		errorMessage := awsErr.Message()
 		terminalCondition.Message = &errorMessage
 	} else {
 		// Clear the terminal condition if no longer present

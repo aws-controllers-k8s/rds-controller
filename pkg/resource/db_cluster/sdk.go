@@ -50,6 +50,13 @@ func (rm *resourceManager) sdkFind(
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkFind")
 	defer exit(err)
+	// If any required fields in the input shape are missing, AWS resource is
+	// not created yet. Return NotFound here to indicate to callers that the
+	// resource isn't yet created.
+	if rm.requiredFieldsMissingFromReadManyInput(r) {
+		return nil, ackerr.NotFound
+	}
+
 	input, err := rm.newListRequestPayload(r)
 	if err != nil {
 		return nil, err
@@ -519,6 +526,15 @@ func (rm *resourceManager) sdkFind(
 	return &resource{ko}, nil
 }
 
+// requiredFieldsMissingFromReadManyInput returns true if there are any fields
+// for the ReadMany Input shape that are required but not present in the
+// resource's Spec or Status
+func (rm *resourceManager) requiredFieldsMissingFromReadManyInput(
+	r *resource,
+) bool {
+	return false
+}
+
 // newListRequestPayload returns SDK-specific struct for the HTTP request
 // payload of the List API call for the resource
 func (rm *resourceManager) newListRequestPayload(
@@ -603,15 +619,41 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.AssociatedRoles = nil
 	}
+	if resp.DBCluster.AvailabilityZones != nil {
+		f6 := []*string{}
+		for _, f6iter := range resp.DBCluster.AvailabilityZones {
+			var f6elem string
+			f6elem = *f6iter
+			f6 = append(f6, &f6elem)
+		}
+		ko.Spec.AvailabilityZones = f6
+	} else {
+		ko.Spec.AvailabilityZones = nil
+	}
 	if resp.DBCluster.BacktrackConsumedChangeRecords != nil {
 		ko.Status.BacktrackConsumedChangeRecords = resp.DBCluster.BacktrackConsumedChangeRecords
 	} else {
 		ko.Status.BacktrackConsumedChangeRecords = nil
 	}
+	if resp.DBCluster.BacktrackWindow != nil {
+		ko.Spec.BacktrackWindow = resp.DBCluster.BacktrackWindow
+	} else {
+		ko.Spec.BacktrackWindow = nil
+	}
+	if resp.DBCluster.BackupRetentionPeriod != nil {
+		ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+	} else {
+		ko.Spec.BackupRetentionPeriod = nil
+	}
 	if resp.DBCluster.Capacity != nil {
 		ko.Status.Capacity = resp.DBCluster.Capacity
 	} else {
 		ko.Status.Capacity = nil
+	}
+	if resp.DBCluster.CharacterSetName != nil {
+		ko.Spec.CharacterSetName = resp.DBCluster.CharacterSetName
+	} else {
+		ko.Spec.CharacterSetName = nil
 	}
 	if resp.DBCluster.CloneGroupId != nil {
 		ko.Status.CloneGroupID = resp.DBCluster.CloneGroupId
@@ -622,6 +664,11 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ClusterCreateTime = &metav1.Time{*resp.DBCluster.ClusterCreateTime}
 	} else {
 		ko.Status.ClusterCreateTime = nil
+	}
+	if resp.DBCluster.CopyTagsToSnapshot != nil {
+		ko.Spec.CopyTagsToSnapshot = resp.DBCluster.CopyTagsToSnapshot
+	} else {
+		ko.Spec.CopyTagsToSnapshot = nil
 	}
 	if resp.DBCluster.CrossAccountClone != nil {
 		ko.Status.CrossAccountClone = resp.DBCluster.CrossAccountClone
@@ -645,6 +692,11 @@ func (rm *resourceManager) sdkCreate(
 	if resp.DBCluster.DBClusterArn != nil {
 		arn := ackv1alpha1.AWSResourceName(*resp.DBCluster.DBClusterArn)
 		ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBCluster.DBClusterIdentifier != nil {
+		ko.Spec.DBClusterIdentifier = resp.DBCluster.DBClusterIdentifier
+	} else {
+		ko.Spec.DBClusterIdentifier = nil
 	}
 	if resp.DBCluster.DBClusterMembers != nil {
 		f19 := []*svcapitypes.DBClusterMember{}
@@ -694,10 +746,20 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.DBSubnetGroup = nil
 	}
+	if resp.DBCluster.DatabaseName != nil {
+		ko.Spec.DatabaseName = resp.DBCluster.DatabaseName
+	} else {
+		ko.Spec.DatabaseName = nil
+	}
 	if resp.DBCluster.DbClusterResourceId != nil {
 		ko.Status.DBClusterResourceID = resp.DBCluster.DbClusterResourceId
 	} else {
 		ko.Status.DBClusterResourceID = nil
+	}
+	if resp.DBCluster.DeletionProtection != nil {
+		ko.Spec.DeletionProtection = resp.DBCluster.DeletionProtection
+	} else {
+		ko.Spec.DeletionProtection = nil
 	}
 	if resp.DBCluster.DomainMemberships != nil {
 		f26 := []*svcapitypes.DomainMembership{}
@@ -747,6 +809,21 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.Endpoint = nil
 	}
+	if resp.DBCluster.Engine != nil {
+		ko.Spec.Engine = resp.DBCluster.Engine
+	} else {
+		ko.Spec.Engine = nil
+	}
+	if resp.DBCluster.EngineMode != nil {
+		ko.Spec.EngineMode = resp.DBCluster.EngineMode
+	} else {
+		ko.Spec.EngineMode = nil
+	}
+	if resp.DBCluster.EngineVersion != nil {
+		ko.Spec.EngineVersion = resp.DBCluster.EngineVersion
+	} else {
+		ko.Spec.EngineVersion = nil
+	}
 	if resp.DBCluster.GlobalWriteForwardingRequested != nil {
 		ko.Status.GlobalWriteForwardingRequested = resp.DBCluster.GlobalWriteForwardingRequested
 	} else {
@@ -772,10 +849,20 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.IAMDatabaseAuthenticationEnabled = nil
 	}
+	if resp.DBCluster.KmsKeyId != nil {
+		ko.Spec.KMSKeyID = resp.DBCluster.KmsKeyId
+	} else {
+		ko.Spec.KMSKeyID = nil
+	}
 	if resp.DBCluster.LatestRestorableTime != nil {
 		ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBCluster.LatestRestorableTime}
 	} else {
 		ko.Status.LatestRestorableTime = nil
+	}
+	if resp.DBCluster.MasterUsername != nil {
+		ko.Spec.MasterUsername = resp.DBCluster.MasterUsername
+	} else {
+		ko.Spec.MasterUsername = nil
 	}
 	if resp.DBCluster.MultiAZ != nil {
 		ko.Status.MultiAZ = resp.DBCluster.MultiAZ
@@ -827,6 +914,21 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.PercentProgress = nil
 	}
+	if resp.DBCluster.Port != nil {
+		ko.Spec.Port = resp.DBCluster.Port
+	} else {
+		ko.Spec.Port = nil
+	}
+	if resp.DBCluster.PreferredBackupWindow != nil {
+		ko.Spec.PreferredBackupWindow = resp.DBCluster.PreferredBackupWindow
+	} else {
+		ko.Spec.PreferredBackupWindow = nil
+	}
+	if resp.DBCluster.PreferredMaintenanceWindow != nil {
+		ko.Spec.PreferredMaintenanceWindow = resp.DBCluster.PreferredMaintenanceWindow
+	} else {
+		ko.Spec.PreferredMaintenanceWindow = nil
+	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
 		f48 := []*string{}
 		for _, f48iter := range resp.DBCluster.ReadReplicaIdentifiers {
@@ -842,6 +944,11 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ReaderEndpoint = resp.DBCluster.ReaderEndpoint
 	} else {
 		ko.Status.ReaderEndpoint = nil
+	}
+	if resp.DBCluster.ReplicationSourceIdentifier != nil {
+		ko.Spec.ReplicationSourceIdentifier = resp.DBCluster.ReplicationSourceIdentifier
+	} else {
+		ko.Spec.ReplicationSourceIdentifier = nil
 	}
 	if resp.DBCluster.ScalingConfigurationInfo != nil {
 		f51 := &svcapitypes.ScalingConfigurationInfo{}
@@ -868,6 +975,11 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Status = resp.DBCluster.Status
 	} else {
 		ko.Status.Status = nil
+	}
+	if resp.DBCluster.StorageEncrypted != nil {
+		ko.Spec.StorageEncrypted = resp.DBCluster.StorageEncrypted
+	} else {
+		ko.Spec.StorageEncrypted = nil
 	}
 	if resp.DBCluster.TagList != nil {
 		f54 := []*svcapitypes.Tag{}
@@ -1162,15 +1274,41 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.AssociatedRoles = nil
 	}
+	if resp.DBCluster.AvailabilityZones != nil {
+		f6 := []*string{}
+		for _, f6iter := range resp.DBCluster.AvailabilityZones {
+			var f6elem string
+			f6elem = *f6iter
+			f6 = append(f6, &f6elem)
+		}
+		ko.Spec.AvailabilityZones = f6
+	} else {
+		ko.Spec.AvailabilityZones = nil
+	}
 	if resp.DBCluster.BacktrackConsumedChangeRecords != nil {
 		ko.Status.BacktrackConsumedChangeRecords = resp.DBCluster.BacktrackConsumedChangeRecords
 	} else {
 		ko.Status.BacktrackConsumedChangeRecords = nil
 	}
+	if resp.DBCluster.BacktrackWindow != nil {
+		ko.Spec.BacktrackWindow = resp.DBCluster.BacktrackWindow
+	} else {
+		ko.Spec.BacktrackWindow = nil
+	}
+	if resp.DBCluster.BackupRetentionPeriod != nil {
+		ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+	} else {
+		ko.Spec.BackupRetentionPeriod = nil
+	}
 	if resp.DBCluster.Capacity != nil {
 		ko.Status.Capacity = resp.DBCluster.Capacity
 	} else {
 		ko.Status.Capacity = nil
+	}
+	if resp.DBCluster.CharacterSetName != nil {
+		ko.Spec.CharacterSetName = resp.DBCluster.CharacterSetName
+	} else {
+		ko.Spec.CharacterSetName = nil
 	}
 	if resp.DBCluster.CloneGroupId != nil {
 		ko.Status.CloneGroupID = resp.DBCluster.CloneGroupId
@@ -1181,6 +1319,11 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ClusterCreateTime = &metav1.Time{*resp.DBCluster.ClusterCreateTime}
 	} else {
 		ko.Status.ClusterCreateTime = nil
+	}
+	if resp.DBCluster.CopyTagsToSnapshot != nil {
+		ko.Spec.CopyTagsToSnapshot = resp.DBCluster.CopyTagsToSnapshot
+	} else {
+		ko.Spec.CopyTagsToSnapshot = nil
 	}
 	if resp.DBCluster.CrossAccountClone != nil {
 		ko.Status.CrossAccountClone = resp.DBCluster.CrossAccountClone
@@ -1204,6 +1347,11 @@ func (rm *resourceManager) sdkUpdate(
 	if resp.DBCluster.DBClusterArn != nil {
 		arn := ackv1alpha1.AWSResourceName(*resp.DBCluster.DBClusterArn)
 		ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBCluster.DBClusterIdentifier != nil {
+		ko.Spec.DBClusterIdentifier = resp.DBCluster.DBClusterIdentifier
+	} else {
+		ko.Spec.DBClusterIdentifier = nil
 	}
 	if resp.DBCluster.DBClusterMembers != nil {
 		f19 := []*svcapitypes.DBClusterMember{}
@@ -1253,10 +1401,20 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.DBSubnetGroup = nil
 	}
+	if resp.DBCluster.DatabaseName != nil {
+		ko.Spec.DatabaseName = resp.DBCluster.DatabaseName
+	} else {
+		ko.Spec.DatabaseName = nil
+	}
 	if resp.DBCluster.DbClusterResourceId != nil {
 		ko.Status.DBClusterResourceID = resp.DBCluster.DbClusterResourceId
 	} else {
 		ko.Status.DBClusterResourceID = nil
+	}
+	if resp.DBCluster.DeletionProtection != nil {
+		ko.Spec.DeletionProtection = resp.DBCluster.DeletionProtection
+	} else {
+		ko.Spec.DeletionProtection = nil
 	}
 	if resp.DBCluster.DomainMemberships != nil {
 		f26 := []*svcapitypes.DomainMembership{}
@@ -1306,6 +1464,21 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.Endpoint = nil
 	}
+	if resp.DBCluster.Engine != nil {
+		ko.Spec.Engine = resp.DBCluster.Engine
+	} else {
+		ko.Spec.Engine = nil
+	}
+	if resp.DBCluster.EngineMode != nil {
+		ko.Spec.EngineMode = resp.DBCluster.EngineMode
+	} else {
+		ko.Spec.EngineMode = nil
+	}
+	if resp.DBCluster.EngineVersion != nil {
+		ko.Spec.EngineVersion = resp.DBCluster.EngineVersion
+	} else {
+		ko.Spec.EngineVersion = nil
+	}
 	if resp.DBCluster.GlobalWriteForwardingRequested != nil {
 		ko.Status.GlobalWriteForwardingRequested = resp.DBCluster.GlobalWriteForwardingRequested
 	} else {
@@ -1331,10 +1504,20 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.IAMDatabaseAuthenticationEnabled = nil
 	}
+	if resp.DBCluster.KmsKeyId != nil {
+		ko.Spec.KMSKeyID = resp.DBCluster.KmsKeyId
+	} else {
+		ko.Spec.KMSKeyID = nil
+	}
 	if resp.DBCluster.LatestRestorableTime != nil {
 		ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBCluster.LatestRestorableTime}
 	} else {
 		ko.Status.LatestRestorableTime = nil
+	}
+	if resp.DBCluster.MasterUsername != nil {
+		ko.Spec.MasterUsername = resp.DBCluster.MasterUsername
+	} else {
+		ko.Spec.MasterUsername = nil
 	}
 	if resp.DBCluster.MultiAZ != nil {
 		ko.Status.MultiAZ = resp.DBCluster.MultiAZ
@@ -1386,6 +1569,21 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.PercentProgress = nil
 	}
+	if resp.DBCluster.Port != nil {
+		ko.Spec.Port = resp.DBCluster.Port
+	} else {
+		ko.Spec.Port = nil
+	}
+	if resp.DBCluster.PreferredBackupWindow != nil {
+		ko.Spec.PreferredBackupWindow = resp.DBCluster.PreferredBackupWindow
+	} else {
+		ko.Spec.PreferredBackupWindow = nil
+	}
+	if resp.DBCluster.PreferredMaintenanceWindow != nil {
+		ko.Spec.PreferredMaintenanceWindow = resp.DBCluster.PreferredMaintenanceWindow
+	} else {
+		ko.Spec.PreferredMaintenanceWindow = nil
+	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
 		f48 := []*string{}
 		for _, f48iter := range resp.DBCluster.ReadReplicaIdentifiers {
@@ -1401,6 +1599,11 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ReaderEndpoint = resp.DBCluster.ReaderEndpoint
 	} else {
 		ko.Status.ReaderEndpoint = nil
+	}
+	if resp.DBCluster.ReplicationSourceIdentifier != nil {
+		ko.Spec.ReplicationSourceIdentifier = resp.DBCluster.ReplicationSourceIdentifier
+	} else {
+		ko.Spec.ReplicationSourceIdentifier = nil
 	}
 	if resp.DBCluster.ScalingConfigurationInfo != nil {
 		f51 := &svcapitypes.ScalingConfigurationInfo{}
@@ -1427,6 +1630,11 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.Status = resp.DBCluster.Status
 	} else {
 		ko.Status.Status = nil
+	}
+	if resp.DBCluster.StorageEncrypted != nil {
+		ko.Spec.StorageEncrypted = resp.DBCluster.StorageEncrypted
+	} else {
+		ko.Spec.StorageEncrypted = nil
 	}
 	if resp.DBCluster.TagList != nil {
 		f54 := []*svcapitypes.Tag{}
@@ -1642,16 +1850,21 @@ func (rm *resourceManager) updateConditions(
 		}
 	}
 
-	if rm.terminalAWSError(err) {
+	if rm.terminalAWSError(err) || err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
 		if terminalCondition == nil {
 			terminalCondition = &ackv1alpha1.Condition{
 				Type: ackv1alpha1.ConditionTypeTerminal,
 			}
 			ko.Status.Conditions = append(ko.Status.Conditions, terminalCondition)
 		}
+		var errorMessage = ""
+		if err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
+			errorMessage = err.Error()
+		} else {
+			awsErr, _ := ackerr.AWSError(err)
+			errorMessage = awsErr.Message()
+		}
 		terminalCondition.Status = corev1.ConditionTrue
-		awsErr, _ := ackerr.AWSError(err)
-		errorMessage := awsErr.Message()
 		terminalCondition.Message = &errorMessage
 	} else {
 		// Clear the terminal condition if no longer present

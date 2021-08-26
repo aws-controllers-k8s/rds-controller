@@ -54,19 +54,25 @@ type DBSecurityGroupStatus struct {
 	// All CRs managed by ACK have a common `Status.ACKResourceMetadata` member
 	// that is used to contain resource sync state, account ownership,
 	// constructed ARN for the resource
+	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
 	// All CRS managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
+	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// Contains a list of EC2SecurityGroup elements.
+	// +kubebuilder:validation:Optional
 	EC2SecurityGroups []*EC2SecurityGroup `json:"ec2SecurityGroups,omitempty"`
 	// Contains a list of IPRange elements.
+	// +kubebuilder:validation:Optional
 	IPRanges []*IPRange `json:"iPRanges,omitempty"`
 	// Provides the AWS ID of the owner of a specific DB security group.
+	// +kubebuilder:validation:Optional
 	OwnerID *string `json:"ownerID,omitempty"`
 	// Provides the VpcId of the DB security group.
+	// +kubebuilder:validation:Optional
 	VPCID *string `json:"vpcID,omitempty"`
 }
 
