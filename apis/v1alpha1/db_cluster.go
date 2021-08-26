@@ -120,11 +120,17 @@ type DBClusterSpec struct {
 	//
 	// Possible values are postgresql and upgrade.
 	EnableCloudwatchLogsExports []*string `json:"enableCloudwatchLogsExports,omitempty"`
-	// A value that indicates whether to enable write operations to be forwarded
-	// from this cluster to the primary cluster in an Aurora global database. The
-	// resulting changes are replicated back to this cluster. This parameter only
-	// applies to DB clusters that are secondary clusters in an Aurora global database.
-	// By default, Aurora disallows write operations for secondary clusters.
+	// A value that indicates whether to enable this DB cluster to forward write
+	// operations to the primary cluster of an Aurora global database (GlobalCluster).
+	// By default, write operations are not allowed on Aurora DB clusters that are
+	// secondary clusters in an Aurora global database.
+	//
+	// You can set this value only on Aurora DB clusters that are members of an
+	// Aurora global database. With this parameter enabled, a secondary cluster
+	// can forward writes to the current primary cluster and the resulting changes
+	// are replicated back to this cluster. For the primary DB cluster of an Aurora
+	// global database, this value is used immediately if the primary is demoted
+	// by the FailoverGlobalCluster API operation, but it does nothing until then.
 	EnableGlobalWriteForwarding *bool `json:"enableGlobalWriteForwarding,omitempty"`
 	// A value that indicates whether to enable the HTTP endpoint for an Aurora
 	// Serverless DB cluster. By default, the HTTP endpoint is disabled.
@@ -340,38 +346,47 @@ type DBClusterStatus struct {
 	// All CRs managed by ACK have a common `Status.ACKResourceMetadata` member
 	// that is used to contain resource sync state, account ownership,
 	// constructed ARN for the resource
+	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
 	// All CRS managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
+	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// The name of the Amazon Kinesis data stream used for the database activity
 	// stream.
+	// +kubebuilder:validation:Optional
 	ActivityStreamKinesisStreamName *string `json:"activityStreamKinesisStreamName,omitempty"`
 	// The AWS KMS key identifier used for encrypting messages in the database activity
 	// stream.
 	//
 	// The AWS KMS key identifier is the key ARN, key ID, alias ARN, or alias name
 	// for the AWS KMS customer master key (CMK).
+	// +kubebuilder:validation:Optional
 	ActivityStreamKMSKeyID *string `json:"activityStreamKMSKeyID,omitempty"`
 	// The mode of the database activity stream. Database events such as a change
 	// or access generate an activity stream event. The database session can handle
 	// these events either synchronously or asynchronously.
+	// +kubebuilder:validation:Optional
 	ActivityStreamMode *string `json:"activityStreamMode,omitempty"`
 	// The status of the database activity stream.
+	// +kubebuilder:validation:Optional
 	ActivityStreamStatus *string `json:"activityStreamStatus,omitempty"`
 	// For all database engines except Amazon Aurora, AllocatedStorage specifies
 	// the allocated storage size in gibibytes (GiB). For Aurora, AllocatedStorage
 	// always returns 1, because Aurora DB cluster storage size isn't fixed, but
 	// instead automatically adjusts as needed.
+	// +kubebuilder:validation:Optional
 	AllocatedStorage *int64 `json:"allocatedStorage,omitempty"`
 	// Provides a list of the AWS Identity and Access Management (IAM) roles that
 	// are associated with the DB cluster. IAM roles that are associated with a
 	// DB cluster grant permission for the DB cluster to access other AWS services
 	// on your behalf.
+	// +kubebuilder:validation:Optional
 	AssociatedRoles []*DBClusterRole `json:"associatedRoles,omitempty"`
 	// The number of change records stored for Backtrack.
+	// +kubebuilder:validation:Optional
 	BacktrackConsumedChangeRecords *int64 `json:"backtrackConsumedChangeRecords,omitempty"`
 	// The current capacity of an Aurora Serverless DB cluster. The capacity is
 	// 0 (zero) when the cluster is paused.
@@ -379,36 +394,49 @@ type DBClusterStatus struct {
 	// For more information about Aurora Serverless, see Using Amazon Aurora Serverless
 	// (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html)
 	// in the Amazon Aurora User Guide.
+	// +kubebuilder:validation:Optional
 	Capacity *int64 `json:"capacity,omitempty"`
 	// Identifies the clone group to which the DB cluster is associated.
+	// +kubebuilder:validation:Optional
 	CloneGroupID *string `json:"cloneGroupID,omitempty"`
 	// Specifies the time when the DB cluster was created, in Universal Coordinated
 	// Time (UTC).
+	// +kubebuilder:validation:Optional
 	ClusterCreateTime *metav1.Time `json:"clusterCreateTime,omitempty"`
 	// Specifies whether the DB cluster is a clone of a DB cluster owned by a different
 	// AWS account.
+	// +kubebuilder:validation:Optional
 	CrossAccountClone *bool `json:"crossAccountClone,omitempty"`
 	// Identifies all custom endpoints associated with the cluster.
+	// +kubebuilder:validation:Optional
 	CustomEndpoints []*string `json:"customEndpoints,omitempty"`
 	// Provides the list of instances that make up the DB cluster.
+	// +kubebuilder:validation:Optional
 	DBClusterMembers []*DBClusterMember `json:"dbClusterMembers,omitempty"`
 	// Provides the list of option group memberships for this DB cluster.
+	// +kubebuilder:validation:Optional
 	DBClusterOptionGroupMemberships []*DBClusterOptionGroupStatus `json:"dbClusterOptionGroupMemberships,omitempty"`
 	// Specifies the name of the DB cluster parameter group for the DB cluster.
+	// +kubebuilder:validation:Optional
 	DBClusterParameterGroup *string `json:"dbClusterParameterGroup,omitempty"`
 	// Specifies information on the subnet group associated with the DB cluster,
 	// including the name, description, and subnets in the subnet group.
+	// +kubebuilder:validation:Optional
 	DBSubnetGroup *string `json:"dbSubnetGroup,omitempty"`
 	// The AWS Region-unique, immutable identifier for the DB cluster. This identifier
 	// is found in AWS CloudTrail log entries whenever the AWS KMS CMK for the DB
 	// cluster is accessed.
+	// +kubebuilder:validation:Optional
 	DBClusterResourceID *string `json:"dbClusterResourceID,omitempty"`
 	// The Active Directory Domain membership records associated with the DB cluster.
+	// +kubebuilder:validation:Optional
 	DomainMemberships []*DomainMembership `json:"domainMemberships,omitempty"`
 	// The earliest time to which a DB cluster can be backtracked.
+	// +kubebuilder:validation:Optional
 	EarliestBacktrackTime *metav1.Time `json:"earliestBacktrackTime,omitempty"`
 	// The earliest time to which a database can be restored with point-in-time
 	// restore.
+	// +kubebuilder:validation:Optional
 	EarliestRestorableTime *metav1.Time `json:"earliestRestorableTime,omitempty"`
 	// A list of log types that this DB cluster is configured to export to CloudWatch
 	// Logs.
@@ -416,19 +444,24 @@ type DBClusterStatus struct {
 	// Log types vary by DB engine. For information about the log types for each
 	// DB engine, see Amazon RDS Database Log Files (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html)
 	// in the Amazon Aurora User Guide.
+	// +kubebuilder:validation:Optional
 	EnabledCloudwatchLogsExports []*string `json:"enabledCloudwatchLogsExports,omitempty"`
 	// Specifies the connection endpoint for the primary instance of the DB cluster.
+	// +kubebuilder:validation:Optional
 	Endpoint *string `json:"endpoint,omitempty"`
 	// Specifies whether you have requested to enable write forwarding for a secondary
 	// cluster in an Aurora global database. Because write forwarding takes time
 	// to enable, check the value of GlobalWriteForwardingStatus to confirm that
 	// the request has completed before using the write forwarding feature for this
 	// cluster.
+	// +kubebuilder:validation:Optional
 	GlobalWriteForwardingRequested *bool `json:"globalWriteForwardingRequested,omitempty"`
 	// Specifies whether a secondary cluster in an Aurora global database has write
 	// forwarding enabled, not enabled, or is in the process of enabling it.
+	// +kubebuilder:validation:Optional
 	GlobalWriteForwardingStatus *string `json:"globalWriteForwardingStatus,omitempty"`
 	// Specifies the ID that Amazon Route 53 assigns when you create a hosted zone.
+	// +kubebuilder:validation:Optional
 	HostedZoneID *string `json:"hostedZoneID,omitempty"`
 	// A value that indicates whether the HTTP endpoint for an Aurora Serverless
 	// DB cluster is enabled.
@@ -439,23 +472,30 @@ type DBClusterStatus struct {
 	//
 	// For more information, see Using the Data API for Aurora Serverless (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
 	// in the Amazon Aurora User Guide.
+	// +kubebuilder:validation:Optional
 	HTTPEndpointEnabled *bool `json:"httpEndpointEnabled,omitempty"`
 	// A value that indicates whether the mapping of AWS Identity and Access Management
 	// (IAM) accounts to database accounts is enabled.
+	// +kubebuilder:validation:Optional
 	IAMDatabaseAuthenticationEnabled *bool `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	// Specifies the latest time to which a database can be restored with point-in-time
 	// restore.
+	// +kubebuilder:validation:Optional
 	LatestRestorableTime *metav1.Time `json:"latestRestorableTime,omitempty"`
 	// Specifies whether the DB cluster has instances in multiple Availability Zones.
+	// +kubebuilder:validation:Optional
 	MultiAZ *bool `json:"multiAZ,omitempty"`
 	// A value that specifies that changes to the DB cluster are pending. This element
 	// is only included when changes are pending. Specific changes are identified
 	// by subelements.
+	// +kubebuilder:validation:Optional
 	PendingModifiedValues *ClusterPendingModifiedValues `json:"pendingModifiedValues,omitempty"`
 	// Specifies the progress of the operation as a percentage.
+	// +kubebuilder:validation:Optional
 	PercentProgress *string `json:"percentProgress,omitempty"`
 	// Contains one or more identifiers of the read replicas associated with this
 	// DB cluster.
+	// +kubebuilder:validation:Optional
 	ReadReplicaIdentifiers []*string `json:"readReplicaIdentifiers,omitempty"`
 	// The reader endpoint for the DB cluster. The reader endpoint for a DB cluster
 	// load-balances connections across the Aurora Replicas that are available in
@@ -468,14 +508,19 @@ type DBClusterStatus struct {
 	// promoted to be the primary instance, your connection is dropped. To continue
 	// sending your read workload to other Aurora Replicas in the cluster, you can
 	// then reconnect to the reader endpoint.
+	// +kubebuilder:validation:Optional
 	ReaderEndpoint *string `json:"readerEndpoint,omitempty"`
 
+	// +kubebuilder:validation:Optional
 	ScalingConfigurationInfo *ScalingConfigurationInfo `json:"scalingConfigurationInfo,omitempty"`
 	// Specifies the current state of this DB cluster.
+	// +kubebuilder:validation:Optional
 	Status *string `json:"status,omitempty"`
 
+	// +kubebuilder:validation:Optional
 	TagList []*Tag `json:"tagList,omitempty"`
 	// Provides a list of VPC security groups that the DB cluster belongs to.
+	// +kubebuilder:validation:Optional
 	VPCSecurityGroups []*VPCSecurityGroupMembership `json:"vpcSecurityGroups,omitempty"`
 }
 

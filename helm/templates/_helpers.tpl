@@ -30,3 +30,9 @@ If release name contains chart name it will be used as a full name.
 {{- define "service-account.name" -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
+
+{{- define "watch-namespace" -}}
+{{- if eq .Values.installScope "namespace" -}}
+{{- .Release.Namespace -}}
+{{- end -}}
+{{- end -}}

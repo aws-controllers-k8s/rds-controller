@@ -779,16 +779,20 @@ type DBInstanceStatus struct {
 	// All CRs managed by ACK have a common `Status.ACKResourceMetadata` member
 	// that is used to contain resource sync state, account ownership,
 	// constructed ARN for the resource
+	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
 	// All CRS managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
+	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
 	// The AWS Identity and Access Management (IAM) roles associated with the DB
 	// instance.
+	// +kubebuilder:validation:Optional
 	AssociatedRoles []*DBInstanceRole `json:"associatedRoles,omitempty"`
 	// The identifier of the CA certificate for this DB instance.
+	// +kubebuilder:validation:Optional
 	CACertificateIdentifier *string `json:"caCertificateIdentifier,omitempty"`
 	// Specifies whether a customer-owned IP address (CoIP) is enabled for an RDS
 	// on Outposts DB instance.
@@ -804,27 +808,35 @@ type DBInstanceStatus struct {
 	//
 	// For more information about CoIPs, see Customer-owned IP addresses (https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing)
 	// in the AWS Outposts User Guide.
+	// +kubebuilder:validation:Optional
 	CustomerOwnedIPEnabled *bool `json:"customerOwnedIPEnabled,omitempty"`
 	// The list of replicated automated backups associated with the DB instance.
+	// +kubebuilder:validation:Optional
 	DBInstanceAutomatedBackupsReplications []*DBInstanceAutomatedBackupsReplication `json:"dbInstanceAutomatedBackupsReplications,omitempty"`
 	// Specifies the current state of this database.
 	//
 	// For information about DB instance statuses, see DB Instance Status (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Status.html)
 	// in the Amazon RDS User Guide.
+	// +kubebuilder:validation:Optional
 	DBInstanceStatus *string `json:"dbInstanceStatus,omitempty"`
 	// Provides the list of DB parameter groups applied to this DB instance.
+	// +kubebuilder:validation:Optional
 	DBParameterGroups []*DBParameterGroupStatus_SDK `json:"dbParameterGroups,omitempty"`
 	// Specifies information on the subnet group associated with the DB instance,
 	// including the name, description, and subnets in the subnet group.
+	// +kubebuilder:validation:Optional
 	DBSubnetGroup *DBSubnetGroup_SDK `json:"dbSubnetGroup,omitempty"`
 	// Specifies the port that the DB instance listens on. If the DB instance is
 	// part of a DB cluster, this can be a different port than the DB cluster port.
+	// +kubebuilder:validation:Optional
 	DBInstancePort *int64 `json:"dbInstancePort,omitempty"`
 	// The AWS Region-unique, immutable identifier for the DB instance. This identifier
 	// is found in AWS CloudTrail log entries whenever the AWS KMS customer master
 	// key (CMK) for the DB instance is accessed.
+	// +kubebuilder:validation:Optional
 	DBIResourceID *string `json:"dbiResourceID,omitempty"`
 	// The Active Directory Domain membership records associated with the DB instance.
+	// +kubebuilder:validation:Optional
 	DomainMemberships []*DomainMembership `json:"domainMemberships,omitempty"`
 	// A list of log types that this DB instance is configured to export to CloudWatch
 	// Logs.
@@ -832,11 +844,14 @@ type DBInstanceStatus struct {
 	// Log types vary by DB engine. For information about the log types for each
 	// DB engine, see Amazon RDS Database Log Files (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html)
 	// in the Amazon RDS User Guide.
+	// +kubebuilder:validation:Optional
 	EnabledCloudwatchLogsExports []*string `json:"enabledCloudwatchLogsExports,omitempty"`
 	// Specifies the connection endpoint.
+	// +kubebuilder:validation:Optional
 	Endpoint *Endpoint `json:"endpoint,omitempty"`
 	// The Amazon Resource Name (ARN) of the Amazon CloudWatch Logs log stream that
 	// receives the Enhanced Monitoring metrics data for the DB instance.
+	// +kubebuilder:validation:Optional
 	EnhancedMonitoringResourceARN *string `json:"enhancedMonitoringResourceARN,omitempty"`
 	// True if mapping of AWS Identity and Access Management (IAM) accounts to database
 	// accounts is enabled, and otherwise false.
@@ -849,22 +864,29 @@ type DBInstanceStatus struct {
 	//
 	//    * Aurora 5.6 or higher. To enable IAM database authentication for Aurora,
 	//    see DBCluster Type.
+	// +kubebuilder:validation:Optional
 	IAMDatabaseAuthenticationEnabled *bool `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	// Provides the date and time the DB instance was created.
+	// +kubebuilder:validation:Optional
 	InstanceCreateTime *metav1.Time `json:"instanceCreateTime,omitempty"`
 	// Specifies the latest time to which a database can be restored with point-in-time
 	// restore.
+	// +kubebuilder:validation:Optional
 	LatestRestorableTime *metav1.Time `json:"latestRestorableTime,omitempty"`
 	// Specifies the listener connection endpoint for SQL Server Always On.
+	// +kubebuilder:validation:Optional
 	ListenerEndpoint *Endpoint `json:"listenerEndpoint,omitempty"`
 	// Provides the list of option group memberships for this DB instance.
+	// +kubebuilder:validation:Optional
 	OptionGroupMemberships []*OptionGroupMembership `json:"optionGroupMemberships,omitempty"`
 	// A value that specifies that changes to the DB instance are pending. This
 	// element is only included when changes are pending. Specific changes are identified
 	// by subelements.
+	// +kubebuilder:validation:Optional
 	PendingModifiedValues *PendingModifiedValues `json:"pendingModifiedValues,omitempty"`
 	// True if Performance Insights is enabled for the DB instance, and otherwise
 	// false.
+	// +kubebuilder:validation:Optional
 	PerformanceInsightsEnabled *bool `json:"performanceInsightsEnabled,omitempty"`
 	// Contains one or more identifiers of Aurora DB clusters to which the RDS DB
 	// instance is replicated as a read replica. For example, when you create an
@@ -873,29 +895,37 @@ type DBInstanceStatus struct {
 	// about cross region Aurora read replicas.
 	//
 	// Currently, each RDS DB instance can have only one Aurora read replica.
+	// +kubebuilder:validation:Optional
 	ReadReplicaDBClusterIdentifiers []*string `json:"readReplicaDBClusterIdentifiers,omitempty"`
 	// Contains one or more identifiers of the read replicas associated with this
 	// DB instance.
+	// +kubebuilder:validation:Optional
 	ReadReplicaDBInstanceIdentifiers []*string `json:"readReplicaDBInstanceIdentifiers,omitempty"`
 	// Contains the identifier of the source DB instance if this DB instance is
 	// a read replica.
+	// +kubebuilder:validation:Optional
 	ReadReplicaSourceDBInstanceIdentifier *string `json:"readReplicaSourceDBInstanceIdentifier,omitempty"`
 	// The open mode of an Oracle read replica. The default is open-read-only. For
 	// more information, see Working with Oracle Read Replicas for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html)
 	// in the Amazon RDS User Guide.
 	//
 	// This attribute is only supported in RDS for Oracle.
+	// +kubebuilder:validation:Optional
 	ReplicaMode *string `json:"replicaMode,omitempty"`
 	// If present, specifies the name of the secondary Availability Zone for a DB
 	// instance with multi-AZ support.
+	// +kubebuilder:validation:Optional
 	SecondaryAvailabilityZone *string `json:"secondaryAvailabilityZone,omitempty"`
 	// The status of a read replica. If the instance isn't a read replica, this
 	// is blank.
+	// +kubebuilder:validation:Optional
 	StatusInfos []*DBInstanceStatusInfo `json:"statusInfos,omitempty"`
 
+	// +kubebuilder:validation:Optional
 	TagList []*Tag `json:"tagList,omitempty"`
 	// Provides a list of VPC security group elements that the DB instance belongs
 	// to.
+	// +kubebuilder:validation:Optional
 	VPCSecurityGroups []*VPCSecurityGroupMembership `json:"vpcSecurityGroups,omitempty"`
 }
 

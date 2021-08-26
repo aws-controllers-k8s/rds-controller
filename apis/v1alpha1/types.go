@@ -286,6 +286,7 @@ type DBClusterSnapshot struct {
 	DBClusterSnapshotARN             *string      `json:"dbClusterSnapshotARN,omitempty"`
 	DBClusterSnapshotIdentifier      *string      `json:"dbClusterSnapshotIdentifier,omitempty"`
 	Engine                           *string      `json:"engine,omitempty"`
+	EngineMode                       *string      `json:"engineMode,omitempty"`
 	EngineVersion                    *string      `json:"engineVersion,omitempty"`
 	IAMDatabaseAuthenticationEnabled *bool        `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	KMSKeyID                         *string      `json:"kmsKeyID,omitempty"`
@@ -847,6 +848,14 @@ type ExportTask struct {
 	WarningMessage         *string      `json:"warningMessage,omitempty"`
 }
 
+// Contains the state of scheduled or in-process failover operations on an Aurora
+// global database (GlobalCluster). This Data type is empty unless a failover
+// operation is scheduled or is currently underway on the Aurora global database.
+type FailoverState struct {
+	FromDBClusterARN *string `json:"fromDBClusterARN,omitempty"`
+	ToDBClusterARN   *string `json:"toDBClusterARN,omitempty"`
+}
+
 // A filter name and value pair that is used to return a more specific list
 // of results from a describe operation. Filters can be used to match a set
 // of resources by specific criteria, such as IDs. The filters supported by
@@ -1287,11 +1296,14 @@ type Timezone struct {
 
 // The version of the database engine that a DB instance can be upgraded to.
 type UpgradeTarget struct {
-	AutoUpgrade           *bool   `json:"autoUpgrade,omitempty"`
-	Description           *string `json:"description,omitempty"`
-	Engine                *string `json:"engine,omitempty"`
-	EngineVersion         *string `json:"engineVersion,omitempty"`
-	IsMajorVersionUpgrade *bool   `json:"isMajorVersionUpgrade,omitempty"`
+	AutoUpgrade             *bool     `json:"autoUpgrade,omitempty"`
+	Description             *string   `json:"description,omitempty"`
+	Engine                  *string   `json:"engine,omitempty"`
+	EngineVersion           *string   `json:"engineVersion,omitempty"`
+	IsMajorVersionUpgrade   *bool     `json:"isMajorVersionUpgrade,omitempty"`
+	SupportedEngineModes    []*string `json:"supportedEngineModes,omitempty"`
+	SupportsGlobalDatabases *bool     `json:"supportsGlobalDatabases,omitempty"`
+	SupportsParallelQuery   *bool     `json:"supportsParallelQuery,omitempty"`
 }
 
 // Specifies the details of authentication used by a proxy to log in as a specific

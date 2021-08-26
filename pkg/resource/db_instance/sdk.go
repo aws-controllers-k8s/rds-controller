@@ -50,6 +50,13 @@ func (rm *resourceManager) sdkFind(
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkFind")
 	defer exit(err)
+	// If any required fields in the input shape are missing, AWS resource is
+	// not created yet. Return NotFound here to indicate to callers that the
+	// resource isn't yet created.
+	if rm.requiredFieldsMissingFromReadManyInput(r) {
+		return nil, ackerr.NotFound
+	}
+
 	input, err := rm.newListRequestPayload(r)
 	if err != nil {
 		return nil, err
@@ -665,6 +672,15 @@ func (rm *resourceManager) sdkFind(
 	return &resource{ko}, nil
 }
 
+// requiredFieldsMissingFromReadManyInput returns true if there are any fields
+// for the ReadMany Input shape that are required but not present in the
+// resource's Spec or Status
+func (rm *resourceManager) requiredFieldsMissingFromReadManyInput(
+	r *resource,
+) bool {
+	return false
+}
+
 // newListRequestPayload returns SDK-specific struct for the HTTP request
 // payload of the List API call for the resource
 func (rm *resourceManager) newListRequestPayload(
@@ -705,6 +721,11 @@ func (rm *resourceManager) sdkCreate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
+	if resp.DBInstance.AllocatedStorage != nil {
+		ko.Spec.AllocatedStorage = resp.DBInstance.AllocatedStorage
+	} else {
+		ko.Spec.AllocatedStorage = nil
+	}
 	if resp.DBInstance.AssociatedRoles != nil {
 		f1 := []*svcapitypes.DBInstanceRole{}
 		for _, f1iter := range resp.DBInstance.AssociatedRoles {
@@ -724,15 +745,45 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.AssociatedRoles = nil
 	}
+	if resp.DBInstance.AutoMinorVersionUpgrade != nil {
+		ko.Spec.AutoMinorVersionUpgrade = resp.DBInstance.AutoMinorVersionUpgrade
+	} else {
+		ko.Spec.AutoMinorVersionUpgrade = nil
+	}
+	if resp.DBInstance.AvailabilityZone != nil {
+		ko.Spec.AvailabilityZone = resp.DBInstance.AvailabilityZone
+	} else {
+		ko.Spec.AvailabilityZone = nil
+	}
+	if resp.DBInstance.BackupRetentionPeriod != nil {
+		ko.Spec.BackupRetentionPeriod = resp.DBInstance.BackupRetentionPeriod
+	} else {
+		ko.Spec.BackupRetentionPeriod = nil
+	}
 	if resp.DBInstance.CACertificateIdentifier != nil {
 		ko.Status.CACertificateIdentifier = resp.DBInstance.CACertificateIdentifier
 	} else {
 		ko.Status.CACertificateIdentifier = nil
 	}
+	if resp.DBInstance.CharacterSetName != nil {
+		ko.Spec.CharacterSetName = resp.DBInstance.CharacterSetName
+	} else {
+		ko.Spec.CharacterSetName = nil
+	}
+	if resp.DBInstance.CopyTagsToSnapshot != nil {
+		ko.Spec.CopyTagsToSnapshot = resp.DBInstance.CopyTagsToSnapshot
+	} else {
+		ko.Spec.CopyTagsToSnapshot = nil
+	}
 	if resp.DBInstance.CustomerOwnedIpEnabled != nil {
 		ko.Status.CustomerOwnedIPEnabled = resp.DBInstance.CustomerOwnedIpEnabled
 	} else {
 		ko.Status.CustomerOwnedIPEnabled = nil
+	}
+	if resp.DBInstance.DBClusterIdentifier != nil {
+		ko.Spec.DBClusterIdentifier = resp.DBInstance.DBClusterIdentifier
+	} else {
+		ko.Spec.DBClusterIdentifier = nil
 	}
 	if ko.Status.ACKResourceMetadata == nil {
 		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
@@ -754,10 +805,25 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.DBInstanceAutomatedBackupsReplications = nil
 	}
+	if resp.DBInstance.DBInstanceClass != nil {
+		ko.Spec.DBInstanceClass = resp.DBInstance.DBInstanceClass
+	} else {
+		ko.Spec.DBInstanceClass = nil
+	}
+	if resp.DBInstance.DBInstanceIdentifier != nil {
+		ko.Spec.DBInstanceIdentifier = resp.DBInstance.DBInstanceIdentifier
+	} else {
+		ko.Spec.DBInstanceIdentifier = nil
+	}
 	if resp.DBInstance.DBInstanceStatus != nil {
 		ko.Status.DBInstanceStatus = resp.DBInstance.DBInstanceStatus
 	} else {
 		ko.Status.DBInstanceStatus = nil
+	}
+	if resp.DBInstance.DBName != nil {
+		ko.Spec.DBName = resp.DBInstance.DBName
+	} else {
+		ko.Spec.DBName = nil
 	}
 	if resp.DBInstance.DBParameterGroups != nil {
 		f16 := []*svcapitypes.DBParameterGroupStatus_SDK{}
@@ -775,6 +841,21 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.DBParameterGroups = nil
 	}
+	// TODO(jaypipes): Commenting this out until Issue #178 is resolved. The Go
+	// type of the DBSecurityGroups field in the Create input and output shapes
+	// is different, leading to a compilation failure below.
+	//
+	// https://github.com/aws-controllers-k8s/community/issues/178
+	//if resp.DBInstance.DBSecurityGroups != nil {
+	//	f17 := []*string{}
+	//	for _, f17iter := range resp.DBInstance.DBSecurityGroups {
+	//		var f17elem string
+	//		f17 = append(f17, f17elem)
+	//	}
+	//	ko.Spec.DBSecurityGroupNames = f17
+	//} else {
+	//	ko.Spec.DBSecurityGroupNames = nil
+	//}
 	if resp.DBInstance.DBSubnetGroup != nil {
 		f18 := &svcapitypes.DBSubnetGroup_SDK{}
 		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupArn != nil {
@@ -834,6 +915,11 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.DBIResourceID = nil
 	}
+	if resp.DBInstance.DeletionProtection != nil {
+		ko.Spec.DeletionProtection = resp.DBInstance.DeletionProtection
+	} else {
+		ko.Spec.DeletionProtection = nil
+	}
 	if resp.DBInstance.DomainMemberships != nil {
 		f22 := []*svcapitypes.DomainMembership{}
 		for _, f22iter := range resp.DBInstance.DomainMemberships {
@@ -882,6 +968,16 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.Endpoint = nil
 	}
+	if resp.DBInstance.Engine != nil {
+		ko.Spec.Engine = resp.DBInstance.Engine
+	} else {
+		ko.Spec.Engine = nil
+	}
+	if resp.DBInstance.EngineVersion != nil {
+		ko.Spec.EngineVersion = resp.DBInstance.EngineVersion
+	} else {
+		ko.Spec.EngineVersion = nil
+	}
 	if resp.DBInstance.EnhancedMonitoringResourceArn != nil {
 		ko.Status.EnhancedMonitoringResourceARN = resp.DBInstance.EnhancedMonitoringResourceArn
 	} else {
@@ -897,10 +993,25 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.InstanceCreateTime = nil
 	}
+	if resp.DBInstance.Iops != nil {
+		ko.Spec.IOPS = resp.DBInstance.Iops
+	} else {
+		ko.Spec.IOPS = nil
+	}
+	if resp.DBInstance.KmsKeyId != nil {
+		ko.Spec.KMSKeyID = resp.DBInstance.KmsKeyId
+	} else {
+		ko.Spec.KMSKeyID = nil
+	}
 	if resp.DBInstance.LatestRestorableTime != nil {
 		ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBInstance.LatestRestorableTime}
 	} else {
 		ko.Status.LatestRestorableTime = nil
+	}
+	if resp.DBInstance.LicenseModel != nil {
+		ko.Spec.LicenseModel = resp.DBInstance.LicenseModel
+	} else {
+		ko.Spec.LicenseModel = nil
 	}
 	if resp.DBInstance.ListenerEndpoint != nil {
 		f34 := &svcapitypes.Endpoint{}
@@ -916,6 +1027,36 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ListenerEndpoint = f34
 	} else {
 		ko.Status.ListenerEndpoint = nil
+	}
+	if resp.DBInstance.MasterUsername != nil {
+		ko.Spec.MasterUsername = resp.DBInstance.MasterUsername
+	} else {
+		ko.Spec.MasterUsername = nil
+	}
+	if resp.DBInstance.MaxAllocatedStorage != nil {
+		ko.Spec.MaxAllocatedStorage = resp.DBInstance.MaxAllocatedStorage
+	} else {
+		ko.Spec.MaxAllocatedStorage = nil
+	}
+	if resp.DBInstance.MonitoringInterval != nil {
+		ko.Spec.MonitoringInterval = resp.DBInstance.MonitoringInterval
+	} else {
+		ko.Spec.MonitoringInterval = nil
+	}
+	if resp.DBInstance.MonitoringRoleArn != nil {
+		ko.Spec.MonitoringRoleARN = resp.DBInstance.MonitoringRoleArn
+	} else {
+		ko.Spec.MonitoringRoleARN = nil
+	}
+	if resp.DBInstance.MultiAZ != nil {
+		ko.Spec.MultiAZ = resp.DBInstance.MultiAZ
+	} else {
+		ko.Spec.MultiAZ = nil
+	}
+	if resp.DBInstance.NcharCharacterSetName != nil {
+		ko.Spec.NcharCharacterSetName = resp.DBInstance.NcharCharacterSetName
+	} else {
+		ko.Spec.NcharCharacterSetName = nil
 	}
 	if resp.DBInstance.OptionGroupMemberships != nil {
 		f41 := []*svcapitypes.OptionGroupMembership{}
@@ -1022,6 +1163,52 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.PerformanceInsightsEnabled = nil
 	}
+	if resp.DBInstance.PerformanceInsightsKMSKeyId != nil {
+		ko.Spec.PerformanceInsightsKMSKeyID = resp.DBInstance.PerformanceInsightsKMSKeyId
+	} else {
+		ko.Spec.PerformanceInsightsKMSKeyID = nil
+	}
+	if resp.DBInstance.PerformanceInsightsRetentionPeriod != nil {
+		ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBInstance.PerformanceInsightsRetentionPeriod
+	} else {
+		ko.Spec.PerformanceInsightsRetentionPeriod = nil
+	}
+	if resp.DBInstance.PreferredBackupWindow != nil {
+		ko.Spec.PreferredBackupWindow = resp.DBInstance.PreferredBackupWindow
+	} else {
+		ko.Spec.PreferredBackupWindow = nil
+	}
+	if resp.DBInstance.PreferredMaintenanceWindow != nil {
+		ko.Spec.PreferredMaintenanceWindow = resp.DBInstance.PreferredMaintenanceWindow
+	} else {
+		ko.Spec.PreferredMaintenanceWindow = nil
+	}
+	if resp.DBInstance.ProcessorFeatures != nil {
+		f48 := []*svcapitypes.ProcessorFeature{}
+		for _, f48iter := range resp.DBInstance.ProcessorFeatures {
+			f48elem := &svcapitypes.ProcessorFeature{}
+			if f48iter.Name != nil {
+				f48elem.Name = f48iter.Name
+			}
+			if f48iter.Value != nil {
+				f48elem.Value = f48iter.Value
+			}
+			f48 = append(f48, f48elem)
+		}
+		ko.Spec.ProcessorFeatures = f48
+	} else {
+		ko.Spec.ProcessorFeatures = nil
+	}
+	if resp.DBInstance.PromotionTier != nil {
+		ko.Spec.PromotionTier = resp.DBInstance.PromotionTier
+	} else {
+		ko.Spec.PromotionTier = nil
+	}
+	if resp.DBInstance.PubliclyAccessible != nil {
+		ko.Spec.PubliclyAccessible = resp.DBInstance.PubliclyAccessible
+	} else {
+		ko.Spec.PubliclyAccessible = nil
+	}
 	if resp.DBInstance.ReadReplicaDBClusterIdentifiers != nil {
 		f51 := []*string{}
 		for _, f51iter := range resp.DBInstance.ReadReplicaDBClusterIdentifiers {
@@ -1081,6 +1268,16 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.StatusInfos = nil
 	}
+	if resp.DBInstance.StorageEncrypted != nil {
+		ko.Spec.StorageEncrypted = resp.DBInstance.StorageEncrypted
+	} else {
+		ko.Spec.StorageEncrypted = nil
+	}
+	if resp.DBInstance.StorageType != nil {
+		ko.Spec.StorageType = resp.DBInstance.StorageType
+	} else {
+		ko.Spec.StorageType = nil
+	}
 	if resp.DBInstance.TagList != nil {
 		f59 := []*svcapitypes.Tag{}
 		for _, f59iter := range resp.DBInstance.TagList {
@@ -1096,6 +1293,16 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.TagList = f59
 	} else {
 		ko.Status.TagList = nil
+	}
+	if resp.DBInstance.TdeCredentialArn != nil {
+		ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
+	} else {
+		ko.Spec.TDECredentialARN = nil
+	}
+	if resp.DBInstance.Timezone != nil {
+		ko.Spec.Timezone = resp.DBInstance.Timezone
+	} else {
+		ko.Spec.Timezone = nil
 	}
 	if resp.DBInstance.VpcSecurityGroups != nil {
 		f62 := []*svcapitypes.VPCSecurityGroupMembership{}
@@ -1364,6 +1571,11 @@ func (rm *resourceManager) sdkUpdate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
+	if resp.DBInstance.AllocatedStorage != nil {
+		ko.Spec.AllocatedStorage = resp.DBInstance.AllocatedStorage
+	} else {
+		ko.Spec.AllocatedStorage = nil
+	}
 	if resp.DBInstance.AssociatedRoles != nil {
 		f1 := []*svcapitypes.DBInstanceRole{}
 		for _, f1iter := range resp.DBInstance.AssociatedRoles {
@@ -1383,15 +1595,45 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.AssociatedRoles = nil
 	}
+	if resp.DBInstance.AutoMinorVersionUpgrade != nil {
+		ko.Spec.AutoMinorVersionUpgrade = resp.DBInstance.AutoMinorVersionUpgrade
+	} else {
+		ko.Spec.AutoMinorVersionUpgrade = nil
+	}
+	if resp.DBInstance.AvailabilityZone != nil {
+		ko.Spec.AvailabilityZone = resp.DBInstance.AvailabilityZone
+	} else {
+		ko.Spec.AvailabilityZone = nil
+	}
+	if resp.DBInstance.BackupRetentionPeriod != nil {
+		ko.Spec.BackupRetentionPeriod = resp.DBInstance.BackupRetentionPeriod
+	} else {
+		ko.Spec.BackupRetentionPeriod = nil
+	}
 	if resp.DBInstance.CACertificateIdentifier != nil {
 		ko.Status.CACertificateIdentifier = resp.DBInstance.CACertificateIdentifier
 	} else {
 		ko.Status.CACertificateIdentifier = nil
 	}
+	if resp.DBInstance.CharacterSetName != nil {
+		ko.Spec.CharacterSetName = resp.DBInstance.CharacterSetName
+	} else {
+		ko.Spec.CharacterSetName = nil
+	}
+	if resp.DBInstance.CopyTagsToSnapshot != nil {
+		ko.Spec.CopyTagsToSnapshot = resp.DBInstance.CopyTagsToSnapshot
+	} else {
+		ko.Spec.CopyTagsToSnapshot = nil
+	}
 	if resp.DBInstance.CustomerOwnedIpEnabled != nil {
 		ko.Status.CustomerOwnedIPEnabled = resp.DBInstance.CustomerOwnedIpEnabled
 	} else {
 		ko.Status.CustomerOwnedIPEnabled = nil
+	}
+	if resp.DBInstance.DBClusterIdentifier != nil {
+		ko.Spec.DBClusterIdentifier = resp.DBInstance.DBClusterIdentifier
+	} else {
+		ko.Spec.DBClusterIdentifier = nil
 	}
 	if ko.Status.ACKResourceMetadata == nil {
 		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
@@ -1413,10 +1655,25 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.DBInstanceAutomatedBackupsReplications = nil
 	}
+	if resp.DBInstance.DBInstanceClass != nil {
+		ko.Spec.DBInstanceClass = resp.DBInstance.DBInstanceClass
+	} else {
+		ko.Spec.DBInstanceClass = nil
+	}
+	if resp.DBInstance.DBInstanceIdentifier != nil {
+		ko.Spec.DBInstanceIdentifier = resp.DBInstance.DBInstanceIdentifier
+	} else {
+		ko.Spec.DBInstanceIdentifier = nil
+	}
 	if resp.DBInstance.DBInstanceStatus != nil {
 		ko.Status.DBInstanceStatus = resp.DBInstance.DBInstanceStatus
 	} else {
 		ko.Status.DBInstanceStatus = nil
+	}
+	if resp.DBInstance.DBName != nil {
+		ko.Spec.DBName = resp.DBInstance.DBName
+	} else {
+		ko.Spec.DBName = nil
 	}
 	if resp.DBInstance.DBParameterGroups != nil {
 		f16 := []*svcapitypes.DBParameterGroupStatus_SDK{}
@@ -1493,6 +1750,11 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.DBIResourceID = nil
 	}
+	if resp.DBInstance.DeletionProtection != nil {
+		ko.Spec.DeletionProtection = resp.DBInstance.DeletionProtection
+	} else {
+		ko.Spec.DeletionProtection = nil
+	}
 	if resp.DBInstance.DomainMemberships != nil {
 		f22 := []*svcapitypes.DomainMembership{}
 		for _, f22iter := range resp.DBInstance.DomainMemberships {
@@ -1541,6 +1803,16 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.Endpoint = nil
 	}
+	if resp.DBInstance.Engine != nil {
+		ko.Spec.Engine = resp.DBInstance.Engine
+	} else {
+		ko.Spec.Engine = nil
+	}
+	if resp.DBInstance.EngineVersion != nil {
+		ko.Spec.EngineVersion = resp.DBInstance.EngineVersion
+	} else {
+		ko.Spec.EngineVersion = nil
+	}
 	if resp.DBInstance.EnhancedMonitoringResourceArn != nil {
 		ko.Status.EnhancedMonitoringResourceARN = resp.DBInstance.EnhancedMonitoringResourceArn
 	} else {
@@ -1556,10 +1828,25 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.InstanceCreateTime = nil
 	}
+	if resp.DBInstance.Iops != nil {
+		ko.Spec.IOPS = resp.DBInstance.Iops
+	} else {
+		ko.Spec.IOPS = nil
+	}
+	if resp.DBInstance.KmsKeyId != nil {
+		ko.Spec.KMSKeyID = resp.DBInstance.KmsKeyId
+	} else {
+		ko.Spec.KMSKeyID = nil
+	}
 	if resp.DBInstance.LatestRestorableTime != nil {
 		ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBInstance.LatestRestorableTime}
 	} else {
 		ko.Status.LatestRestorableTime = nil
+	}
+	if resp.DBInstance.LicenseModel != nil {
+		ko.Spec.LicenseModel = resp.DBInstance.LicenseModel
+	} else {
+		ko.Spec.LicenseModel = nil
 	}
 	if resp.DBInstance.ListenerEndpoint != nil {
 		f34 := &svcapitypes.Endpoint{}
@@ -1575,6 +1862,36 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ListenerEndpoint = f34
 	} else {
 		ko.Status.ListenerEndpoint = nil
+	}
+	if resp.DBInstance.MasterUsername != nil {
+		ko.Spec.MasterUsername = resp.DBInstance.MasterUsername
+	} else {
+		ko.Spec.MasterUsername = nil
+	}
+	if resp.DBInstance.MaxAllocatedStorage != nil {
+		ko.Spec.MaxAllocatedStorage = resp.DBInstance.MaxAllocatedStorage
+	} else {
+		ko.Spec.MaxAllocatedStorage = nil
+	}
+	if resp.DBInstance.MonitoringInterval != nil {
+		ko.Spec.MonitoringInterval = resp.DBInstance.MonitoringInterval
+	} else {
+		ko.Spec.MonitoringInterval = nil
+	}
+	if resp.DBInstance.MonitoringRoleArn != nil {
+		ko.Spec.MonitoringRoleARN = resp.DBInstance.MonitoringRoleArn
+	} else {
+		ko.Spec.MonitoringRoleARN = nil
+	}
+	if resp.DBInstance.MultiAZ != nil {
+		ko.Spec.MultiAZ = resp.DBInstance.MultiAZ
+	} else {
+		ko.Spec.MultiAZ = nil
+	}
+	if resp.DBInstance.NcharCharacterSetName != nil {
+		ko.Spec.NcharCharacterSetName = resp.DBInstance.NcharCharacterSetName
+	} else {
+		ko.Spec.NcharCharacterSetName = nil
 	}
 	if resp.DBInstance.OptionGroupMemberships != nil {
 		f41 := []*svcapitypes.OptionGroupMembership{}
@@ -1681,6 +1998,52 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.PerformanceInsightsEnabled = nil
 	}
+	if resp.DBInstance.PerformanceInsightsKMSKeyId != nil {
+		ko.Spec.PerformanceInsightsKMSKeyID = resp.DBInstance.PerformanceInsightsKMSKeyId
+	} else {
+		ko.Spec.PerformanceInsightsKMSKeyID = nil
+	}
+	if resp.DBInstance.PerformanceInsightsRetentionPeriod != nil {
+		ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBInstance.PerformanceInsightsRetentionPeriod
+	} else {
+		ko.Spec.PerformanceInsightsRetentionPeriod = nil
+	}
+	if resp.DBInstance.PreferredBackupWindow != nil {
+		ko.Spec.PreferredBackupWindow = resp.DBInstance.PreferredBackupWindow
+	} else {
+		ko.Spec.PreferredBackupWindow = nil
+	}
+	if resp.DBInstance.PreferredMaintenanceWindow != nil {
+		ko.Spec.PreferredMaintenanceWindow = resp.DBInstance.PreferredMaintenanceWindow
+	} else {
+		ko.Spec.PreferredMaintenanceWindow = nil
+	}
+	if resp.DBInstance.ProcessorFeatures != nil {
+		f48 := []*svcapitypes.ProcessorFeature{}
+		for _, f48iter := range resp.DBInstance.ProcessorFeatures {
+			f48elem := &svcapitypes.ProcessorFeature{}
+			if f48iter.Name != nil {
+				f48elem.Name = f48iter.Name
+			}
+			if f48iter.Value != nil {
+				f48elem.Value = f48iter.Value
+			}
+			f48 = append(f48, f48elem)
+		}
+		ko.Spec.ProcessorFeatures = f48
+	} else {
+		ko.Spec.ProcessorFeatures = nil
+	}
+	if resp.DBInstance.PromotionTier != nil {
+		ko.Spec.PromotionTier = resp.DBInstance.PromotionTier
+	} else {
+		ko.Spec.PromotionTier = nil
+	}
+	if resp.DBInstance.PubliclyAccessible != nil {
+		ko.Spec.PubliclyAccessible = resp.DBInstance.PubliclyAccessible
+	} else {
+		ko.Spec.PubliclyAccessible = nil
+	}
 	if resp.DBInstance.ReadReplicaDBClusterIdentifiers != nil {
 		f51 := []*string{}
 		for _, f51iter := range resp.DBInstance.ReadReplicaDBClusterIdentifiers {
@@ -1740,6 +2103,16 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.StatusInfos = nil
 	}
+	if resp.DBInstance.StorageEncrypted != nil {
+		ko.Spec.StorageEncrypted = resp.DBInstance.StorageEncrypted
+	} else {
+		ko.Spec.StorageEncrypted = nil
+	}
+	if resp.DBInstance.StorageType != nil {
+		ko.Spec.StorageType = resp.DBInstance.StorageType
+	} else {
+		ko.Spec.StorageType = nil
+	}
 	if resp.DBInstance.TagList != nil {
 		f59 := []*svcapitypes.Tag{}
 		for _, f59iter := range resp.DBInstance.TagList {
@@ -1755,6 +2128,16 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.TagList = f59
 	} else {
 		ko.Status.TagList = nil
+	}
+	if resp.DBInstance.TdeCredentialArn != nil {
+		ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
+	} else {
+		ko.Spec.TDECredentialARN = nil
+	}
+	if resp.DBInstance.Timezone != nil {
+		ko.Spec.Timezone = resp.DBInstance.Timezone
+	} else {
+		ko.Spec.Timezone = nil
 	}
 	if resp.DBInstance.VpcSecurityGroups != nil {
 		f62 := []*svcapitypes.VPCSecurityGroupMembership{}
@@ -2000,16 +2383,21 @@ func (rm *resourceManager) updateConditions(
 		}
 	}
 
-	if rm.terminalAWSError(err) {
+	if rm.terminalAWSError(err) || err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
 		if terminalCondition == nil {
 			terminalCondition = &ackv1alpha1.Condition{
 				Type: ackv1alpha1.ConditionTypeTerminal,
 			}
 			ko.Status.Conditions = append(ko.Status.Conditions, terminalCondition)
 		}
+		var errorMessage = ""
+		if err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
+			errorMessage = err.Error()
+		} else {
+			awsErr, _ := ackerr.AWSError(err)
+			errorMessage = awsErr.Message()
+		}
 		terminalCondition.Status = corev1.ConditionTrue
-		awsErr, _ := ackerr.AWSError(err)
-		errorMessage := awsErr.Message()
 		terminalCondition.Message = &errorMessage
 	} else {
 		// Clear the terminal condition if no longer present

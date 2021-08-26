@@ -16,7 +16,14 @@
 package db_instance
 
 import (
+	"reflect"
+
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+)
+
+// Hack to avoid import errors during build...
+var (
+	_ = &reflect.Method{}
 )
 
 // newResourceDelta returns a new `ackcompare.Delta` used to compare two
@@ -109,7 +116,6 @@ func newResourceDelta(
 			delta.Add("Spec.DBParameterGroupName", a.ko.Spec.DBParameterGroupName, b.ko.Spec.DBParameterGroupName)
 		}
 	}
-
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.DBSecurityGroupNames, b.ko.Spec.DBSecurityGroupNames) {
 		delta.Add("Spec.DBSecurityGroupNames", a.ko.Spec.DBSecurityGroupNames, b.ko.Spec.DBSecurityGroupNames)
 	}
@@ -141,7 +147,6 @@ func newResourceDelta(
 			delta.Add("Spec.DomainIAMRoleName", a.ko.Spec.DomainIAMRoleName, b.ko.Spec.DomainIAMRoleName)
 		}
 	}
-
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports) {
 		delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
 	}
@@ -292,7 +297,9 @@ func newResourceDelta(
 			delta.Add("Spec.PreferredMaintenanceWindow", a.ko.Spec.PreferredMaintenanceWindow, b.ko.Spec.PreferredMaintenanceWindow)
 		}
 	}
-
+	if !reflect.DeepEqual(a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures) {
+		delta.Add("Spec.ProcessorFeatures", a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.PromotionTier, b.ko.Spec.PromotionTier) {
 		delta.Add("Spec.PromotionTier", a.ko.Spec.PromotionTier, b.ko.Spec.PromotionTier)
 	} else if a.ko.Spec.PromotionTier != nil && b.ko.Spec.PromotionTier != nil {
@@ -321,7 +328,9 @@ func newResourceDelta(
 			delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
 		}
 	}
-
+	if !reflect.DeepEqual(a.ko.Spec.Tags, b.ko.Spec.Tags) {
+		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.TDECredentialARN, b.ko.Spec.TDECredentialARN) {
 		delta.Add("Spec.TDECredentialARN", a.ko.Spec.TDECredentialARN, b.ko.Spec.TDECredentialARN)
 	} else if a.ko.Spec.TDECredentialARN != nil && b.ko.Spec.TDECredentialARN != nil {
@@ -343,7 +352,6 @@ func newResourceDelta(
 			delta.Add("Spec.Timezone", a.ko.Spec.Timezone, b.ko.Spec.Timezone)
 		}
 	}
-
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {
 		delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
 	}

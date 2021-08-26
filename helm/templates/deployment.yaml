@@ -41,6 +41,8 @@ spec:
         - "$(AWS_ACCOUNT_ID)"
         - --aws-region
         - "$(AWS_REGION)"
+        - --aws-endpoint-url
+        - "$(AWS_ENDPOINT_URL)"
         - --enable-development-logging
         - "$(ACK_ENABLE_DEVELOPMENT_LOGGING)"
         - --log-level
@@ -64,8 +66,10 @@ spec:
           value: {{ .Values.aws.account_id | quote }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
+        - name: AWS_ENDPOINT_URL
+          value: {{ .Values.aws.endpoint_url | quote }}
         - name: ACK_WATCH_NAMESPACE
-          value: {{ .Values.watchNamespace }}
+          value: {{ include "watch-namespace" . }}
         - name: ACK_ENABLE_DEVELOPMENT_LOGGING
           value: {{ .Values.log.enable_development_logging | quote }}
         - name: ACK_LOG_LEVEL
