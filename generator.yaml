@@ -64,6 +64,11 @@ operations:
     primary_identifier_field_name: DBClusterIdentifier
 resources:
   DBCluster:
+    update_operation:
+      # We need a custom update implementation until the issue behind
+      # https://github.com/aws-controllers-k8s/community/issues/917 is
+      # resolved.
+      custom_method_name: customUpdate
     hooks:
       sdk_update_pre_build_request:
         template_path: hooks/db_cluster/sdk_update_pre_build_request.go.tpl
