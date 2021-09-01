@@ -39,6 +39,9 @@ DELETE_TIMEOUT_SECONDS = 600
 CREATE_INTERVAL_SLEEP_SECONDS = 15
 # Time to wait before we get to an expected `available` state.
 CREATE_TIMEOUT_SECONDS = 600
+# Time we wait after resource becoming available in RDS and checking the CR's
+# Status has been updated
+CHECK_STATUS_WAIT_SECONDS = 10
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
@@ -91,6 +94,9 @@ class TestDBInstance:
         cr = k8s.wait_resource_consumed_by_controller(ref)
 
         assert cr is not None
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] == 'creating'
 
         # Let's check that the DB instance appears in RDS
         aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
@@ -109,6 +115,22 @@ class TestDBInstance:
             aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
             assert len(aws_res['DBInstances']) == 1
             dbi_rec = aws_res['DBInstances'][0]
+
+        time.sleep(CHECK_STATUS_WAIT_SECONDS)
+
+        # Before we update the DBInstance CR below, let's check to see that the
+        # DbInstanceStatus field in the CR has been updated to something other
+        # than 'creating', which is what is set after the initial creation.
+        # The CR's `Status.DBInstanceStatus` should be updated because the CR
+        # is requeued on successful reconciliation loops and subsequent
+        # reconciliation loops call ReadOne and should update the CR's Status
+        # with the latest observed information.
+        # https://github.com/aws-controllers-k8s/community/issues/923
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] != 'creating'
 
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
