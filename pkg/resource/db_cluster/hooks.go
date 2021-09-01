@@ -116,6 +116,16 @@ func clusterHasTerminalStatus(r *resource) bool {
 	return false
 }
 
+// clusterAvailable returns true if the supplied DB cluster is in an
+// available status
+func clusterAvailable(r *resource) bool {
+	if r.ko.Status.Status == nil {
+		return false
+	}
+	dbcs := *r.ko.Status.Status
+	return dbcs == StatusAvailable
+}
+
 // clusterCreating returns true if the supplied DB cluster is in the process
 // of being created
 func clusterCreating(r *resource) bool {
