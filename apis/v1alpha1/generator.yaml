@@ -60,8 +60,16 @@ operations:
       SkipFinalSnapshot: true
   DescribeDBInstances:
     primary_identifier_field_name: DBInstanceIdentifier
+  DescribeDBClusterParameterGroups:
+    primary_identifier_field_name: DBClusterParameterGroupName
   DescribeDBClusters:
     primary_identifier_field_name: DBClusterIdentifier
+  DescribeDBParameterGroups:
+    primary_identifier_field_name: DBParameterGroupName
+  DescribeDBSecurityGroups:
+    primary_identifier_field_name: DBSecurityGroupName
+  DescribeDBSubnetGroups:
+    primary_identifier_field_name: DBSubnetGroupName
 resources:
   DBCluster:
     update_operation:
