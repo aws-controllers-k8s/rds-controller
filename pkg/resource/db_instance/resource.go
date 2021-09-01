@@ -99,3 +99,9 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 
 	return nil
 }
+
+// DeepCopy will return a copy of the resource
+func (r *resource) DeepCopy() acktypes.AWSResource {
+	koCopy := r.ko.DeepCopy()
+	return &resource{koCopy}
+}
