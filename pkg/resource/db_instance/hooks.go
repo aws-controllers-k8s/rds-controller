@@ -125,6 +125,16 @@ func instanceHasTerminalStatus(r *resource) bool {
 	return false
 }
 
+// instanceAvailable returns true if the supplied DB instance is in an
+// available status
+func instanceAvailable(r *resource) bool {
+	if r.ko.Status.DBInstanceStatus == nil {
+		return false
+	}
+	dbis := *r.ko.Status.DBInstanceStatus
+	return dbis == StatusAvailable
+}
+
 // instanceCreating returns true if the supplied DB instance is in the process
 // of being created
 func instanceCreating(r *resource) bool {
