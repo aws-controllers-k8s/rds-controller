@@ -157,6 +157,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - globalclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - globalclusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - services.k8s.aws
   resources:
   - adoptedresources

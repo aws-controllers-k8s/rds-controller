@@ -853,6 +853,7 @@ type ExportTask struct {
 // operation is scheduled or is currently underway on the Aurora global database.
 type FailoverState struct {
 	FromDBClusterARN *string `json:"fromDBClusterARN,omitempty"`
+	Status           *string `json:"status,omitempty"`
 	ToDBClusterARN   *string `json:"toDBClusterARN,omitempty"`
 }
 
@@ -879,25 +880,31 @@ type Filter struct {
 	Values []*string `json:"values,omitempty"`
 }
 
-// A data type representing an Aurora global database.
-type GlobalCluster struct {
-	DatabaseName            *string `json:"databaseName,omitempty"`
-	DeletionProtection      *bool   `json:"deletionProtection,omitempty"`
-	Engine                  *string `json:"engine,omitempty"`
-	EngineVersion           *string `json:"engineVersion,omitempty"`
-	GlobalClusterARN        *string `json:"globalClusterARN,omitempty"`
-	GlobalClusterIdentifier *string `json:"globalClusterIdentifier,omitempty"`
-	GlobalClusterResourceID *string `json:"globalClusterResourceID,omitempty"`
-	Status                  *string `json:"status,omitempty"`
-	StorageEncrypted        *bool   `json:"storageEncrypted,omitempty"`
-}
-
 // A data structure with information about any primary and secondary clusters
 // associated with an Aurora global database.
 type GlobalClusterMember struct {
-	DBClusterARN                *string `json:"dbClusterARN,omitempty"`
-	GlobalWriteForwardingStatus *string `json:"globalWriteForwardingStatus,omitempty"`
-	IsWriter                    *bool   `json:"isWriter,omitempty"`
+	DBClusterARN                *string   `json:"dbClusterARN,omitempty"`
+	GlobalWriteForwardingStatus *string   `json:"globalWriteForwardingStatus,omitempty"`
+	IsWriter                    *bool     `json:"isWriter,omitempty"`
+	Readers                     []*string `json:"readers,omitempty"`
+}
+
+// A data type representing an Aurora global database.
+type GlobalCluster_SDK struct {
+	DatabaseName       *string `json:"databaseName,omitempty"`
+	DeletionProtection *bool   `json:"deletionProtection,omitempty"`
+	Engine             *string `json:"engine,omitempty"`
+	EngineVersion      *string `json:"engineVersion,omitempty"`
+	// Contains the state of scheduled or in-process failover operations on an Aurora
+	// global database (GlobalCluster). This Data type is empty unless a failover
+	// operation is scheduled or is currently underway on the Aurora global database.
+	FailoverState           *FailoverState         `json:"failoverState,omitempty"`
+	GlobalClusterARN        *string                `json:"globalClusterARN,omitempty"`
+	GlobalClusterIdentifier *string                `json:"globalClusterIdentifier,omitempty"`
+	GlobalClusterMembers    []*GlobalClusterMember `json:"globalClusterMembers,omitempty"`
+	GlobalClusterResourceID *string                `json:"globalClusterResourceID,omitempty"`
+	Status                  *string                `json:"status,omitempty"`
+	StorageEncrypted        *bool                  `json:"storageEncrypted,omitempty"`
 }
 
 // This data type is used as a response element in the DescribeDBSecurityGroups
