@@ -14,7 +14,7 @@ ignore:
     - DBSnapshot
     #- DBSubnetGroup
     - EventSubscription
-    - GlobalCluster
+    #- GlobalCluster
     - OptionGroup
   field_paths:
 operations:
@@ -70,6 +70,8 @@ operations:
     primary_identifier_field_name: DBSecurityGroupName
   DescribeDBSubnetGroups:
     primary_identifier_field_name: DBSubnetGroupName
+  DescribeGlobalClusters:
+    primary_identifier_field_name: GlobalClusterIdentifier
 resources:
   DBCluster:
     update_operation:
@@ -194,3 +196,10 @@ resources:
         DeleteDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
+  GlobalCluster:
+    exceptions:
+      terminal_codes:
+        - DBClusterNotFoundFault
+        - GlobalClusterAlreadyExistsFault
+        - GlobalClusterQuotaExceededFault
+        - InvalidDBClusterStateFault
