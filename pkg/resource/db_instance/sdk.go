@@ -851,6 +851,9 @@ func (rm *resourceManager) sdkCreate(
 	if resp.DBInstance.DBSecurityGroups != nil {
 		f17 := []*string{}
 		for _, f17iter := range resp.DBInstance.DBSecurityGroups {
+			// TODO(rbranche): Updated this code here to fix compilation error until Issue #178 is resolved.
+			// var f17elem string
+			// f17 = append(f17, f17elem)
 			f17 = append(f17, f17iter.DBSecurityGroupName)
 		}
 		ko.Spec.DBSecurityGroupNames = f17
