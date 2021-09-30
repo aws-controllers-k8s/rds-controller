@@ -54,7 +54,8 @@ spec:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         name: controller
         ports:
-          - containerPort: {{ .Values.deployment.containerPort }}
+          - name: http
+            containerPort: {{ .Values.deployment.containerPort }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         env:
@@ -77,3 +78,4 @@ spec:
         - name: ACK_RESOURCE_TAGS
           value: {{ join "," .Values.resourceTags | quote }}
       terminationGracePeriodSeconds: 10
+      nodeSelector: {{ toYaml .Values.deployment.nodeSelector | nindent 8 }}

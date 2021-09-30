@@ -59,7 +59,7 @@ func (r *resource) RuntimeObject() k8srt.Object {
 // MetaObject returns the Kubernetes apimachinery/apis/meta/v1.Object
 // representation of the AWSResource
 func (r *resource) MetaObject() metav1.Object {
-	return r.ko
+	return r.ko.GetObjectMeta()
 }
 
 // RuntimeMetaObject returns an object that implements both the Kubernetes

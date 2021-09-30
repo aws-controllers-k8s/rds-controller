@@ -15,6 +15,8 @@ deployment:
   annotations: {}
   labels: {}
   containerPort: 8080
+  nodeSelector:
+    kubernetes.io/os: linux
 
 metrics:
   service:
