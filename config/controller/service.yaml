@@ -9,6 +9,6 @@ spec:
   ports:
     - name: metricsport
       port: 8080
-      targetPort: 8080
+      targetPort: http
       protocol: TCP
   type: NodePort

@@ -58,18 +58,6 @@ operations:
       # points to the build_request methods to enable a genmeration of the
       # final snapshot identifier to use.
       SkipFinalSnapshot: true
-  DescribeDBInstances:
-    primary_identifier_field_name: DBInstanceIdentifier
-  DescribeDBClusterParameterGroups:
-    primary_identifier_field_name: DBClusterParameterGroupName
-  DescribeDBClusters:
-    primary_identifier_field_name: DBClusterIdentifier
-  DescribeDBParameterGroups:
-    primary_identifier_field_name: DBParameterGroupName
-  DescribeDBSecurityGroups:
-    primary_identifier_field_name: DBSecurityGroupName
-  DescribeDBSubnetGroups:
-    primary_identifier_field_name: DBSubnetGroupName
 resources:
   DBCluster:
     update_operation:
@@ -100,6 +88,8 @@ resources:
         - KMSKeyNotAccessibleFault
         - StorageQuotaExceeded
     fields:
+      DBClusterIdentifier:
+        is_primary_key: true
       MasterUserPassword:
         is_secret: true
   DBClusterParameterGroup:
@@ -116,6 +106,8 @@ resources:
           input_fields:
             DBClusterParameterGroupName: Name
     fields:
+      Name:
+        is_primary_key: true
       Parameters:
         from:
           operation: ModifyDBClusterParameterGroup
@@ -148,6 +140,8 @@ resources:
         - DBSubnetGroupNotFoundFault
         - DBParameterGroupNotFound
     fields:
+      DBInstanceIdentifier:
+        is_primary_key: true
       MasterUserPassword:
         is_secret: true
   DBParameterGroup:
@@ -164,6 +158,8 @@ resources:
           input_fields:
             DBParameterGroupName: Name
     fields:
+      Name:
+        is_primary_key: true
       Parameters:
         from:
           operation: ModifyDBParameterGroup
@@ -181,6 +177,9 @@ resources:
         DeleteDBSecurityGroup:
           input_fields:
             DBSecurityGroupName: Name
+    fields:
+      Name:
+        is_primary_key: true
   DBSubnetGroup:
     renames:
       operations:
@@ -194,3 +193,6 @@ resources:
         DeleteDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
+    fields:
+      Name:
+        is_primary_key: true

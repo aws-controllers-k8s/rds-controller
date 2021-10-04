@@ -41,7 +41,8 @@ spec:
         image: controller:latest
         name: controller
         ports:
-          - containerPort: 8080
+          - name: http
+            containerPort: 8080
         resources:
           limits:
             cpu: 100m

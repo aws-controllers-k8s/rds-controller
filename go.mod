@@ -3,7 +3,7 @@ module github.com/aws-controllers-k8s/rds-controller
 go 1.14
 
 require (
-	github.com/aws-controllers-k8s/runtime v0.13.0
+	github.com/aws-controllers-k8s/runtime v0.14.1
 	github.com/aws/aws-sdk-go v1.37.10
 	github.com/go-logr/logr v0.1.0
 	github.com/spf13/pflag v1.0.5
