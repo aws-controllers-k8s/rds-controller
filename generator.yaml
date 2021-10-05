@@ -14,7 +14,7 @@ ignore:
     - DBSnapshot
     #- DBSubnetGroup
     - EventSubscription
-    - GlobalCluster
+    #- GlobalCluster
     - OptionGroup
   field_paths:
 operations:
@@ -144,6 +144,16 @@ resources:
         is_primary_key: true
       MasterUserPassword:
         is_secret: true
+  GlobalCluster:
+    exceptions:
+      terminal_codes:
+        - DBClusterNotFoundFault
+        - GlobalClusterAlreadyExistsFault
+        - GlobalClusterQuotaExceededFault
+        - InvalidDBClusterStateFault
+    fields:
+      GlobalClusterIdentifier:
+        is_primary_key: true
   DBParameterGroup:
     renames:
       operations:
