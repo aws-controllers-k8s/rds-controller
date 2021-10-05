@@ -850,21 +850,18 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.DBParameterGroups = nil
 	}
-	// TODO(jaypipes): Commenting this out until Issue #178 is resolved. The Go
-	// type of the DBSecurityGroups field in the Create input and output shapes
-	// is different, leading to a compilation failure below.
-	//
-	// https://github.com/aws-controllers-k8s/community/issues/178
-	//if resp.DBInstance.DBSecurityGroups != nil {
-	//	f17 := []*string{}
-	//	for _, f17iter := range resp.DBInstance.DBSecurityGroups {
-	//		var f17elem string
-	//		f17 = append(f17, f17elem)
-	//	}
-	//	ko.Spec.DBSecurityGroupNames = f17
-	//} else {
-	//	ko.Spec.DBSecurityGroupNames = nil
-	//}
+	if resp.DBInstance.DBSecurityGroups != nil {
+		f17 := []*string{}
+		for _, f17iter := range resp.DBInstance.DBSecurityGroups {
+			// TODO(rbranche): Updated this code here to fix compilation error until Issue #178 is resolved.
+			// var f17elem string
+			// f17 = append(f17, f17elem)
+			f17 = append(f17, f17iter.DBSecurityGroupName)
+		}
+		ko.Spec.DBSecurityGroupNames = f17
+	} else {
+		ko.Spec.DBSecurityGroupNames = nil
+	}
 	if resp.DBInstance.DBSubnetGroup != nil {
 		f18 := &svcapitypes.DBSubnetGroup_SDK{}
 		if resp.DBInstance.DBSubnetGroup.DBSubnetGroupArn != nil {
