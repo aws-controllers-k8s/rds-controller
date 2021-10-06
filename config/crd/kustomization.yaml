@@ -9,3 +9,4 @@ resources:
   - bases/rds.services.k8s.aws_dbparametergroups.yaml
   - bases/rds.services.k8s.aws_dbsecuritygroups.yaml
   - bases/rds.services.k8s.aws_dbsubnetgroups.yaml
+  - bases/rds.services.k8s.aws_globalclusters.yaml
