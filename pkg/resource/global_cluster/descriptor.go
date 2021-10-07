@@ -31,7 +31,8 @@ const (
 )
 
 var (
-	resourceGK = metav1.GroupKind{
+	GroupVersionResource = svcapitypes.GroupVersion.WithResource("globalclusters")
+	GroupKind            = metav1.GroupKind{
 		Group: "rds.services.k8s.aws",
 		Kind:  "GlobalCluster",
 	}
@@ -45,7 +46,7 @@ type resourceDescriptor struct {
 // GroupKind returns a Kubernetes metav1.GroupKind struct that describes the
 // API Group and Kind of CRs described by the descriptor
 func (d *resourceDescriptor) GroupKind() *metav1.GroupKind {
-	return &resourceGK
+	return &GroupKind
 }
 
 // EmptyRuntimeObject returns an empty object prototype that may be used in
