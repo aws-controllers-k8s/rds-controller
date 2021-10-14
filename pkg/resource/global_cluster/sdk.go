@@ -637,8 +637,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch awsErr.Code() {
-	case "DBClusterNotFoundFault",
-		"GlobalClusterAlreadyExistsFault",
+	case "GlobalClusterAlreadyExistsFault",
 		"GlobalClusterQuotaExceededFault",
 		"InvalidDBClusterStateFault":
 		return true

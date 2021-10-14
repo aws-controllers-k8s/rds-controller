@@ -151,7 +151,6 @@ resources:
   GlobalCluster:
     exceptions:
       terminal_codes:
-        - DBClusterNotFoundFault
         - GlobalClusterAlreadyExistsFault
         - GlobalClusterQuotaExceededFault
         - InvalidDBClusterStateFault
