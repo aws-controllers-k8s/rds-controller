@@ -38,7 +38,6 @@ resources:
 aws:
   # If specified, use the AWS region for AWS API calls
   region: ""
-  account_id: ""
   endpoint_url: ""
 
 # log level for the controller
