@@ -37,8 +37,6 @@ spec:
       - command:
         - ./bin/controller
         args:
-        - --aws-account-id
-        - "$(AWS_ACCOUNT_ID)"
         - --aws-region
         - "$(AWS_REGION)"
         - --aws-endpoint-url
@@ -63,8 +61,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: AWS_ACCOUNT_ID
-          value: {{ .Values.aws.account_id | quote }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
         - name: AWS_ENDPOINT_URL

@@ -26,8 +26,6 @@ spec:
       - command:
         - ./bin/controller
         args:
-        - --aws-account-id
-        - "$(AWS_ACCOUNT_ID)"
         - --aws-region
         - "$(AWS_REGION)"
         - --enable-development-logging
