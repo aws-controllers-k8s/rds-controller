@@ -17,6 +17,7 @@ package db_security_group
 
 import (
 	"context"
+	"reflect"
 	"strings"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -42,6 +43,7 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
 	_ = &ackcondition.NotManagedMessage
+	_ = &reflect.Value{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource

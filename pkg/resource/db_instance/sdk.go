@@ -17,6 +17,7 @@ package db_instance
 
 import (
 	"context"
+	"reflect"
 	"strings"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -42,6 +43,7 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
 	_ = &ackcondition.NotManagedMessage
+	_ = &reflect.Value{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -853,10 +855,8 @@ func (rm *resourceManager) sdkCreate(
 	if resp.DBInstance.DBSecurityGroups != nil {
 		f17 := []*string{}
 		for _, f17iter := range resp.DBInstance.DBSecurityGroups {
-			// TODO(rbranche): Updated this code here to fix compilation error until Issue #178 is resolved.
-			// var f17elem string
-			// f17 = append(f17, f17elem)
-			f17 = append(f17, f17iter.DBSecurityGroupName)
+			var f17elem string
+			f17 = append(f17, f17elem)
 		}
 		ko.Spec.DBSecurityGroupNames = f17
 	} else {
