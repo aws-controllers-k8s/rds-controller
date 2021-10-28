@@ -14,7 +14,6 @@
 """Integration tests for the RDS API DBCluster resource
 """
 
-import boto3
 import datetime
 import logging
 import time
@@ -26,6 +25,7 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
+from e2e.fixtures import rds_client, k8s_secret
 
 RESOURCE_PLURAL = 'dbclusters'
 
@@ -42,41 +42,37 @@ CHECK_STATUS_WAIT_SECONDS = 10
 MODIFY_WAIT_AFTER_SECONDS = 20
 
 
-@pytest.fixture(scope="module")
-def rds_client():
-    return boto3.client('rds')
-
-
-@pytest.fixture(scope="module")
-def master_user_pass_secret():
-    ns = "default"
-    name = "dbclustersecrets"
-    key = "master_user_password"
-    secret_val = "secretpass123456"
-    k8s.create_opaque_secret(ns, name, key, secret_val)
-    yield ns, name, key
-    k8s.delete_secret(ns, name)
-
-
 @service_marker
 @pytest.mark.canary
 class TestDBCluster:
+
+    # MUP == Master user password...
+    MUP_NS = "default"
+    MUP_SEC_NAME = "dbclustersecrets"
+    MUP_SEC_KEY = "master_user_password"
+    MUP_SEC_VAL = "secretpass123456"
+
     def test_create_delete_mysql_serverless(
             self,
             rds_client,
-            master_user_pass_secret,
+            k8s_secret,
     ):
         db_cluster_id = "my-aurora-mysql"
         db_name = "mydb"
-        mup_sec_ns, mup_sec_name, mup_sec_key = master_user_pass_secret
+        secret = k8s_secret(
+            self.MUP_NS,
+            self.MUP_SEC_NAME,
+            self.MUP_SEC_KEY,
+            self.MUP_SEC_VAL,
+        )
 
         replacements = REPLACEMENT_VALUES.copy()
         replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
         replacements["DB_CLUSTER_ID"] = db_cluster_id
         replacements["DB_NAME"] = db_name
-        replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = mup_sec_ns
-        replacements["MASTER_USER_PASS_SECRET_NAME"] = mup_sec_name
-        replacements["MASTER_USER_PASS_SECRET_KEY"] = mup_sec_key
+        replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
+        replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
+        replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
 
         resource_data = load_rds_resource(
             "db_cluster_mysql_serverless",
