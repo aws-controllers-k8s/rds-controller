@@ -14,10 +14,7 @@
 """Integration tests for the RDS API DBCluster resource
 """
 
-import datetime
-import logging
 import time
-from typing import Dict
 
 import pytest
 
@@ -25,19 +22,16 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
-from e2e.fixtures import rds_client, k8s_secret
+from e2e.fixtures import k8s_secret
+from e2e import db_cluster
 
 RESOURCE_PLURAL = 'dbclusters'
 
-DELETE_WAIT_INTERVAL_SLEEP_SECONDS = 15
 DELETE_WAIT_AFTER_SECONDS = 120
-DELETE_TIMEOUT_SECONDS = 600
 
-CREATE_INTERVAL_SLEEP_SECONDS = 15
-CREATE_TIMEOUT_SECONDS = 600
 # Time we wait after resource becoming available in RDS and checking the CR's
 # Status has been updated
-CHECK_STATUS_WAIT_SECONDS = 10
+CHECK_STATUS_WAIT_SECONDS = 20
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
@@ -54,7 +48,6 @@ class TestDBCluster:
 
     def test_create_delete_mysql_serverless(
             self,
-            rds_client,
             k8s_secret,
     ):
         db_cluster_id = "my-aurora-mysql"
@@ -91,23 +84,10 @@ class TestDBCluster:
         assert 'status' in cr['status']
         assert cr['status']['status'] == 'creating'
 
-        # Let's check that the DB cluster appears in RDS
-        aws_res = rds_client.describe_db_clusters(DBClusterIdentifier=db_cluster_id)
-        assert aws_res is not None
-        assert len(aws_res['DBClusters']) == 1
-        dbc_rec = aws_res['DBClusters'][0]
-
-        now = datetime.datetime.now()
-        timeout = now + datetime.timedelta(seconds=CREATE_TIMEOUT_SECONDS)
-
-        # TODO(jaypipes): Move this into generic AWS-side waiter
-        while dbc_rec['Status'] != "available":
-            if datetime.datetime.now() >= timeout:
-                pytest.fail("failed to find available DBCluster before timeout")
-            time.sleep(CREATE_INTERVAL_SLEEP_SECONDS)
-            aws_res = rds_client.describe_db_clusters(DBClusterIdentifier=db_cluster_id)
-            assert len(aws_res['DBClusters']) == 1
-            dbc_rec = aws_res['DBClusters'][0]
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
 
         time.sleep(CHECK_STATUS_WAIT_SECONDS)
 
@@ -128,38 +108,22 @@ class TestDBCluster:
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
         # shows the new value of the field.
-        assert dbc_rec['CopyTagsToSnapshot'] == False
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest['CopyTagsToSnapshot'] == False
         updates = {
             "spec": {"copyTagsToSnapshot": True},
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        aws_res = rds_client.describe_db_clusters(DBClusterIdentifier=db_cluster_id)
-        assert aws_res is not None
-        assert len(aws_res['DBClusters']) == 1
-        dbc_rec = aws_res['DBClusters'][0]
-        assert dbc_rec['CopyTagsToSnapshot'] == True
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest['CopyTagsToSnapshot'] == True
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
 
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
-        now = datetime.datetime.now()
-        timeout = now + datetime.timedelta(seconds=DELETE_TIMEOUT_SECONDS)
-
-        # DB instance should no longer appear in RDS
-        while True:
-            if datetime.datetime.now() >= timeout:
-                pytest.fail("Timed out waiting for DB cluster to being deleted in RDS API")
-            time.sleep(DELETE_WAIT_INTERVAL_SLEEP_SECONDS)
-
-            try:
-                aws_res = rds_client.describe_db_clusters(DBClusterIdentifier=db_cluster_id)
-                assert len(aws_res['DBClusters']) == 1
-                dbc_rec = aws_res['DBClusters'][0]
-                if dbc_rec['Status'] != "deleting":
-                    pytest.fail("Status is not 'deleting' for DB cluster that was deleted. Status is "+dbc_rec['Status'])
-            except rds_client.exceptions.DBClusterNotFoundFault:
-                break
+        db_cluster.wait_until_deleted(db_cluster_id)
