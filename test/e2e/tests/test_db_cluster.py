@@ -46,7 +46,7 @@ class TestDBCluster:
     MUP_SEC_KEY = "master_user_password"
     MUP_SEC_VAL = "secretpass123456"
 
-    def test_create_delete_mysql_serverless(
+    def test_crud_mysql_serverless(
             self,
             k8s_secret,
     ):
@@ -121,7 +121,6 @@ class TestDBCluster:
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] == True
 
-        # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
 
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
