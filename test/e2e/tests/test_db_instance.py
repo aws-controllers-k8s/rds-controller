@@ -14,10 +14,7 @@
 """Integration tests for the RDS API DBInstance resource
 """
 
-import datetime
-import logging
 import time
-from typing import Dict
 
 import pytest
 
@@ -25,25 +22,16 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
-from e2e.fixtures import rds_client, k8s_secret
+from e2e.fixtures import k8s_secret
+from e2e import db_instance
 
 RESOURCE_PLURAL = 'dbinstances'
 
-DELETE_WAIT_INTERVAL_SLEEP_SECONDS = 15
 DELETE_WAIT_AFTER_SECONDS = 120
-# NOTE(jaypipes): I've seen this take upwards of 5 minutes or more to fully see
-# the DB instance not appear in the DescribeDBInstances call once
-# DeleteDBInstance has been called (even with SkipFinalSnapshot=true)
-DELETE_TIMEOUT_SECONDS = 60*10
 
-CREATE_INTERVAL_SLEEP_SECONDS = 15
-# Time to wait before we get to an expected `available` state.
-# NOTE(jaypipes): I have seen creation of t3-micro PG instances take more than
-# 20 minutes to get to `available`...
-CREATE_TIMEOUT_SECONDS = 60*30
 # Time we wait after resource becoming available in RDS and checking the CR's
 # Status has been updated
-CHECK_STATUS_WAIT_SECONDS = 10
+CHECK_STATUS_WAIT_SECONDS = 20
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
@@ -60,10 +48,9 @@ class TestDBInstance:
 
     def test_crud_postgres13_t3_micro(
             self,
-            rds_client,
             k8s_secret,
     ):
-        db_id = "pg13-t3-micro"
+        db_instance_id = "pg13-t3-micro"
         secret = k8s_secret(
             self.MUP_NS,
             self.MUP_SEC_NAME,
@@ -73,7 +60,7 @@ class TestDBInstance:
 
         replacements = REPLACEMENT_VALUES.copy()
         replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
-        replacements["DB_INSTANCE_ID"] = db_id
+        replacements["DB_INSTANCE_ID"] = db_instance_id
         replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
         replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
         replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
@@ -82,12 +69,11 @@ class TestDBInstance:
             "db_instance_postgres13_t3_micro",
             additional_replacements=replacements,
         )
-        logging.debug(resource_data)
 
         # Create the k8s resource
         ref = k8s.CustomResourceReference(
             CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            db_id, namespace="default",
+            db_instance_id, namespace="default",
         )
         k8s.create_custom_resource(ref, resource_data)
         cr = k8s.wait_resource_consumed_by_controller(ref)
@@ -97,23 +83,10 @@ class TestDBInstance:
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
 
-        # Let's check that the DB instance appears in RDS
-        aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
-        assert aws_res is not None
-        assert len(aws_res['DBInstances']) == 1
-        dbi_rec = aws_res['DBInstances'][0]
-
-        now = datetime.datetime.now()
-        timeout = now + datetime.timedelta(seconds=CREATE_TIMEOUT_SECONDS)
-
-        # TODO(jaypipes): Move this into generic AWS-side waiter
-        while dbi_rec['DBInstanceStatus'] != "available":
-            if datetime.datetime.now() >= timeout:
-                pytest.fail("failed to find available DBInstance before timeout")
-            time.sleep(CREATE_INTERVAL_SLEEP_SECONDS)
-            aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
-            assert len(aws_res['DBInstances']) == 1
-            dbi_rec = aws_res['DBInstances'][0]
+        db_instance.wait_until(
+            db_instance_id,
+            db_instance.status_matches('available'),
+        )
 
         time.sleep(CHECK_STATUS_WAIT_SECONDS)
 
@@ -134,38 +107,21 @@ class TestDBInstance:
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
         # shows the new value of the field.
-        assert dbi_rec['CopyTagsToSnapshot'] == False
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['CopyTagsToSnapshot'] == False
         updates = {
             "spec": {"copyTagsToSnapshot": True},
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
-        assert aws_res is not None
-        assert len(aws_res['DBInstances']) == 1
-        dbi_rec = aws_res['DBInstances'][0]
-        assert dbi_rec['CopyTagsToSnapshot'] == True
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['CopyTagsToSnapshot'] == True
 
-        # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
 
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
-        now = datetime.datetime.now()
-        timeout = now + datetime.timedelta(seconds=DELETE_TIMEOUT_SECONDS)
-
-        # DB instance should no longer appear in RDS
-        while True:
-            if datetime.datetime.now() >= timeout:
-                pytest.fail("Timed out waiting for DB instance to being deleted in RDS API")
-            time.sleep(DELETE_WAIT_INTERVAL_SLEEP_SECONDS)
-
-            try:
-                aws_res = rds_client.describe_db_instances(DBInstanceIdentifier=db_id)
-                assert len(aws_res['DBInstances']) == 1
-                dbi_rec = aws_res['DBInstances'][0]
-                if dbi_rec['DBInstanceStatus'] != "deleting":
-                    pytest.fail("DBInstanceStatus is not 'deleting' for DB instance that was deleted. DBInstanceStatus is "+dbi_rec['DBInstanceStatus'])
-            except rds_client.exceptions.DBInstanceNotFoundFault:
-                break
+        db_instance.wait_until_deleted(db_instance_id)
