@@ -675,7 +675,8 @@ func (rm *resourceManager) sdkFind(
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource. No need to return a requeue error here.
 		setSyncedCondition(&resource{ko}, corev1.ConditionFalse, nil, nil)
-		return &resource{ko}, nil
+	} else {
+		setSyncedCondition(&resource{ko}, corev1.ConditionTrue, nil, nil)
 	}
 
 	return &resource{ko}, nil
@@ -1569,6 +1570,11 @@ func (rm *resourceManager) sdkUpdate(
 		setTerminalCondition(desired, corev1.ConditionTrue, &msg, nil)
 		setSyncedCondition(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
+	}
+	if !instanceAvailable(latest) {
+		msg := "DB instance cannot be modifed while in '" + *latest.ko.Status.DBInstanceStatus + "' status"
+		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitUntilCanModify(latest)
 	}
 
 	input, err := rm.newUpdateRequestPayload(ctx, desired)

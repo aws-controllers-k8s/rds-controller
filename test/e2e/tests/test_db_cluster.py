@@ -22,16 +22,32 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
-from e2e.fixtures import k8s_secret
+from e2e import condition
 from e2e import db_cluster
+from e2e.fixtures import k8s_secret
 
 RESOURCE_PLURAL = 'dbclusters'
 
 DELETE_WAIT_AFTER_SECONDS = 120
 
 # Time we wait after resource becoming available in RDS and checking the CR's
-# Status has been updated
-CHECK_STATUS_WAIT_SECONDS = 20
+# Status has been updated.
+#
+# NOTE(jaypipes): I have witnessed DB clusters transition from creating ->
+# available -> creating again :(
+#
+# This is rare, but seems to be when RDS schedules a snapshot shortly after a
+# DB cluster is created. The cluster gets to 'available', then RDS pauses the
+# DB cluster, does some sort of snapshotting operation, then unpauses the DB
+# cluster. It seems that during this unpausing operation, the DB cluster's
+# status gets set back to 'creating' again.
+#
+# Unfortunately, because Aurora serverless doesn't emit Events for creation and
+# deletion like it does for DB instances, this is difficult, if not impossible,
+# to gather data on. Setting the check wait seconds here to 2 minutes since I
+# believe this whole "pause-then-snapshot-then-unpause" thing only takes about
+# a minute until the DB cluster status settles into an 'available' state.
+CHECK_STATUS_WAIT_SECONDS = 60*2
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
@@ -83,6 +99,7 @@ class TestDBCluster:
         assert 'status' in cr
         assert 'status' in cr['status']
         assert cr['status']['status'] == 'creating'
+        condition.assert_not_synced(ref)
 
         db_cluster.wait_until(
             db_cluster_id,
@@ -104,6 +121,7 @@ class TestDBCluster:
         assert 'status' in cr
         assert 'status' in cr['status']
         assert cr['status']['status'] != 'creating'
+        condition.assert_synced(ref)
 
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
