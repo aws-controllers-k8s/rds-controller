@@ -40,7 +40,7 @@ import (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{}
+var lateInitializeFieldNames = []string{"AvailabilityZone"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -238,7 +238,12 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	observed acktypes.AWSResource,
 	latest acktypes.AWSResource,
 ) acktypes.AWSResource {
-	return latest
+	observedKo := rm.concreteResource(observed).ko.DeepCopy()
+	latestKo := rm.concreteResource(latest).ko.DeepCopy()
+	if observedKo.Spec.AvailabilityZone != nil && latestKo.Spec.AvailabilityZone == nil {
+		latestKo.Spec.AvailabilityZone = observedKo.Spec.AvailabilityZone
+	}
+	return &resource{latestKo}
 }
 
 // newResourceManager returns a new struct implementing

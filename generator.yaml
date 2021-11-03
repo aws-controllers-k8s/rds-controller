@@ -144,6 +144,8 @@ resources:
         - DBSubnetGroupNotFoundFault
         - DBParameterGroupNotFound
     fields:
+      AvailabilityZone:
+        late_initialize: {}
       DBInstanceIdentifier:
         is_primary_key: true
       MasterUserPassword:

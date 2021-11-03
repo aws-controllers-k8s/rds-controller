@@ -22,16 +22,33 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
-from e2e.fixtures import k8s_secret
+from e2e import condition
 from e2e import db_instance
+from e2e.fixtures import k8s_secret
 
 RESOURCE_PLURAL = 'dbinstances'
 
-DELETE_WAIT_AFTER_SECONDS = 120
+DELETE_WAIT_AFTER_SECONDS = 60*2
 
 # Time we wait after resource becoming available in RDS and checking the CR's
-# Status has been updated
-CHECK_STATUS_WAIT_SECONDS = 20
+# Status has been updated.
+#
+# NOTE(jaypipes): RDS does an automated backup as soon as a DB instance is
+# created. This automated backup can take 2-3 minutes, during which time the DB
+# instance's status will be 'backing-up'. In addition, I have noticed that
+# sometimes RDS will reset master credentials after doing the initial snapshot
+# backup, and this involves restarting the DB instance. This itself can take an
+# additional 2-3 minutes.
+#
+# What this means is that the DB instance goes through the following status
+# transitions:
+#
+# creating -> available -> backing-up -> available ->
+# resetting-master-credentials -> restarting -> available
+#
+# This can take upwards of 7 minutes for the the DB instance to reach that
+# "final" available state
+CHECK_STATUS_WAIT_SECONDS = 60*8
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
@@ -82,6 +99,7 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
+        condition.assert_not_synced(ref)
 
         db_instance.wait_until(
             db_instance_id,
@@ -103,6 +121,7 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] != 'creating'
+        condition.assert_synced(ref)
 
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
