@@ -18,6 +18,7 @@ import (
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
@@ -41,18 +42,18 @@ func (rm *resourceManager) customUpdate(
 	defer exit(err)
 	if clusterDeleting(latest) {
 		msg := "DB cluster is currently being deleted"
-		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
+		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
 		return desired, requeueWaitWhileDeleting
 	}
 	if clusterCreating(latest) {
 		msg := "DB cluster is currently being created"
-		setSyncedCondition(desired, corev1.ConditionFalse, &msg, nil)
+		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
 		return desired, requeueWaitUntilCanModify(latest)
 	}
 	if clusterHasTerminalStatus(latest) {
 		msg := "DB cluster is in '" + *latest.ko.Status.Status + "' status"
-		setTerminalCondition(desired, corev1.ConditionTrue, &msg, nil)
-		setSyncedCondition(desired, corev1.ConditionTrue, nil, nil)
+		ackcondition.SetTerminal(desired, corev1.ConditionTrue, &msg, nil)
+		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
 	}
 
