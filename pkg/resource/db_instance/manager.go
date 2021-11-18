@@ -229,6 +229,10 @@ func (rm *resourceManager) LateInitialize(
 func (rm *resourceManager) incompleteLateInitialization(
 	res acktypes.AWSResource,
 ) bool {
+	ko := rm.concreteResource(res).ko.DeepCopy()
+	if ko.Spec.AvailabilityZone == nil {
+		return true
+	}
 	return false
 }
 

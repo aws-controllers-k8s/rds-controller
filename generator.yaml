@@ -126,14 +126,6 @@ resources:
         template_path: hooks/db_instance/sdk_update_pre_build_request.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
-    renames:
-      operations:
-        CreateDBInstance:
-          input_fields:
-            # The data type of the create input and create output shape of the
-            # DBSecurityGroups field is different which causes errors when
-            # compiling
-            DBSecurityGroups: DBSecurityGroupNames
     exceptions:
       terminal_codes:
         - InvalidParameter
@@ -148,6 +140,19 @@ resources:
         late_initialize: {}
       DBInstanceIdentifier:
         is_primary_key: true
+      # Because the Create input and Create/Update/ReadOne output shapes for
+      # the DBSecurityGroups field have different Go types, we are instructing
+      # the code generator to set the Spec.DBSecurityGroups field (which is a
+      # []string field) to the set of DBSecurityGroups..DBSecurityGroupName
+      # values in the ReadOne method's Output shape.
+      DBSecurityGroups:
+        set:
+          - method: Update
+            from: DBSecurityGroupName
+          - method: Create
+            from: DBSecurityGroupName
+          - method: ReadOne
+            from: DBSecurityGroupName
       MasterUserPassword:
         is_secret: true
   GlobalCluster:

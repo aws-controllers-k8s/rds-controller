@@ -2179,8 +2179,8 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.DBSecurityGroupNames != nil {
-		in, out := &in.DBSecurityGroupNames, &out.DBSecurityGroupNames
+	if in.DBSecurityGroups != nil {
+		in, out := &in.DBSecurityGroups, &out.DBSecurityGroups
 		*out = make([]*string, len(*in))
 		for i := range *in {
 			if (*in)[i] != nil {

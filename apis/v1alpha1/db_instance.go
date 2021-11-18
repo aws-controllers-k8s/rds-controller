@@ -276,7 +276,7 @@ type DBInstanceSpec struct {
 	// A list of DB security groups to associate with this DB instance.
 	//
 	// Default: The default DB security group for the database engine.
-	DBSecurityGroupNames []*string `json:"dbSecurityGroupNames,omitempty"`
+	DBSecurityGroups []*string `json:"dbSecurityGroups,omitempty"`
 	// A DB subnet group to associate with this DB instance.
 	//
 	// If there is no DB subnet group, then it is a non-VPC DB instance.

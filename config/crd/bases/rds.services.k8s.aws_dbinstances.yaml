@@ -183,7 +183,7 @@ spec:
                   \n    * First character must be a letter \n    * Can't end with
                   a hyphen or contain two consecutive hyphens"
                 type: string
-              dbSecurityGroupNames:
+              dbSecurityGroups:
                 description: "A list of DB security groups to associate with this
                   DB instance. \n Default: The default DB security group for the database
                   engine."

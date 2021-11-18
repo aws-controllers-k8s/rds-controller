@@ -118,8 +118,8 @@ func newResourceDelta(
 			delta.Add("Spec.DBParameterGroupName", a.ko.Spec.DBParameterGroupName, b.ko.Spec.DBParameterGroupName)
 		}
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.DBSecurityGroupNames, b.ko.Spec.DBSecurityGroupNames) {
-		delta.Add("Spec.DBSecurityGroupNames", a.ko.Spec.DBSecurityGroupNames, b.ko.Spec.DBSecurityGroupNames)
+	if !ackcompare.SliceStringPEqual(a.ko.Spec.DBSecurityGroups, b.ko.Spec.DBSecurityGroups) {
+		delta.Add("Spec.DBSecurityGroups", a.ko.Spec.DBSecurityGroups, b.ko.Spec.DBSecurityGroups)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName) {
 		delta.Add("Spec.DBSubnetGroupName", a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName)
