@@ -17,6 +17,7 @@ package db_instance
 
 import (
 	"context"
+	"reflect"
 	"strings"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -42,6 +43,7 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
 	_ = &ackcondition.NotManagedMessage
+	_ = &reflect.Value{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -198,6 +200,17 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.DBParameterGroups = f16
 		} else {
 			ko.Status.DBParameterGroups = nil
+		}
+		if elem.DBSecurityGroups != nil {
+			f17 := []*string{}
+			for _, f17iter := range elem.DBSecurityGroups {
+				var f17elem string
+				f17elem = *f17iter.DBSecurityGroupName
+				f17 = append(f17, &f17elem)
+			}
+			ko.Spec.DBSecurityGroups = f17
+		} else {
+			ko.Spec.DBSecurityGroups = nil
 		}
 		if elem.DBSubnetGroup != nil {
 			f18 := &svcapitypes.DBSubnetGroup_SDK{}
@@ -854,14 +867,13 @@ func (rm *resourceManager) sdkCreate(
 	if resp.DBInstance.DBSecurityGroups != nil {
 		f17 := []*string{}
 		for _, f17iter := range resp.DBInstance.DBSecurityGroups {
-			// TODO(rbranche): Updated this code here to fix compilation error until Issue #178 is resolved.
-			// var f17elem string
-			// f17 = append(f17, f17elem)
-			f17 = append(f17, f17iter.DBSecurityGroupName)
+			var f17elem string
+			f17elem = *f17iter.DBSecurityGroupName
+			f17 = append(f17, &f17elem)
 		}
-		ko.Spec.DBSecurityGroupNames = f17
+		ko.Spec.DBSecurityGroups = f17
 	} else {
-		ko.Spec.DBSecurityGroupNames = nil
+		ko.Spec.DBSecurityGroups = nil
 	}
 	if resp.DBInstance.DBSubnetGroup != nil {
 		f18 := &svcapitypes.DBSubnetGroup_SDK{}
@@ -1383,9 +1395,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.DBParameterGroupName != nil {
 		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
 	}
-	if r.ko.Spec.DBSecurityGroupNames != nil {
+	if r.ko.Spec.DBSecurityGroups != nil {
 		f11 := []*string{}
-		for _, f11iter := range r.ko.Spec.DBSecurityGroupNames {
+		for _, f11iter := range r.ko.Spec.DBSecurityGroups {
 			var f11elem string
 			f11elem = *f11iter
 			f11 = append(f11, &f11elem)
@@ -1712,6 +1724,17 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.DBParameterGroups = f16
 	} else {
 		ko.Status.DBParameterGroups = nil
+	}
+	if resp.DBInstance.DBSecurityGroups != nil {
+		f17 := []*string{}
+		for _, f17iter := range resp.DBInstance.DBSecurityGroups {
+			var f17elem string
+			f17elem = *f17iter.DBSecurityGroupName
+			f17 = append(f17, &f17elem)
+		}
+		ko.Spec.DBSecurityGroups = f17
+	} else {
+		ko.Spec.DBSecurityGroups = nil
 	}
 	if resp.DBInstance.DBSubnetGroup != nil {
 		f18 := &svcapitypes.DBSubnetGroup_SDK{}
@@ -2214,6 +2237,15 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	}
 	if r.ko.Spec.DBParameterGroupName != nil {
 		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
+	}
+	if r.ko.Spec.DBSecurityGroups != nil {
+		f13 := []*string{}
+		for _, f13iter := range r.ko.Spec.DBSecurityGroups {
+			var f13elem string
+			f13elem = *f13iter
+			f13 = append(f13, &f13elem)
+		}
+		res.SetDBSecurityGroups(f13)
 	}
 	if r.ko.Spec.DBSubnetGroupName != nil {
 		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
