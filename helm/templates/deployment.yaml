@@ -73,5 +73,25 @@ spec:
           value: {{ .Values.log.level | quote }}
         - name: ACK_RESOURCE_TAGS
           value: {{ join "," .Values.resourceTags | quote }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL
       terminationGracePeriodSeconds: 10
       nodeSelector: {{ toYaml .Values.deployment.nodeSelector | nindent 8 }}
+      {{ if .Values.deployment.tolerations -}}
+      tolerations: {{ toYaml .Values.deployment.tolerations | nindent 8 }}
+      {{ end -}}
+      {{ if .Values.deployment.affinity -}}
+      affinity: {{ toYaml .Values.deployment.affinity | nindent 8 }}
+      {{ end -}}
+      {{ if .Values.deployment.priorityClassName -}}
+      priorityClassName: {{ .Values.deployment.priorityClassName -}}
+      {{ end -}}
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false

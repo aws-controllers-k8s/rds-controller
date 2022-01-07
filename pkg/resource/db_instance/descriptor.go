@@ -20,7 +20,7 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sapirt "k8s.io/apimachinery/pkg/runtime"
+	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	k8sctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -51,14 +51,14 @@ func (d *resourceDescriptor) GroupKind() *metav1.GroupKind {
 
 // EmptyRuntimeObject returns an empty object prototype that may be used in
 // apimachinery and k8s client operations
-func (d *resourceDescriptor) EmptyRuntimeObject() k8sapirt.Object {
+func (d *resourceDescriptor) EmptyRuntimeObject() rtclient.Object {
 	return &svcapitypes.DBInstance{}
 }
 
 // ResourceFromRuntimeObject returns an AWSResource that has been initialized
 // with the supplied runtime.Object
 func (d *resourceDescriptor) ResourceFromRuntimeObject(
-	obj k8sapirt.Object,
+	obj rtclient.Object,
 ) acktypes.AWSResource {
 	return &resource{
 		ko: obj.(*svcapitypes.DBInstance),
@@ -78,7 +78,7 @@ func (d *resourceDescriptor) Delta(a, b acktypes.AWSResource) *ackcompare.Delta 
 func (d *resourceDescriptor) IsManaged(
 	res acktypes.AWSResource,
 ) bool {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
@@ -93,7 +93,7 @@ func (d *resourceDescriptor) IsManaged(
 
 // Remove once https://github.com/kubernetes-sigs/controller-runtime/issues/994
 // is fixed.
-func containsFinalizer(obj acktypes.RuntimeMetaObject, finalizer string) bool {
+func containsFinalizer(obj rtclient.Object, finalizer string) bool {
 	f := obj.GetFinalizers()
 	for _, e := range f {
 		if e == finalizer {
@@ -112,7 +112,7 @@ func containsFinalizer(obj acktypes.RuntimeMetaObject, finalizer string) bool {
 func (d *resourceDescriptor) MarkManaged(
 	res acktypes.AWSResource,
 ) {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
@@ -127,7 +127,7 @@ func (d *resourceDescriptor) MarkManaged(
 func (d *resourceDescriptor) MarkUnmanaged(
 	res acktypes.AWSResource,
 ) {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
@@ -140,10 +140,10 @@ func (d *resourceDescriptor) MarkUnmanaged(
 func (d *resourceDescriptor) MarkAdopted(
 	res acktypes.AWSResource,
 ) {
-	obj := res.RuntimeMetaObject()
+	obj := res.RuntimeObject()
 	if obj == nil {
 		// Should not happen. If it does, there is a bug in the code
-		panic("nil RuntimeMetaObject in AWSResource")
+		panic("nil RuntimeObject in AWSResource")
 	}
 	curr := obj.GetAnnotations()
 	if curr == nil {
