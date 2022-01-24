@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: v0.0.13
+  tag: v0.0.14
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -21,7 +21,7 @@ deployment:
     kubernetes.io/os: linux
   # Which tolerations to set?
   # See: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
-  tolerations: {}
+  tolerations: []
   # What affinity to set?
   # See: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}

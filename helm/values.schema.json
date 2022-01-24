@@ -51,7 +51,7 @@
           "type": "object"
         },
         "tolerations": {
-          "type": "object"
+          "type": "array"
         },
         "affinity": {
           "type": "object"
