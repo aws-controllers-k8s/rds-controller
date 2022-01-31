@@ -3,3 +3,5 @@ resources:
 - cluster-role-controller.yaml
 - role-reader.yaml
 - role-writer.yaml
+- service-account.yaml
+
