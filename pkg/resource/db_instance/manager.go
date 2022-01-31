@@ -29,12 +29,17 @@ import (
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
+	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	svcsdkapi "github.com/aws/aws-sdk-go/service/rds/rdsiface"
+)
+
+var (
+	_ = ackutil.InStrings
 )
 
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
@@ -248,6 +253,17 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 		latestKo.Spec.AvailabilityZone = observedKo.Spec.AvailabilityZone
 	}
 	return &resource{latestKo}
+}
+
+// IsSynced returns true if the resource is synced.
+func (rm *resourceManager) IsSynced(ctx context.Context, res acktypes.AWSResource) (bool, error) {
+	r := rm.concreteResource(res)
+	if r.ko == nil {
+		// Should never happen... if it does, it's buggy code.
+		panic("resource manager's IsSynced() method received resource with nil CR object")
+	}
+
+	return true, nil
 }
 
 // newResourceManager returns a new struct implementing

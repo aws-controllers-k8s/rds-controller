@@ -61,6 +61,7 @@ spec:
             drop:
               - ALL
       terminationGracePeriodSeconds: 10
+      serviceAccountName: ack-rds-controller
       hostIPC: false
       hostNetwork: false
       hostPID: false

@@ -8,5 +8,5 @@ roleRef:
   name: ack-rds-controller
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: ack-rds-controller
   namespace: ack-system
