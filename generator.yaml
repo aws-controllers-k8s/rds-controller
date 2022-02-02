@@ -83,10 +83,7 @@ resources:
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
-        - InvalidDBClusterStateFault
-        - InvalidDBInstanceStateFault
         - InvalidSubnet
-        - InvalidVPCNetworkStateFault
         - KMSKeyNotAccessibleFault
         - StorageQuotaExceeded
     fields:
@@ -129,7 +126,6 @@ resources:
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
-        - InvalidDBInstanceState
         - DBSecurityGroupNotFound
         - DBSubnetGroupNotFoundFault
         - DBParameterGroupNotFound
@@ -158,7 +154,6 @@ resources:
       terminal_codes:
         - GlobalClusterAlreadyExistsFault
         - GlobalClusterQuotaExceededFault
-        - InvalidDBClusterStateFault
     fields:
       GlobalClusterIdentifier:
         is_primary_key: true
