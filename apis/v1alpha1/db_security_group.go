@@ -68,7 +68,8 @@ type DBSecurityGroupStatus struct {
 	// Contains a list of IPRange elements.
 	// +kubebuilder:validation:Optional
 	IPRanges []*IPRange `json:"iPRanges,omitempty"`
-	// Provides the AWS ID of the owner of a specific DB security group.
+	// Provides the Amazon Web Services ID of the owner of a specific DB security
+	// group.
 	// +kubebuilder:validation:Optional
 	OwnerID *string `json:"ownerID,omitempty"`
 	// Provides the VpcId of the DB security group.

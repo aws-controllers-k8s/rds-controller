@@ -42,6 +42,28 @@ type DBClusterParameterGroupSpec struct {
 	// Aurora PostgreSQL
 	//
 	// Example: aurora-postgresql9.6
+	//
+	// To list all of the available parameter group families for a DB engine, use
+	// the following command:
+	//
+	// aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
+	// --engine <engine>
+	//
+	// For example, to list all of the available parameter group families for the
+	// Aurora PostgreSQL DB engine, use the following command:
+	//
+	// aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
+	// --engine aurora-postgresql
+	//
+	// The output contains duplicates.
+	//
+	// The following are the valid DB engine values:
+	//
+	//    * aurora (for MySQL 5.6-compatible Aurora)
+	//
+	//    * aurora-mysql (for MySQL 5.7-compatible Aurora)
+	//
+	//    * aurora-postgresql
 	// +kubebuilder:validation:Required
 	Family *string `json:"family"`
 	// The name of the DB cluster parameter group.
@@ -54,6 +76,17 @@ type DBClusterParameterGroupSpec struct {
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 	// A list of parameters in the DB cluster parameter group to modify.
+	//
+	// Valid Values (for the application method): immediate | pending-reboot
+	//
+	// You can use the immediate value with dynamic parameters only. You can use
+	// the pending-reboot value for both dynamic and static parameters.
+	//
+	// When the application method is immediate, changes to dynamic parameters are
+	// applied immediately to the DB clusters associated with the parameter group.
+	// When the application method is pending-reboot, changes to dynamic and static
+	// parameters are applied after a reboot without failover to the DB clusters
+	// associated with the parameter group.
 	Parameters []*Parameter `json:"parameters,omitempty"`
 	// Tags to assign to the DB cluster parameter group.
 	Tags []*Tag `json:"tags,omitempty"`

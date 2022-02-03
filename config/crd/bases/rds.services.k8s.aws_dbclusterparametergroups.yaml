@@ -49,7 +49,17 @@ spec:
                   parameter group family, and can be applied only to a DB cluster
                   running a database engine and engine version compatible with that
                   DB cluster parameter group family. \n Aurora MySQL \n Example: aurora5.6,
-                  aurora-mysql5.7 \n Aurora PostgreSQL \n Example: aurora-postgresql9.6"
+                  aurora-mysql5.7 \n Aurora PostgreSQL \n Example: aurora-postgresql9.6
+                  \n To list all of the available parameter group families for a DB
+                  engine, use the following command: \n aws rds describe-db-engine-versions
+                  --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine <engine>
+                  \n For example, to list all of the available parameter group families
+                  for the Aurora PostgreSQL DB engine, use the following command:
+                  \n aws rds describe-db-engine-versions --query \"DBEngineVersions[].DBParameterGroupFamily\"
+                  --engine aurora-postgresql \n The output contains duplicates. \n
+                  The following are the valid DB engine values: \n    * aurora (for
+                  MySQL 5.6-compatible Aurora) \n    * aurora-mysql (for MySQL 5.7-compatible
+                  Aurora) \n    * aurora-postgresql"
                 type: string
               name:
                 description: "The name of the DB cluster parameter group. \n Constraints:
@@ -57,8 +67,16 @@ spec:
                   group. \n This value is stored as a lowercase string."
                 type: string
               parameters:
-                description: A list of parameters in the DB cluster parameter group
-                  to modify.
+                description: "A list of parameters in the DB cluster parameter group
+                  to modify. \n Valid Values (for the application method): immediate
+                  | pending-reboot \n You can use the immediate value with dynamic
+                  parameters only. You can use the pending-reboot value for both dynamic
+                  and static parameters. \n When the application method is immediate,
+                  changes to dynamic parameters are applied immediately to the DB
+                  clusters associated with the parameter group. When the application
+                  method is pending-reboot, changes to dynamic and static parameters
+                  are applied after a reboot without failover to the DB clusters associated
+                  with the parameter group."
                 items:
                   description: "This data type is used as a request parameter in the
                     ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This

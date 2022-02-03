@@ -154,8 +154,8 @@ spec:
                   type: object
                 type: array
               ownerID:
-                description: Provides the AWS ID of the owner of a specific DB security
-                  group.
+                description: Provides the Amazon Web Services ID of the owner of a
+                  specific DB security group.
                 type: string
               vpcID:
                 description: Provides the VpcId of the DB security group.

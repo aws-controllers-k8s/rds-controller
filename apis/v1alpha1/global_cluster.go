@@ -67,9 +67,10 @@ type GlobalClusterStatus struct {
 	// cluster. Currently limited to 1 item.
 	// +kubebuilder:validation:Optional
 	GlobalClusterMembers []*GlobalClusterMember `json:"globalClusterMembers,omitempty"`
-	// The AWS Region-unique, immutable identifier for the global database cluster.
-	// This identifier is found in AWS CloudTrail log entries whenever the AWS KMS
-	// customer master key (CMK) for the DB cluster is accessed.
+	// The Amazon Web Services Region-unique, immutable identifier for the global
+	// database cluster. This identifier is found in Amazon Web Services CloudTrail
+	// log entries whenever the Amazon Web Services KMS key for the DB cluster is
+	// accessed.
 	// +kubebuilder:validation:Optional
 	GlobalClusterResourceID *string `json:"globalClusterResourceID,omitempty"`
 	// Specifies the current state of this global database cluster.

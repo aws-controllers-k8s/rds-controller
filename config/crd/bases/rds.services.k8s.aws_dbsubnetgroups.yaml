@@ -150,7 +150,7 @@ spec:
                     subnetOutpost:
                       description: "A data type that represents an Outpost. \n For
                         more information about RDS on Outposts, see Amazon RDS on
-                        AWS Outposts (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html)
+                        Amazon Web Services Outposts (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html)
                         in the Amazon RDS User Guide."
                       properties:
                         arn:

@@ -47,10 +47,18 @@ spec:
                   can be associated with one and only one DB parameter group family,
                   and can be applied only to a DB instance running a database engine
                   and engine version compatible with that DB parameter group family.
-                  \n To list all of the available parameter group families, use the
-                  following command: \n aws rds describe-db-engine-versions --query
-                  \"DBEngineVersions[].DBParameterGroupFamily\" \n The output contains
-                  duplicates."
+                  \n To list all of the available parameter group families for a DB
+                  engine, use the following command: \n aws rds describe-db-engine-versions
+                  --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine <engine>
+                  \n For example, to list all of the available parameter group families
+                  for the MySQL DB engine, use the following command: \n aws rds describe-db-engine-versions
+                  --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine mysql
+                  \n The output contains duplicates. \n The following are the valid
+                  DB engine values: \n    * aurora (for MySQL 5.6-compatible Aurora)
+                  \n    * aurora-mysql (for MySQL 5.7-compatible Aurora) \n    * aurora-postgresql
+                  \n    * mariadb \n    * mysql \n    * oracle-ee \n    * oracle-ee-cdb
+                  \n    * oracle-se2 \n    * oracle-se2-cdb \n    * postgres \n    *
+                  sqlserver-ee \n    * sqlserver-se \n    * sqlserver-ex \n    * sqlserver-web"
                 type: string
               name:
                 description: "The name of the DB parameter group. \n Constraints:
@@ -59,15 +67,19 @@ spec:
                   two consecutive hyphens \n This value is stored as a lowercase string."
                 type: string
               parameters:
-                description: "An array of parameter names, values, and the apply method
-                  for the parameter update. At least one parameter name, value, and
-                  apply method must be supplied; later arguments are optional. A maximum
-                  of 20 parameters can be modified in a single request. \n Valid Values
-                  (for the application method): immediate | pending-reboot \n You
-                  can use the immediate value with dynamic parameters only. You can
-                  use the pending-reboot value for both dynamic and static parameters,
-                  and changes are applied when you reboot the DB instance without
-                  failover."
+                description: "An array of parameter names, values, and the application
+                  methods for the parameter update. At least one parameter name, value,
+                  and application method method must be supplied; later arguments
+                  are optional. A maximum of 20 parameters can be modified in a single
+                  request. \n Valid Values (for the application method): immediate
+                  | pending-reboot \n You can use the immediate value with dynamic
+                  parameters only. You can use the pending-reboot value for both dynamic
+                  and static parameters. \n When the application method is immediate,
+                  changes to dynamic parameters are applied immediately to the DB
+                  instances associated with the parameter group. When the application
+                  method is pending-reboot, changes to dynamic and static parameters
+                  are applied after a reboot without failover to the DB instances
+                  associated with the parameter group."
                 items:
                   description: "This data type is used as a request parameter in the
                     ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This
