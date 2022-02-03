@@ -640,8 +640,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	}
 	switch awsErr.Code() {
 	case "GlobalClusterAlreadyExistsFault",
-		"GlobalClusterQuotaExceededFault",
-		"InvalidDBClusterStateFault":
+		"GlobalClusterQuotaExceededFault":
 		return true
 	default:
 		return false

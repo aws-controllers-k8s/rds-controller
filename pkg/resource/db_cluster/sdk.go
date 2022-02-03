@@ -1370,10 +1370,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"InvalidParameter",
 		"InvalidParameterValue",
 		"InvalidParameterCombination",
-		"InvalidDBClusterStateFault",
-		"InvalidDBInstanceStateFault",
 		"InvalidSubnet",
-		"InvalidVPCNetworkStateFault",
 		"KMSKeyNotAccessibleFault",
 		"StorageQuotaExceeded":
 		return true

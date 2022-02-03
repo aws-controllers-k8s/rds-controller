@@ -2503,7 +2503,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	case "InvalidParameter",
 		"InvalidParameterValue",
 		"InvalidParameterCombination",
-		"InvalidDBInstanceState",
 		"DBSecurityGroupNotFound",
 		"DBSubnetGroupNotFoundFault",
 		"DBParameterGroupNotFound":
