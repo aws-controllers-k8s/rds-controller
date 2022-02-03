@@ -83,6 +83,13 @@ func newResourceDelta(
 			delta.Add("Spec.CopyTagsToSnapshot", a.ko.Spec.CopyTagsToSnapshot, b.ko.Spec.CopyTagsToSnapshot)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.CustomIAMInstanceProfile, b.ko.Spec.CustomIAMInstanceProfile) {
+		delta.Add("Spec.CustomIAMInstanceProfile", a.ko.Spec.CustomIAMInstanceProfile, b.ko.Spec.CustomIAMInstanceProfile)
+	} else if a.ko.Spec.CustomIAMInstanceProfile != nil && b.ko.Spec.CustomIAMInstanceProfile != nil {
+		if *a.ko.Spec.CustomIAMInstanceProfile != *b.ko.Spec.CustomIAMInstanceProfile {
+			delta.Add("Spec.CustomIAMInstanceProfile", a.ko.Spec.CustomIAMInstanceProfile, b.ko.Spec.CustomIAMInstanceProfile)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBClusterIdentifier, b.ko.Spec.DBClusterIdentifier) {
 		delta.Add("Spec.DBClusterIdentifier", a.ko.Spec.DBClusterIdentifier, b.ko.Spec.DBClusterIdentifier)
 	} else if a.ko.Spec.DBClusterIdentifier != nil && b.ko.Spec.DBClusterIdentifier != nil {

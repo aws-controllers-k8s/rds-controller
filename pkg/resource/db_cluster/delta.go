@@ -267,6 +267,13 @@ func newResourceDelta(
 				delta.Add("Spec.ScalingConfiguration.MinCapacity", a.ko.Spec.ScalingConfiguration.MinCapacity, b.ko.Spec.ScalingConfiguration.MinCapacity)
 			}
 		}
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout, b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout) {
+			delta.Add("Spec.ScalingConfiguration.SecondsBeforeTimeout", a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout, b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+		} else if a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil && b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
+			if *a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != *b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout {
+				delta.Add("Spec.ScalingConfiguration.SecondsBeforeTimeout", a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout, b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+			}
+		}
 		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause) {
 			delta.Add("Spec.ScalingConfiguration.SecondsUntilAutoPause", a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
 		} else if a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil && b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {

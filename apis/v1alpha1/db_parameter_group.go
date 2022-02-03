@@ -35,12 +35,49 @@ type DBParameterGroupSpec struct {
 	// to a DB instance running a database engine and engine version compatible
 	// with that DB parameter group family.
 	//
-	// To list all of the available parameter group families, use the following
-	// command:
+	// To list all of the available parameter group families for a DB engine, use
+	// the following command:
 	//
 	// aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
+	// --engine <engine>
+	//
+	// For example, to list all of the available parameter group families for the
+	// MySQL DB engine, use the following command:
+	//
+	// aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
+	// --engine mysql
 	//
 	// The output contains duplicates.
+	//
+	// The following are the valid DB engine values:
+	//
+	//    * aurora (for MySQL 5.6-compatible Aurora)
+	//
+	//    * aurora-mysql (for MySQL 5.7-compatible Aurora)
+	//
+	//    * aurora-postgresql
+	//
+	//    * mariadb
+	//
+	//    * mysql
+	//
+	//    * oracle-ee
+	//
+	//    * oracle-ee-cdb
+	//
+	//    * oracle-se2
+	//
+	//    * oracle-se2-cdb
+	//
+	//    * postgres
+	//
+	//    * sqlserver-ee
+	//
+	//    * sqlserver-se
+	//
+	//    * sqlserver-ex
+	//
+	//    * sqlserver-web
 	// +kubebuilder:validation:Required
 	Family *string `json:"family"`
 	// The name of the DB parameter group.
@@ -56,16 +93,21 @@ type DBParameterGroupSpec struct {
 	// This value is stored as a lowercase string.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
-	// An array of parameter names, values, and the apply method for the parameter
-	// update. At least one parameter name, value, and apply method must be supplied;
-	// later arguments are optional. A maximum of 20 parameters can be modified
-	// in a single request.
+	// An array of parameter names, values, and the application methods for the
+	// parameter update. At least one parameter name, value, and application method
+	// method must be supplied; later arguments are optional. A maximum of 20 parameters
+	// can be modified in a single request.
 	//
 	// Valid Values (for the application method): immediate | pending-reboot
 	//
 	// You can use the immediate value with dynamic parameters only. You can use
-	// the pending-reboot value for both dynamic and static parameters, and changes
-	// are applied when you reboot the DB instance without failover.
+	// the pending-reboot value for both dynamic and static parameters.
+	//
+	// When the application method is immediate, changes to dynamic parameters are
+	// applied immediately to the DB instances associated with the parameter group.
+	// When the application method is pending-reboot, changes to dynamic and static
+	// parameters are applied after a reboot without failover to the DB instances
+	// associated with the parameter group.
 	Parameters []*Parameter `json:"parameters,omitempty"`
 	// Tags to assign to the DB parameter group.
 	Tags []*Tag `json:"tags,omitempty"`
