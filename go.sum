@@ -64,8 +64,8 @@ github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hC
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
-github.com/aws-controllers-k8s/runtime v0.16.4 h1:gV8jT09PwaCQWaC46NEnaEggqPm8Lxke6G0f7SxVsys=
-github.com/aws-controllers-k8s/runtime v0.16.4/go.mod h1:9c2CL3w0BlVkse+foHlP1SkJRqYWLs9H+4X/z+2kE3w=
+github.com/aws-controllers-k8s/runtime v0.16.5 h1:1eRU1s0DaduaZcktzG+jUNwPYW+ouKGe7ciAeNNW/2g=
+github.com/aws-controllers-k8s/runtime v0.16.5/go.mod h1:9c2CL3w0BlVkse+foHlP1SkJRqYWLs9H+4X/z+2kE3w=
 github.com/aws/aws-sdk-go v1.42.0 h1:BMZws0t8NAhHFsfnT3B40IwD13jVDG5KerlRksctVIw=
 github.com/aws/aws-sdk-go v1.42.0/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
