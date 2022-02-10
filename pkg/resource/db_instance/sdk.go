@@ -1708,6 +1708,9 @@ func (rm *resourceManager) sdkUpdate(
 	if err != nil {
 		return nil, err
 	}
+	if !delta.DifferentAt("Spec.DBSubnetGroupName") {
+		input.DBSubnetGroupName = nil
+	}
 
 	var resp *svcsdk.ModifyDBInstanceOutput
 	_ = resp
