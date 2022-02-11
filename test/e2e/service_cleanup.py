@@ -42,12 +42,28 @@ def delete_vpc(vpc_id: str):
     logging.info(f"Deleted VPC {vpc_id}")
 
 
+def delete_db_subnet_group(db_subnet_group_name: str):
+    region = get_region()
+    rds = boto3.client("rds", region_name=region)
+
+    rds.delete_db_subnet_group(
+        DBSubnetGroupName=db_subnet_group_name,
+    )
+
+    logging.info(f"Deleted DBSubnetGroup {db_subnet_group_name}")
+
+
 def service_cleanup(config: dict):
     logging.getLogger().setLevel(logging.INFO)
 
     resources = TestBootstrapResources(
         **config
     )
+
+    try:
+        delete_db_subnet_group(resources.DBSubnetGroupName)
+    except:
+        logging.exception(f"Unable to delete DBSubnetGroup {resources.DBSubnetGroupName}")
 
     try:
         delete_subnet(resources.SubnetAZ1)
@@ -63,6 +79,7 @@ def service_cleanup(config: dict):
         delete_vpc(resources.VPCID)
     except:
         logging.exception(f"Unable to delete VPC {resources.VPCID}")
+
 
 if __name__ == "__main__":   
     bootstrap_config = resources.read_bootstrap_config(bootstrap_directory)

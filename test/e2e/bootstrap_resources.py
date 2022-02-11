@@ -28,6 +28,7 @@ class TestBootstrapResources:
     VPCID: str
     SubnetAZ1: str
     SubnetAZ2: str
+    DBSubnetGroupName: str
 
 _bootstrap_resources = None
 
