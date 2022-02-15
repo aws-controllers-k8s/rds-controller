@@ -18,6 +18,7 @@ import logging
 import time
 
 from acktest import resources
+from acktest.resources import random_suffix_name
 from acktest.aws.identity import get_region
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import (
@@ -94,6 +95,21 @@ def create_subnet(vpc_id: str, az_id: str, cidr: str) -> str:
     return subnet_id
 
 
+def create_db_subnet_group(db_subnet_group_name: str, subnet_az1_id: str, subnet_az2_id:str):
+    region = get_region()
+    rds = boto3.client("rds", region_name=region)
+
+    logging.debug(f"Creating DBSubnetGroup with name {db_subnet_group_name}")
+
+    rds.create_db_subnet_group(
+        DBSubnetGroupName=db_subnet_group_name,
+        DBSubnetGroupDescription='DBSubnetGroup for e2e testing of ACK rds-controller',
+        SubnetIds=[subnet_az1_id, subnet_az2_id],
+    )
+
+    logging.info(f"Created DBSubnetGroup {db_subnet_group_name}")
+
+
 def service_bootstrap() -> dict:
     logging.getLogger().setLevel(logging.INFO)
     region = get_region()
@@ -103,13 +119,16 @@ def service_bootstrap() -> dict:
     subnet_az1_id = create_subnet(vpc_id, az1, SUBNET_AZ1_CIDR)
     az2 = f"{region}b"
     subnet_az2_id = create_subnet(vpc_id, az2, SUBNET_AZ2_CIDR)
-
+    db_subnet_group_name = random_suffix_name("ack-test-subnet-group", 30)
+    create_db_subnet_group(db_subnet_group_name, subnet_az1_id, subnet_az2_id)
 
     return TestBootstrapResources(
         vpc_id,
         subnet_az1_id,
         subnet_az2_id,
+        db_subnet_group_name
     ).__dict__
+
 
 if __name__ == "__main__":
     config = service_bootstrap()

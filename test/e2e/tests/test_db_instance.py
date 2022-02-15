@@ -19,6 +19,7 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
@@ -67,7 +68,7 @@ class TestDBInstance:
             self,
             k8s_secret,
     ):
-        db_instance_id = "pg13-t3-micro"
+        db_instance_id = random_suffix_name("pg13-t3-micro", 20)
         secret = k8s_secret(
             self.MUP_NS,
             self.MUP_SEC_NAME,
@@ -81,6 +82,7 @@ class TestDBInstance:
         replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
         replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
         replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
+        replacements["DB_SUBNET_GROUP_NAME"] = get_bootstrap_resources().DBSubnetGroupName
 
         resource_data = load_rds_resource(
             "db_instance_postgres13_t3_micro",
@@ -128,7 +130,8 @@ class TestDBInstance:
         # shows the new value of the field.
         latest = db_instance.get(db_instance_id)
         assert latest is not None
-        assert latest['CopyTagsToSnapshot'] == False
+        assert latest['CopyTagsToSnapshot'] is False
+        assert latest['DBSubnetGroup']['DBSubnetGroupName'] == get_bootstrap_resources().DBSubnetGroupName
         updates = {
             "spec": {"copyTagsToSnapshot": True},
         }
