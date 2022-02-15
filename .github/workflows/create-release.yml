@@ -9,16 +9,5 @@ permissions:
   contents: write # For creating releases
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-      - name: Write Release Notes
-        uses: lakto/gren-action@v2.0.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          options: '--override --data-source=commits'
+  call-create-release:
+    uses: aws-controllers-k8s/.github/.github/workflows/reusable-create-release.yaml@main
