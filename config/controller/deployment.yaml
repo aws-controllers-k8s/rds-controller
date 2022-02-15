@@ -49,7 +49,7 @@ spec:
             cpu: 100m
             memory: 200Mi
         env:
-        - name: K8S_NAMESPACE
+        - name: ACK_SYSTEM_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
