@@ -19,9 +19,8 @@ import (
 	"context"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
-
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 )
 
 // ResolveReferences finds if there are any Reference field(s) present

@@ -211,6 +211,7 @@ func (rm *resourceManager) LateInitialize(
 		lateInitConditionMessage = "Unable to complete Read operation required for late initialization"
 		lateInitConditionReason = "Late Initialization Failure"
 		ackcondition.SetLateInitialized(latestCopy, corev1.ConditionFalse, &lateInitConditionMessage, &lateInitConditionReason)
+		ackcondition.SetSynced(latestCopy, corev1.ConditionFalse, nil, nil)
 		return latestCopy, err
 	}
 	lateInitializedRes := rm.lateInitializeFromReadOneOutput(observed, latestCopy)
@@ -220,6 +221,7 @@ func (rm *resourceManager) LateInitialize(
 		lateInitConditionMessage = "Late initialization did not complete, requeuing with delay of 5 seconds"
 		lateInitConditionReason = "Delayed Late Initialization"
 		ackcondition.SetLateInitialized(lateInitializedRes, corev1.ConditionFalse, &lateInitConditionMessage, &lateInitConditionReason)
+		ackcondition.SetSynced(lateInitializedRes, corev1.ConditionFalse, nil, nil)
 		return lateInitializedRes, ackrequeue.NeededAfter(nil, time.Duration(5)*time.Second)
 	}
 	// Set LateInitialized condition to True
