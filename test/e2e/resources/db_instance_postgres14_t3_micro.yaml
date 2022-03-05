@@ -3,15 +3,16 @@ kind: DBInstance
 metadata:
   name: $DB_INSTANCE_ID
 spec:
-  allocatedStorage: 20
+  allocatedStorage: 5
   copyTagsToSnapshot: $COPY_TAGS_TO_SNAPSHOT
   dbInstanceClass: db.t3.micro
   dbInstanceIdentifier: $DB_INSTANCE_ID
   dbSubnetGroupName: $DB_SUBNET_GROUP_NAME
   engine: postgres
-  engineVersion: "13.2"
+  engineVersion: "14.1"
   masterUsername: root
   masterUserPassword:
     namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
     name: $MASTER_USER_PASS_SECRET_NAME
     key: $MASTER_USER_PASS_SECRET_KEY
+  multiAZ: False

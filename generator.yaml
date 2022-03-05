@@ -122,8 +122,12 @@ resources:
         template_path: hooks/db_instance/sdk_update_pre_build_request.go.tpl
       sdk_update_post_build_request:
         template_path: hooks/db_instance/sdk_update_post_build_request.go.tpl
+      sdk_update_post_set_output:
+        template_path: hooks/db_instance/sdk_update_post_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
+      delta_pre_compare:
+        template_path: hooks/db_instance/delta_pre_compare.go.tpl
     exceptions:
       terminal_codes:
         - InvalidParameter

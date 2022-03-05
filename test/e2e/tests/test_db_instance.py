@@ -49,9 +49,9 @@ DELETE_WAIT_AFTER_SECONDS = 60*2
 #
 # This can take upwards of 7 minutes for the the DB instance to reach that
 # "final" available state
-CHECK_STATUS_WAIT_SECONDS = 60*8
+MAX_WAIT_FOR_SYNCED_MINUTES = 20
 
-MODIFY_WAIT_AFTER_SECONDS = 20
+MODIFY_WAIT_AFTER_SECONDS = 60
 
 
 @service_marker
@@ -64,11 +64,11 @@ class TestDBInstance:
     MUP_SEC_KEY = "master_user_password"
     MUP_SEC_VAL = "secretpass123456"
 
-    def test_crud_postgres13_t3_micro(
+    def test_crud_postgres14_t3_micro(
             self,
             k8s_secret,
     ):
-        db_instance_id = random_suffix_name("pg13-t3-micro", 20)
+        db_instance_id = random_suffix_name("pg14-t3-micro", 20)
         secret = k8s_secret(
             self.MUP_NS,
             self.MUP_SEC_NAME,
@@ -85,7 +85,7 @@ class TestDBInstance:
         replacements["DB_SUBNET_GROUP_NAME"] = get_bootstrap_resources().DBSubnetGroupName
 
         resource_data = load_rds_resource(
-            "db_instance_postgres13_t3_micro",
+            "db_instance_postgres14_t3_micro",
             additional_replacements=replacements,
         )
 
@@ -103,12 +103,14 @@ class TestDBInstance:
         assert cr['status']['dbInstanceStatus'] == 'creating'
         condition.assert_not_synced(ref)
 
-        db_instance.wait_until(
-            db_instance_id,
-            db_instance.status_matches('available'),
-        )
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
-        time.sleep(CHECK_STATUS_WAIT_SECONDS)
+        # After the resource is synced, assert that DBInstanceStatus is available
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['MultiAZ'] is False
 
         # Before we update the DBInstance CR below, let's check to see that the
         # DbInstanceStatus field in the CR has been updated to something other
@@ -133,14 +135,34 @@ class TestDBInstance:
         assert latest['CopyTagsToSnapshot'] is False
         assert latest['DBSubnetGroup']['DBSubnetGroupName'] == get_bootstrap_resources().DBSubnetGroupName
         updates = {
-            "spec": {"copyTagsToSnapshot": True},
+            "spec": {"copyTagsToSnapshot": True, "multiAZ": True},
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
+        # wait for the resource to get synced after the patch
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = db_instance.get(db_instance_id)
         assert latest is not None
-        assert latest['CopyTagsToSnapshot'] == True
+        assert latest['CopyTagsToSnapshot'] is True
+        assert latest['MultiAZ'] is True
+
+        updates = {
+            "spec": {"copyTagsToSnapshot": False, "multiAZ": False},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # wait for the resource to get synced after the patch
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After resource is synced again, assert that patches are reflected in the AWS resource
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['CopyTagsToSnapshot'] is False
+        assert latest['MultiAZ'] is False
 
         k8s.delete_custom_resource(ref)
 

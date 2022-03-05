@@ -90,6 +90,12 @@ var (
 		errors.New("DB instance in 'deleting' state, cannot be modified or deleted."),
 		ackrequeue.DefaultRequeueAfterDuration,
 	)
+
+	customWaitAtferUpdate = ackrequeue.NeededAfter(
+		errors.New("Requeueing resource after successful update; status fields"+
+			"retrieved asynchronously"),
+		ackrequeue.DefaultRequeueAfterDuration,
+	)
 )
 
 // requeueWaitUntilCanModify returns a `ackrequeue.RequeueNeededAfter` struct
