@@ -92,7 +92,7 @@ var (
 	)
 
 	customWaitAtferUpdate = ackrequeue.NeededAfter(
-		errors.New("Requeueing resource after successful update; status fields"+
+		errors.New("Requeueing resource after successful update; status fields "+
 			"retrieved asynchronously"),
 		ackrequeue.DefaultRequeueAfterDuration,
 	)
