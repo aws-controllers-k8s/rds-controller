@@ -44,3 +44,12 @@ func (ri *resourceIdentifiers) OwnerAccountID() *ackv1alpha1.AWSAccountID {
 	}
 	return nil
 }
+
+// Region returns the AWS region in which the resource exists, or
+// nil if this information is not known.
+func (ri *resourceIdentifiers) Region() *ackv1alpha1.AWSRegion {
+	if ri.meta != nil {
+		return ri.meta.Region
+	}
+	return nil
+}

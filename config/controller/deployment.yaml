@@ -28,6 +28,8 @@ spec:
         args:
         - --aws-region
         - "$(AWS_REGION)"
+        - --aws-endpoint-url
+        - "$(AWS_ENDPOINT_URL)"
         - --enable-development-logging
         - "$(ACK_ENABLE_DEVELOPMENT_LOGGING)"
         - --log-level
@@ -53,6 +55,18 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: AWS_REGION
+          value: ""
+        - name: AWS_ENDPOINT_URL
+          value: ""
+        - name: ACK_WATCH_NAMESPACE
+          value: ""
+        - name: ACK_ENABLE_DEVELOPMENT_LOGGING
+          value: "false"
+        - name: ACK_LOG_LEVEL
+          value: "info"
+        - name: ACK_RESOURCE_TAGS
+          value: "services.k8s.aws/managed=true,services.k8s.aws/created=%UTCNOW%,services.k8s.aws/namespace=%KUBERNETES_NAMESPACE%"
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false

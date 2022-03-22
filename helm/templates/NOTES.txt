@@ -1,5 +1,5 @@
 {{ .Chart.Name }} has been installed.
-This chart deploys "public.ecr.aws/aws-controllers-k8s/rds-controller:v0.0.19".
+This chart deploys "public.ecr.aws/aws-controllers-k8s/rds-controller:v0.0.20".
 
 Check its status by running:
   kubectl --namespace {{ .Release.Namespace }} get pods -l "app.kubernetes.io/instance={{ .Release.Name }}"
