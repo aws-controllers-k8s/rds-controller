@@ -3,7 +3,7 @@ module github.com/aws-controllers-k8s/rds-controller
 go 1.17
 
 require (
-	github.com/aws-controllers-k8s/runtime v0.18.1
+	github.com/aws-controllers-k8s/runtime v0.18.4
 	github.com/aws/aws-sdk-go v1.42.0
 	github.com/go-logr/logr v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
