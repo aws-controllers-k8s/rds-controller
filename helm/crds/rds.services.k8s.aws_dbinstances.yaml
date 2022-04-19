@@ -358,6 +358,20 @@ spec:
                   key when this parameter is empty. You must explicitly specify a
                   key."
                 type: string
+              kmsKeyRef:
+                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference type to provide more user friendly syntax
+                  for references using ''from'' field Ex: APIIDRef:   from:     name:
+                  my-api'
+                properties:
+                  from:
+                    description: AWSResourceReference provides all the values necessary
+                      to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                type: object
               licenseModel:
                 description: "License model information for this DB instance. \n Valid
                   values: license-included | bring-your-own-license | general-public-license

@@ -33,6 +33,20 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - kms.services.k8s.aws
+  resources:
+  - keys
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - kms.services.k8s.aws
+  resources:
+  - keys/status
+  verbs:
+  - get
+  - list
+- apiGroups:
   - rds.services.k8s.aws
   resources:
   - dbclusterparametergroups

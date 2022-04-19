@@ -92,6 +92,11 @@ resources:
         is_primary_key: true
       MasterUserPassword:
         is_secret: true
+      KmsKeyId:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
   DBClusterParameterGroup:
     renames:
       operations:
@@ -156,6 +161,11 @@ resources:
             from: DBSecurityGroupName
       MasterUserPassword:
         is_secret: true
+      KmsKeyId:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
   GlobalCluster:
     exceptions:
       terminal_codes:
