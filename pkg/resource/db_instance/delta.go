@@ -220,6 +220,9 @@ func newResourceDelta(
 			delta.Add("Spec.KMSKeyID", a.ko.Spec.KMSKeyID, b.ko.Spec.KMSKeyID)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef) {
+		delta.Add("Spec.KMSKeyRef", a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.LicenseModel, b.ko.Spec.LicenseModel) {
 		delta.Add("Spec.LicenseModel", a.ko.Spec.LicenseModel, b.ko.Spec.LicenseModel)
 	} else if a.ko.Spec.LicenseModel != nil && b.ko.Spec.LicenseModel != nil {

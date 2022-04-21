@@ -3,6 +3,7 @@ module github.com/aws-controllers-k8s/rds-controller
 go 1.17
 
 require (
+	github.com/aws-controllers-k8s/kms-controller v0.0.15
 	github.com/aws-controllers-k8s/runtime v0.18.4
 	github.com/aws/aws-sdk-go v1.42.0
 	github.com/go-logr/logr v1.2.0
@@ -42,7 +43,6 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.28.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect

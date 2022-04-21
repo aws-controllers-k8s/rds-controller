@@ -232,7 +232,8 @@ type DBClusterSpec struct {
 	// Web Services Region, you must set KmsKeyId to a KMS key identifier that is
 	// valid in the destination Amazon Web Services Region. This KMS key is used
 	// to encrypt the read replica in that Amazon Web Services Region.
-	KMSKeyID *string `json:"kmsKeyID,omitempty"`
+	KMSKeyID  *string                                  `json:"kmsKeyID,omitempty"`
+	KMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsKeyRef,omitempty"`
 	// The password for the master database user. This password can contain any
 	// printable ASCII character except "/", """, or "@".
 	//

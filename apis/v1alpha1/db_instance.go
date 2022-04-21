@@ -540,7 +540,8 @@ type DBInstanceSpec struct {
 	// if you leave this parameter empty while enabling StorageEncrypted, the engine
 	// uses the default KMS key. However, RDS Custom for Oracle doesn't use the
 	// default key when this parameter is empty. You must explicitly specify a key.
-	KMSKeyID *string `json:"kmsKeyID,omitempty"`
+	KMSKeyID  *string                                  `json:"kmsKeyID,omitempty"`
+	KMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsKeyRef,omitempty"`
 	// License model information for this DB instance.
 	//
 	// Valid values: license-included | bring-your-own-license | general-public-license
