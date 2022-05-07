@@ -107,6 +107,15 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
+		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+		tags, err := rm.getTags(ctx, *resourceARN)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.Tags = tags
+	}
+
 	return &resource{ko}, nil
 }
 
@@ -229,87 +238,8 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (updated *resource, err error) {
-	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.sdkUpdate")
-	defer exit(err)
-	input, err := rm.newUpdateRequestPayload(ctx, desired)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp *svcsdk.DBParameterGroupNameMessage
-	_ = resp
-	resp, err = rm.sdkapi.ModifyDBParameterGroupWithContext(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "ModifyDBParameterGroup", err)
-	if err != nil {
-		return nil, err
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := desired.ko.DeepCopy()
-
-	rm.setStatusDefaults(ko)
-	return &resource{ko}, nil
-}
-
-// newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Update API call for the resource
-func (rm *resourceManager) newUpdateRequestPayload(
-	ctx context.Context,
-	r *resource,
-) (*svcsdk.ModifyDBParameterGroupInput, error) {
-	res := &svcsdk.ModifyDBParameterGroupInput{}
-
-	if r.ko.Spec.Parameters != nil {
-		f1 := []*svcsdk.Parameter{}
-		for _, f1iter := range r.ko.Spec.Parameters {
-			f1elem := &svcsdk.Parameter{}
-			if f1iter.AllowedValues != nil {
-				f1elem.SetAllowedValues(*f1iter.AllowedValues)
-			}
-			if f1iter.ApplyMethod != nil {
-				f1elem.SetApplyMethod(*f1iter.ApplyMethod)
-			}
-			if f1iter.ApplyType != nil {
-				f1elem.SetApplyType(*f1iter.ApplyType)
-			}
-			if f1iter.DataType != nil {
-				f1elem.SetDataType(*f1iter.DataType)
-			}
-			if f1iter.Description != nil {
-				f1elem.SetDescription(*f1iter.Description)
-			}
-			if f1iter.IsModifiable != nil {
-				f1elem.SetIsModifiable(*f1iter.IsModifiable)
-			}
-			if f1iter.MinimumEngineVersion != nil {
-				f1elem.SetMinimumEngineVersion(*f1iter.MinimumEngineVersion)
-			}
-			if f1iter.ParameterName != nil {
-				f1elem.SetParameterName(*f1iter.ParameterName)
-			}
-			if f1iter.ParameterValue != nil {
-				f1elem.SetParameterValue(*f1iter.ParameterValue)
-			}
-			if f1iter.Source != nil {
-				f1elem.SetSource(*f1iter.Source)
-			}
-			if f1iter.SupportedEngineModes != nil {
-				f1elemf10 := []*string{}
-				for _, f1elemf10iter := range f1iter.SupportedEngineModes {
-					var f1elemf10elem string
-					f1elemf10elem = *f1elemf10iter
-					f1elemf10 = append(f1elemf10, &f1elemf10elem)
-				}
-				f1elem.SetSupportedEngineModes(f1elemf10)
-			}
-			f1 = append(f1, f1elem)
-		}
-		res.SetParameters(f1)
-	}
-
-	return res, nil
+) (*resource, error) {
+	return rm.customUpdate(ctx, desired, latest, delta)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API

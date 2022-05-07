@@ -6,3 +6,6 @@ spec:
   name: $DB_PARAMETER_GROUP_NAME
   description: $DB_PARAMETER_GROUP_DESC
   family: postgres13
+  tags:
+    - key: environment
+      value: dev
