@@ -26,10 +26,15 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
+from e2e import condition
+from e2e import db_parameter_group
 
 RESOURCE_PLURAL = 'dbparametergroups'
 
 DELETE_WAIT_AFTER_SECONDS = 10
+# NOTE(jaypipes): According to the RDS API documentation, updating tags can
+# take several minutes before the new tag values are available due to caching.
+MODIFY_WAIT_AFTER_SECONDS = 180
 
 
 @pytest.fixture(scope="module")
@@ -64,11 +69,42 @@ class TestDBParameterGroup:
 
         assert cr is not None
         assert k8s.get_resource_exists(ref)
+        condition.assert_synced(ref)
 
         # Let's check that the DB parameter group appears in RDS
-        aws_res = rds_client.describe_db_parameter_groups(DBParameterGroupName=resource_name)
-        assert aws_res is not None
-        assert len(aws_res['DBParameterGroups']) == 1
+        latest = db_parameter_group.get(resource_name)
+        assert latest is not None
+        assert latest['Description'] == resource_desc
+
+        arn = latest['DBParameterGroupArn']
+        expect_tags = [
+            {"Key": "environment", "Value": "dev"}
+        ]
+        latest_tags = db_parameter_group.get_tags(arn)
+        assert expect_tags == latest_tags
+
+        # OK, now let's update the tag set and check that the tags are
+        # updated accordingly.
+        new_tags = [
+            {
+                "key": "environment",
+                "value": "prod",
+            }
+        ]
+        updates = {
+            "spec": {"tags": new_tags},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        latest_tags = db_parameter_group.get_tags(arn)
+        after_update_expected_tags = [
+            {
+                "Key": "environment",
+                "Value": "prod",
+            }
+        ]
+        assert latest_tags == after_update_expected_tags
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
