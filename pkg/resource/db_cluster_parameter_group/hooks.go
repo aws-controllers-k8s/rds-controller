@@ -11,7 +11,7 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package db_parameter_group
+package db_cluster_parameter_group
 
 import (
 	"context"
@@ -81,7 +81,7 @@ func (rm *resourceManager) syncTags(
 	)
 
 	if len(toDelete) > 0 {
-		rlog.Debug("removing tags from parameter group", "tags", toDelete)
+		rlog.Debug("removing tags from cluster parameter group", "tags", toDelete)
 		_, err = rm.sdkapi.RemoveTagsFromResourceWithContext(
 			ctx,
 			&svcsdk.RemoveTagsFromResourceInput{
@@ -100,7 +100,7 @@ func (rm *resourceManager) syncTags(
 	// don't need to do anything to "update" a Tag. Simply including it in the
 	// AddTagsToResource call is enough.
 	if len(toAdd) > 0 {
-		rlog.Debug("adding tags to parameter group", "tags", toAdd)
+		rlog.Debug("adding tags to cluster parameter group", "tags", toAdd)
 		_, err = rm.sdkapi.AddTagsToResourceWithContext(
 			ctx,
 			&svcsdk.AddTagsToResourceInput{

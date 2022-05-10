@@ -6,3 +6,6 @@ spec:
   name: $DB_CLUSTER_PARAMETER_GROUP_NAME
   description: $DB_CLUSTER_PARAMETER_GROUP_DESC
   family: "aurora-mysql5.7"
+  tags:
+    - key: environment
+      value: dev
