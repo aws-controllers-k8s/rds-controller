@@ -13,12 +13,7 @@
 
 """Utilities for working with DB parameter group resources"""
 
-import datetime
-import time
-import typing
-
 import boto3
-import pytest
 
 
 def get(db_parameter_group_name):

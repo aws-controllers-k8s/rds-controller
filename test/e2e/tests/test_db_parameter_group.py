@@ -14,11 +14,8 @@
 """Integration tests for the RDS API DBParameterGroup resource
 """
 
-import boto3
-import datetime
 import logging
 import time
-from typing import Dict
 
 import pytest
 
@@ -37,15 +34,10 @@ DELETE_WAIT_AFTER_SECONDS = 10
 MODIFY_WAIT_AFTER_SECONDS = 180
 
 
-@pytest.fixture(scope="module")
-def rds_client():
-    return boto3.client('rds')
-
-
 @service_marker
 @pytest.mark.canary
 class TestDBParameterGroup:
-    def test_create_delete_postgres13_standard(self, rds_client):
+    def test_create_delete_postgres13_standard(self):
         resource_name = "pg13-standard"
         resource_desc = "Parameters for PostgreSQL 13"
 
@@ -112,8 +104,5 @@ class TestDBParameterGroup:
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
         # DB parameter group should no longer appear in RDS
-        try:
-            aws_res = rds_client.describe_db_parameter_groups(DBParameterGroupName=resource_name)
-            assert False
-        except rds_client.exceptions.DBParameterGroupNotFoundFault:
-            pass
+        latest = db_parameter_group.get(resource_name)
+        assert latest is None
