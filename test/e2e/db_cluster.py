@@ -122,3 +122,18 @@ def get(db_cluster_id):
         return resp['DBClusters'][0]
     except c.exceptions.DBClusterNotFoundFault:
         return None
+
+
+def get_tags(db_cluster_arn):
+    """Returns a dict containing the DB cluster's tag records from the RDS API.
+
+    If no such DB cluster exists, returns None.
+    """
+    c = boto3.client('rds')
+    try:
+        resp = c.list_tags_for_resource(
+            ResourceName=db_cluster_arn,
+        )
+        return resp['TagList']
+    except c.exceptions.DBClusterNotFoundFault:
+        return None

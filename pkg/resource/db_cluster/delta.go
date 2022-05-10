@@ -40,6 +40,7 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
+	compareTags(delta, a, b)
 
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.AvailabilityZones, b.ko.Spec.AvailabilityZones) {
 		delta.Add("Spec.AvailabilityZones", a.ko.Spec.AvailabilityZones, b.ko.Spec.AvailabilityZones)

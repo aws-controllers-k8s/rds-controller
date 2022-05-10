@@ -67,6 +67,8 @@ resources:
       # resolved.
       custom_method_name: customUpdate
     hooks:
+      delta_pre_compare:
+        template_path: hooks/db_cluster/delta_pre_compare.go.tpl
       sdk_create_post_set_output:
         template_path: hooks/db_cluster/sdk_create_post_set_output.go.tpl
       sdk_read_many_post_set_output:

@@ -13,3 +13,6 @@ spec:
     namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
     name: $MASTER_USER_PASS_SECRET_NAME
     key: $MASTER_USER_PASS_SECRET_KEY
+  tags:
+    - key: environment
+      value: dev
