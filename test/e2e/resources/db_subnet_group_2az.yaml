@@ -9,5 +9,5 @@ spec:
     - $SUBNET_AZ1
     - $SUBNET_AZ2
   tags:
-    - key: key1
-      value: value1
+    - key: environment
+      value: dev

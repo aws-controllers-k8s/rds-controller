@@ -142,6 +142,15 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
+		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+		tags, err := rm.getTags(ctx, *resourceARN)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.Tags = tags
+	}
+
 	return &resource{ko}, nil
 }
 
@@ -324,6 +333,11 @@ func (rm *resourceManager) sdkUpdate(
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
 
 	if ko.Status.ACKResourceMetadata == nil {
 		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
@@ -331,6 +345,16 @@ func (rm *resourceManager) sdkUpdate(
 	if resp.DBSubnetGroup.DBSubnetGroupArn != nil {
 		arn := ackv1alpha1.AWSResourceName(*resp.DBSubnetGroup.DBSubnetGroupArn)
 		ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBSubnetGroup.DBSubnetGroupDescription != nil {
+		ko.Spec.Description = resp.DBSubnetGroup.DBSubnetGroupDescription
+	} else {
+		ko.Spec.Description = nil
+	}
+	if resp.DBSubnetGroup.DBSubnetGroupName != nil {
+		ko.Spec.Name = resp.DBSubnetGroup.DBSubnetGroupName
+	} else {
+		ko.Spec.Name = nil
 	}
 	if resp.DBSubnetGroup.SubnetGroupStatus != nil {
 		ko.Status.SubnetGroupStatus = resp.DBSubnetGroup.SubnetGroupStatus
@@ -385,6 +409,12 @@ func (rm *resourceManager) newUpdateRequestPayload(
 ) (*svcsdk.ModifyDBSubnetGroupInput, error) {
 	res := &svcsdk.ModifyDBSubnetGroupInput{}
 
+	if r.ko.Spec.Description != nil {
+		res.SetDBSubnetGroupDescription(*r.ko.Spec.Description)
+	}
+	if r.ko.Spec.Name != nil {
+		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
+	}
 	if r.ko.Spec.SubnetIDs != nil {
 		f2 := []*string{}
 		for _, f2iter := range r.ko.Spec.SubnetIDs {
@@ -530,6 +560,20 @@ func (rm *resourceManager) updateConditions(
 // and if the exception indicates that it is a Terminal exception
 // 'Terminal' exception are specified in generator configuration
 func (rm *resourceManager) terminalAWSError(err error) bool {
-	// No terminal_errors specified for this resource in generator config
-	return false
+	if err == nil {
+		return false
+	}
+	awsErr, ok := ackerr.AWSError(err)
+	if !ok {
+		return false
+	}
+	switch awsErr.Code() {
+	case "DBSubnetGroupDoesNotCoverEnoughAZs",
+		"InvalidSubnet",
+		"InvalidParameter",
+		"SubnetAlreadyInUse":
+		return true
+	default:
+		return false
+	}
 }
