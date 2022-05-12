@@ -14,11 +14,8 @@
 """Integration tests for the RDS API DBSubnetGroup resource
 """
 
-import boto3
-import datetime
 import logging
 import time
-from typing import Dict
 
 import pytest
 
@@ -26,23 +23,21 @@ from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e.replacement_values import REPLACEMENT_VALUES
+from e2e import condition
+from e2e import db_subnet_group
 
 RESOURCE_PLURAL = 'dbsubnetgroups'
 
 DELETE_WAIT_AFTER_SECONDS = 10
-CREATE_INTERVAL_SLEEP_SECONDS = 15
-CREATE_TIMEOUT_SECONDS = 10
-
-
-@pytest.fixture(scope="module")
-def rds_client():
-    return boto3.client('rds')
+# NOTE(jaypipes): According to the RDS API documentation, updating tags can
+# take several minutes before the new tag values are available due to caching.
+MODIFY_WAIT_AFTER_SECONDS = 180
 
 
 @service_marker
 @pytest.mark.canary
 class TestDBSubnetGroup:
-    def test_create_delete_2az(self, rds_client):
+    def test_create_delete_2az(self):
         resource_name = "my-db-subnet-group"
         resource_desc = "my-db-subnet-group description"
 
@@ -70,32 +65,49 @@ class TestDBSubnetGroup:
 
         assert cr is not None
         assert k8s.get_resource_exists(ref)
+        condition.assert_synced(ref)
 
         # Let's check that the DB subnet group appears in RDS
-        aws_res = rds_client.describe_db_subnet_groups(DBSubnetGroupName=resource_name)
-        assert aws_res is not None
-        assert len(aws_res['DBSubnetGroups']) == 1
+        latest = db_subnet_group.get(resource_name)
+        assert latest is not None
+        # NOTE(jaypipes): This field for DBParameterGroup is called
+        # `Description`. For DBSubnetGroup it is called
+        # `DBSubnetGroupDescription`
+        assert latest['DBSubnetGroupDescription'] == resource_desc
 
-        now = datetime.datetime.now()
-        timeout = now + datetime.timedelta(seconds=CREATE_TIMEOUT_SECONDS)
+        arn = latest['DBSubnetGroupArn']
+        expect_tags = [
+            {"Key": "environment", "Value": "dev"}
+        ]
+        latest_tags = db_subnet_group.get_tags(arn)
+        assert expect_tags == latest_tags
 
-        # TODO(jaypipes): Move this into generic AWS-side waiter
-        while aws_res['DBSubnetGroups'][0]['SubnetGroupStatus'] != "Complete":
-            if datetime.datetime.now() >= timeout:
-                raise Exception("failed to find DB subnet group in Complete status before timeout")
-            time.sleep(CREATE_INTERVAL_SLEEP_SECONDS)
-            aws_res = rds_client.describe_db_subnet_groups(DBSubnetGroupName=resource_name)
-            assert aws_res is not None
-            assert len(aws_res['DBSubnetGroups']) == 1
+        # OK, now let's update the tag set and check that the tags are
+        # updated accordingly.
+        new_tags = [
+            {
+                "key": "environment",
+                "value": "prod",
+            }
+        ]
+        updates = {
+            "spec": {"tags": new_tags},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        # Delete the k8s resource on teardown of the module
+        latest_tags = db_subnet_group.get_tags(arn)
+        after_update_expected_tags = [
+            {
+                "Key": "environment",
+                "Value": "prod",
+            }
+        ]
+        assert latest_tags == after_update_expected_tags
+
         k8s.delete_custom_resource(ref)
 
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
         # DB subnet group should no longer appear in RDS
-        try:
-            aws_res = rds_client.describe_db_subnet_groups(DBSubnetGroupName=resource_name)
-            assert False
-        except rds_client.exceptions.DBSubnetGroupNotFoundFault:
-            pass
+        db_subnet_group.wait_until_deleted(resource_name)
