@@ -1255,17 +1255,6 @@ spec:
                       type: string
                   type: object
                 type: array
-              tagList:
-                items:
-                  description: Metadata assigned to an Amazon RDS resource consisting
-                    of a key-value pair.
-                  properties:
-                    key:
-                      type: string
-                    value:
-                      type: string
-                  type: object
-                type: array
               vpcSecurityGroups:
                 description: Provides a list of VPC security group elements that the
                   DB instance belongs to.

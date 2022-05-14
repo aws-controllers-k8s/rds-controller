@@ -123,3 +123,18 @@ def get(db_instance_id):
         return resp['DBInstances'][0]
     except c.exceptions.DBInstanceNotFoundFault:
         return None
+
+
+def get_tags(db_instance_arn):
+    """Returns a dict containing the DB instance's tag records from the RDS API.
+
+    If no such DB instance exists, returns None.
+    """
+    c = boto3.client('rds')
+    try:
+        resp = c.list_tags_for_resource(
+            ResourceName=db_instance_arn,
+        )
+        return resp['TagList']
+    except c.exceptions.DBInstanceNotFoundFault:
+        return None

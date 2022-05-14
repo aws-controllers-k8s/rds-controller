@@ -2874,17 +2874,6 @@ func (in *DBInstanceStatus) DeepCopyInto(out *DBInstanceStatus) {
 			}
 		}
 	}
-	if in.TagList != nil {
-		in, out := &in.TagList, &out.TagList
-		*out = make([]*Tag, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(Tag)
-				(*in).DeepCopyInto(*out)
-			}
-		}
-	}
 	if in.VPCSecurityGroups != nil {
 		in, out := &in.VPCSecurityGroups, &out.VPCSecurityGroups
 		*out = make([]*VPCSecurityGroupMembership, len(*in))
@@ -3351,17 +3340,6 @@ func (in *DBInstance_SDK) DeepCopyInto(out *DBInstance_SDK) {
 		in, out := &in.StorageType, &out.StorageType
 		*out = new(string)
 		**out = **in
-	}
-	if in.TagList != nil {
-		in, out := &in.TagList, &out.TagList
-		*out = make([]*Tag, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(Tag)
-				(*in).DeepCopyInto(*out)
-			}
-		}
 	}
 	if in.TDECredentialARN != nil {
 		in, out := &in.TDECredentialARN, &out.TDECredentialARN

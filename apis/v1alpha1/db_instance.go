@@ -1186,9 +1186,6 @@ type DBInstanceStatus struct {
 	// is blank.
 	// +kubebuilder:validation:Optional
 	StatusInfos []*DBInstanceStatusInfo `json:"statusInfos,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	TagList []*Tag `json:"tagList,omitempty"`
 	// Provides a list of VPC security group elements that the DB instance belongs
 	// to.
 	// +kubebuilder:validation:Optional

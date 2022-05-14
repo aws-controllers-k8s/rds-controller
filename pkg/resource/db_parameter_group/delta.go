@@ -66,9 +66,6 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.Parameters, b.ko.Spec.Parameters) {
 		delta.Add("Spec.Parameters", a.ko.Spec.Parameters, b.ko.Spec.Parameters)
 	}
-	if !reflect.DeepEqual(a.ko.Spec.Tags, b.ko.Spec.Tags) {
-		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-	}
 
 	return delta
 }

@@ -400,9 +400,6 @@ func newResourceDelta(
 			delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.Tags, b.ko.Spec.Tags) {
-		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.TDECredentialARN, b.ko.Spec.TDECredentialARN) {
 		delta.Add("Spec.TDECredentialARN", a.ko.Spec.TDECredentialARN, b.ko.Spec.TDECredentialARN)
 	} else if a.ko.Spec.TDECredentialARN != nil && b.ko.Spec.TDECredentialARN != nil {
