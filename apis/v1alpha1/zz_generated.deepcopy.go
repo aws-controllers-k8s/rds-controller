@@ -2289,11 +2289,6 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.EnablePerformanceInsights != nil {
-		in, out := &in.EnablePerformanceInsights, &out.EnablePerformanceInsights
-		*out = new(bool)
-		**out = **in
-	}
 	if in.Engine != nil {
 		in, out := &in.Engine, &out.Engine
 		*out = new(string)
@@ -2362,6 +2357,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 	if in.OptionGroupName != nil {
 		in, out := &in.OptionGroupName, &out.OptionGroupName
 		*out = new(string)
+		**out = **in
+	}
+	if in.PerformanceInsightsEnabled != nil {
+		in, out := &in.PerformanceInsightsEnabled, &out.PerformanceInsightsEnabled
+		*out = new(bool)
 		**out = **in
 	}
 	if in.PerformanceInsightsKMSKeyID != nil {
@@ -2655,11 +2655,6 @@ func (in *DBInstanceStatus) DeepCopyInto(out *DBInstanceStatus) {
 		in, out := &in.PendingModifiedValues, &out.PendingModifiedValues
 		*out = new(PendingModifiedValues)
 		(*in).DeepCopyInto(*out)
-	}
-	if in.PerformanceInsightsEnabled != nil {
-		in, out := &in.PerformanceInsightsEnabled, &out.PerformanceInsightsEnabled
-		*out = new(bool)
-		**out = **in
 	}
 	if in.ReadReplicaDBClusterIdentifiers != nil {
 		in, out := &in.ReadReplicaDBClusterIdentifiers, &out.ReadReplicaDBClusterIdentifiers

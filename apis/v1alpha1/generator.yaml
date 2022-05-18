@@ -178,6 +178,14 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+    renames:
+      operations:
+        CreateDBInstance:
+          input_fields:
+            EnablePerformanceInsights: PerformanceInsightsEnabled
+        ModifyDBInstance:
+          input_fields:
+            EnablePerformanceInsights: PerformanceInsightsEnabled
   GlobalCluster:
     exceptions:
       terminal_codes:
