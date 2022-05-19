@@ -567,9 +567,9 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.PendingModifiedValues = nil
 		}
 		if elem.PerformanceInsightsEnabled != nil {
-			ko.Status.PerformanceInsightsEnabled = elem.PerformanceInsightsEnabled
+			ko.Spec.PerformanceInsightsEnabled = elem.PerformanceInsightsEnabled
 		} else {
-			ko.Status.PerformanceInsightsEnabled = nil
+			ko.Spec.PerformanceInsightsEnabled = nil
 		}
 		if elem.PerformanceInsightsKMSKeyId != nil {
 			ko.Spec.PerformanceInsightsKMSKeyID = elem.PerformanceInsightsKMSKeyId
@@ -1284,9 +1284,9 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.PendingModifiedValues = nil
 	}
 	if resp.DBInstance.PerformanceInsightsEnabled != nil {
-		ko.Status.PerformanceInsightsEnabled = resp.DBInstance.PerformanceInsightsEnabled
+		ko.Spec.PerformanceInsightsEnabled = resp.DBInstance.PerformanceInsightsEnabled
 	} else {
-		ko.Status.PerformanceInsightsEnabled = nil
+		ko.Spec.PerformanceInsightsEnabled = nil
 	}
 	if resp.DBInstance.PerformanceInsightsKMSKeyId != nil {
 		ko.Spec.PerformanceInsightsKMSKeyID = resp.DBInstance.PerformanceInsightsKMSKeyId
@@ -1545,8 +1545,8 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
 		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
-	if r.ko.Spec.EnablePerformanceInsights != nil {
-		res.SetEnablePerformanceInsights(*r.ko.Spec.EnablePerformanceInsights)
+	if r.ko.Spec.PerformanceInsightsEnabled != nil {
+		res.SetEnablePerformanceInsights(*r.ko.Spec.PerformanceInsightsEnabled)
 	}
 	if r.ko.Spec.Engine != nil {
 		res.SetEngine(*r.ko.Spec.Engine)
@@ -2212,9 +2212,9 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.PendingModifiedValues = nil
 	}
 	if resp.DBInstance.PerformanceInsightsEnabled != nil {
-		ko.Status.PerformanceInsightsEnabled = resp.DBInstance.PerformanceInsightsEnabled
+		ko.Spec.PerformanceInsightsEnabled = resp.DBInstance.PerformanceInsightsEnabled
 	} else {
-		ko.Status.PerformanceInsightsEnabled = nil
+		ko.Spec.PerformanceInsightsEnabled = nil
 	}
 	if resp.DBInstance.PerformanceInsightsKMSKeyId != nil {
 		ko.Spec.PerformanceInsightsKMSKeyID = resp.DBInstance.PerformanceInsightsKMSKeyId
@@ -2457,8 +2457,8 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
 		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
-	if r.ko.Spec.EnablePerformanceInsights != nil {
-		res.SetEnablePerformanceInsights(*r.ko.Spec.EnablePerformanceInsights)
+	if r.ko.Spec.PerformanceInsightsEnabled != nil {
+		res.SetEnablePerformanceInsights(*r.ko.Spec.PerformanceInsightsEnabled)
 	}
 	if r.ko.Spec.EngineVersion != nil {
 		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
