@@ -329,6 +329,15 @@ type DBInstanceSpec struct {
 	//
 	// Default: The default DB security group for the database engine.
 	DBSecurityGroups []*string `json:"dbSecurityGroups,omitempty"`
+	// The identifier for the DB snapshot to restore from.
+	//
+	// Constraints:
+	//
+	//    * Must match the identifier of an existing DBSnapshot.
+	//
+	//    * If you are restoring from a shared manual DB snapshot, the DBSnapshotIdentifier
+	//    must be the ARN of the shared DB snapshot.
+	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier,omitempty"`
 	// A DB subnet group to associate with this DB instance.
 	//
 	// If there is no DB subnet group, then it is a non-VPC DB instance.

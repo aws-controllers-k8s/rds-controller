@@ -131,6 +131,8 @@ resources:
           path: Parameters
   DBInstance:
     hooks:
+      sdk_create_pre_build_request:
+        template_path: hooks/db_instance/sdk_create_pre_build_request.go.tpl
       sdk_create_post_set_output:
         template_path: hooks/db_instance/sdk_create_post_set_output.go.tpl
       sdk_read_many_post_set_output:
@@ -178,6 +180,10 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      DBSnapshotIdentifier:
+        from:
+          operation: RestoreDBInstanceFromDBSnapshot
+          path: DBSnapshotIdentifier
     renames:
       operations:
         CreateDBInstance:

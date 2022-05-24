@@ -160,3 +160,13 @@ func instanceDeleting(r *resource) bool {
 	dbis := *r.ko.Status.DBInstanceStatus
 	return dbis == StatusDeleting
 }
+
+func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
+	ctx context.Context,
+	r *resource,
+) (*resource, error) {
+	if r.ko.Spec.DBSnapshotIdentifier == nil {
+		return nil, nil
+	}
+	// TODO: Add hook to call actual RestoreDBInstanceFromDBSnapshot
+}

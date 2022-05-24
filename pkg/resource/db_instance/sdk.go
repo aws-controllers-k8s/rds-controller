@@ -783,6 +783,10 @@ func (rm *resourceManager) sdkCreate(
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkCreate")
 	defer exit(err)
+	created, err = rm.restoreDbInstanceFromDbSnapshot(ctx, desired)
+	if created != nil || err != nil {
+		return created, err
+	}
 	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err

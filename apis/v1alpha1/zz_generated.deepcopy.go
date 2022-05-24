@@ -2248,6 +2248,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 			}
 		}
 	}
+	if in.DBSnapshotIdentifier != nil {
+		in, out := &in.DBSnapshotIdentifier, &out.DBSnapshotIdentifier
+		*out = new(string)
+		**out = **in
+	}
 	if in.DBSubnetGroupName != nil {
 		in, out := &in.DBSubnetGroupName, &out.DBSubnetGroupName
 		*out = new(string)

@@ -140,6 +140,13 @@ func newResourceDelta(
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.DBSecurityGroups, b.ko.Spec.DBSecurityGroups) {
 		delta.Add("Spec.DBSecurityGroups", a.ko.Spec.DBSecurityGroups, b.ko.Spec.DBSecurityGroups)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier) {
+		delta.Add("Spec.DBSnapshotIdentifier", a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier)
+	} else if a.ko.Spec.DBSnapshotIdentifier != nil && b.ko.Spec.DBSnapshotIdentifier != nil {
+		if *a.ko.Spec.DBSnapshotIdentifier != *b.ko.Spec.DBSnapshotIdentifier {
+			delta.Add("Spec.DBSnapshotIdentifier", a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName) {
 		delta.Add("Spec.DBSubnetGroupName", a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName)
 	} else if a.ko.Spec.DBSubnetGroupName != nil && b.ko.Spec.DBSubnetGroupName != nil {
