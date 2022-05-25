@@ -14,10 +14,26 @@
 package db_instance
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// Hack to avoid import errors during build...
+var (
+	_ = &metav1.Time{}
+	_ = &svcsdk.RDS{}
+	_ = &svcapitypes.DBInstance{}
+	_ = ackv1alpha1.AWSAccountID("")
+	_ = &ackcondition.NotManagedMessage
 )
 
 // NOTE(jaypipes): The below list is derived from looking at the RDS control
@@ -176,7 +192,7 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 		return nil, err
 	}
 
-	resp, respErr := rm.sdkapi.RestoreDbInstanceFromDbSnapshot(input)
+	resp, respErr := rm.sdkapi.RestoreDbInstanceFromDbSnapshotWithContext(ctx, input)
 
 	rm.metrics.RecordAPICall("CREATE", "RestoreDbInstanceFromDbSnapshot", respErr)
 	if respErr != nil {
