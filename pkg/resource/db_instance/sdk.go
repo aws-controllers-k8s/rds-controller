@@ -785,10 +785,11 @@ func (rm *resourceManager) sdkCreate(
 	defer exit(err)
 	// if request has DBSnapshotIdentifier spec, create request will call RestoreDBInstanceFromDBSnapshotWithContext
 	// instead of normal create api
-	created, err = rm.restoreDbInstanceFromDbSnapshot(ctx, desired)
-	if created != nil || err != nil {
+	if desired.ko.Spec.DBSnapshotIdentifier != nil {
+		created, err = rm.restoreDbInstanceFromDbSnapshot(ctx, desired)
 		return created, err
 	}
+
 	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err

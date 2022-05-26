@@ -177,16 +177,11 @@ func instanceDeleting(r *resource) bool {
 	return dbis == StatusDeleting
 }
 
-// funtion to check if DBSnapshotIdentifier is not null,
-// it will create new payload and call restoreDbInstanceFromDbSnapshot API
+// function to create restoreDbInstanceFromDbSnapshot payload and call restoreDbInstanceFromDbSnapshot API
 func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 	ctx context.Context,
 	r *resource,
 ) (*resource, error) {
-	if r.ko.Spec.DBSnapshotIdentifier == nil {
-		return nil, nil
-	}
-
 	input, err := rm.restoreDbInstanceFromDbSnapshotPayload(r)
 	if err != nil {
 		return nil, err
@@ -878,6 +873,124 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshotPayload(
 
 	if r.ko.Spec.DBSnapshotIdentifier != nil {
 		res.SetDBSnapshotIdentifier(*r.ko.Spec.DBSnapshotIdentifier)
+	}
+	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
+		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+	}
+	if r.ko.Spec.AvailabilityZone != nil {
+		res.SetAvailabilityZone(*r.ko.Spec.AvailabilityZone)
+	}
+	if r.ko.Spec.CopyTagsToSnapshot != nil {
+		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+	}
+	if r.ko.Spec.CustomIAMInstanceProfile != nil {
+		res.SetCustomIamInstanceProfile(*r.ko.Spec.CustomIAMInstanceProfile)
+	}
+	if r.ko.Spec.DBInstanceClass != nil {
+		res.SetDBInstanceClass(*r.ko.Spec.DBInstanceClass)
+	}
+	if r.ko.Spec.DBInstanceIdentifier != nil {
+		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
+	}
+	if r.ko.Spec.DBName != nil {
+		res.SetDBName(*r.ko.Spec.DBName)
+	}
+	if r.ko.Spec.DBParameterGroupName != nil {
+		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
+	}
+	if r.ko.Spec.DBSubnetGroupName != nil {
+		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+	}
+	if r.ko.Spec.DeletionProtection != nil {
+		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+	}
+	if r.ko.Spec.Domain != nil {
+		res.SetDomain(*r.ko.Spec.Domain)
+	}
+	if r.ko.Spec.DomainIAMRoleName != nil {
+		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+	}
+	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
+		f17 := []*string{}
+		for _, f17iter := range r.ko.Spec.EnableCloudwatchLogsExports {
+			var f17elem string
+			f17elem = *f17iter
+			f17 = append(f17, &f17elem)
+		}
+		res.SetEnableCloudwatchLogsExports(f17)
+	}
+	if r.ko.Spec.EnableCustomerOwnedIP != nil {
+		res.SetEnableCustomerOwnedIp(*r.ko.Spec.EnableCustomerOwnedIP)
+	}
+	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
+		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+	}
+	if r.ko.Spec.Engine != nil {
+		res.SetEngine(*r.ko.Spec.Engine)
+	}
+	if r.ko.Spec.IOPS != nil {
+		res.SetIops(*r.ko.Spec.IOPS)
+	}
+	if r.ko.Spec.LicenseModel != nil {
+		res.SetLicenseModel(*r.ko.Spec.LicenseModel)
+	}
+	if r.ko.Spec.MultiAZ != nil {
+		res.SetMultiAZ(*r.ko.Spec.MultiAZ)
+	}
+	if r.ko.Spec.OptionGroupName != nil {
+		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+	}
+	if r.ko.Spec.Port != nil {
+		res.SetPort(*r.ko.Spec.Port)
+	}
+	if r.ko.Spec.ProcessorFeatures != nil {
+		f39 := []*svcsdk.ProcessorFeature{}
+		for _, f39iter := range r.ko.Spec.ProcessorFeatures {
+			f39elem := &svcsdk.ProcessorFeature{}
+			if f39iter.Name != nil {
+				f39elem.SetName(*f39iter.Name)
+			}
+			if f39iter.Value != nil {
+				f39elem.SetValue(*f39iter.Value)
+			}
+			f39 = append(f39, f39elem)
+		}
+		res.SetProcessorFeatures(f39)
+	}
+	if r.ko.Spec.PubliclyAccessible != nil {
+		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+	}
+	if r.ko.Spec.StorageType != nil {
+		res.SetStorageType(*r.ko.Spec.StorageType)
+	}
+	if r.ko.Spec.Tags != nil {
+		f44 := []*svcsdk.Tag{}
+		for _, f44iter := range r.ko.Spec.Tags {
+			f44elem := &svcsdk.Tag{}
+			if f44iter.Key != nil {
+				f44elem.SetKey(*f44iter.Key)
+			}
+			if f44iter.Value != nil {
+				f44elem.SetValue(*f44iter.Value)
+			}
+			f44 = append(f44, f44elem)
+		}
+		res.SetTags(f44)
+	}
+	if r.ko.Spec.TDECredentialARN != nil {
+		res.SetTdeCredentialArn(*r.ko.Spec.TDECredentialARN)
+	}
+	if r.ko.Spec.TDECredentialPassword != nil {
+		res.SetTdeCredentialPassword(*r.ko.Spec.TDECredentialPassword)
+	}
+	if r.ko.Spec.VPCSecurityGroupIDs != nil {
+		f48 := []*string{}
+		for _, f48iter := range r.ko.Spec.VPCSecurityGroupIDs {
+			var f48elem string
+			f48elem = *f48iter
+			f48 = append(f48, &f48elem)
+		}
+		res.SetVpcSecurityGroupIds(f48)
 	}
 
 	return res, nil
