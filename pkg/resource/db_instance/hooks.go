@@ -192,7 +192,7 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 		return nil, err
 	}
 
-	resp, respErr := rm.sdkapi.RestoreDbInstanceFromDbSnapshotWithContext(ctx, input)
+	resp, respErr := rm.sdkapi.RestoreDBInstanceFromDBSnapshotWithContext(ctx, input)
 
 	rm.metrics.RecordAPICall("CREATE", "RestoreDbInstanceFromDbSnapshot", respErr)
 	if respErr != nil {
@@ -873,8 +873,8 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 // payload of the RestoreDbInstanceFromDbSnapshot API call
 func (rm *resourceManager) restoreDbInstanceFromDbSnapshotPayload(
 	r *resource,
-) (*svcsdk.CreateDBInstanceInput, error) {
-	res := &svcsdk.CreateDBInstanceInput{}
+) (*svcsdk.RestoreDBInstanceFromDBSnapshotInput, error) {
+	res := &svcsdk.RestoreDBInstanceFromDBSnapshotInput{}
 
 	if r.ko.Spec.DBSnapshotIdentifier != nil {
 		res.SetDBSnapshotIdentifier(*r.ko.Spec.DBSnapshotIdentifier)
