@@ -22,6 +22,7 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -181,7 +182,11 @@ func instanceDeleting(r *resource) bool {
 func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 	ctx context.Context,
 	r *resource,
-) (*resource, error) {
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.restoreDbInstanceFromDbSnapshot")
+	defer func(err error) { exit(err) }(err)
+
 	input, err := rm.restoreDbInstanceFromDbSnapshotPayload(r)
 	if err != nil {
 		return nil, err
