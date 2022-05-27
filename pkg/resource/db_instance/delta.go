@@ -140,6 +140,13 @@ func newResourceDelta(
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.DBSecurityGroups, b.ko.Spec.DBSecurityGroups) {
 		delta.Add("Spec.DBSecurityGroups", a.ko.Spec.DBSecurityGroups, b.ko.Spec.DBSecurityGroups)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier) {
+		delta.Add("Spec.DBSnapshotIdentifier", a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier)
+	} else if a.ko.Spec.DBSnapshotIdentifier != nil && b.ko.Spec.DBSnapshotIdentifier != nil {
+		if *a.ko.Spec.DBSnapshotIdentifier != *b.ko.Spec.DBSnapshotIdentifier {
+			delta.Add("Spec.DBSnapshotIdentifier", a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName) {
 		delta.Add("Spec.DBSubnetGroupName", a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName)
 	} else if a.ko.Spec.DBSubnetGroupName != nil && b.ko.Spec.DBSubnetGroupName != nil {
@@ -374,6 +381,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.Timezone != nil && b.ko.Spec.Timezone != nil {
 		if *a.ko.Spec.Timezone != *b.ko.Spec.Timezone {
 			delta.Add("Spec.Timezone", a.ko.Spec.Timezone, b.ko.Spec.Timezone)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.UseDefaultProcessorFeatures, b.ko.Spec.UseDefaultProcessorFeatures) {
+		delta.Add("Spec.UseDefaultProcessorFeatures", a.ko.Spec.UseDefaultProcessorFeatures, b.ko.Spec.UseDefaultProcessorFeatures)
+	} else if a.ko.Spec.UseDefaultProcessorFeatures != nil && b.ko.Spec.UseDefaultProcessorFeatures != nil {
+		if *a.ko.Spec.UseDefaultProcessorFeatures != *b.ko.Spec.UseDefaultProcessorFeatures {
+			delta.Add("Spec.UseDefaultProcessorFeatures", a.ko.Spec.UseDefaultProcessorFeatures, b.ko.Spec.UseDefaultProcessorFeatures)
 		}
 	}
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {

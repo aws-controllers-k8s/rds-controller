@@ -2248,6 +2248,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 			}
 		}
 	}
+	if in.DBSnapshotIdentifier != nil {
+		in, out := &in.DBSnapshotIdentifier, &out.DBSnapshotIdentifier
+		*out = new(string)
+		**out = **in
+	}
 	if in.DBSubnetGroupName != nil {
 		in, out := &in.DBSubnetGroupName, &out.DBSubnetGroupName
 		*out = new(string)
@@ -2444,6 +2449,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 	if in.Timezone != nil {
 		in, out := &in.Timezone, &out.Timezone
 		*out = new(string)
+		**out = **in
+	}
+	if in.UseDefaultProcessorFeatures != nil {
+		in, out := &in.UseDefaultProcessorFeatures, &out.UseDefaultProcessorFeatures
+		*out = new(bool)
 		**out = **in
 	}
 	if in.VPCSecurityGroupIDs != nil {

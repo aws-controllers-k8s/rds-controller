@@ -329,6 +329,15 @@ type DBInstanceSpec struct {
 	//
 	// Default: The default DB security group for the database engine.
 	DBSecurityGroups []*string `json:"dbSecurityGroups,omitempty"`
+	// The identifier for the DB snapshot to restore from.
+	//
+	// Constraints:
+	//
+	//    * Must match the identifier of an existing DBSnapshot.
+	//
+	//    * If you are restoring from a shared manual DB snapshot, the DBSnapshotIdentifier
+	//    must be the ARN of the shared DB snapshot.
+	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier,omitempty"`
 	// A DB subnet group to associate with this DB instance.
 	//
 	// If there is no DB subnet group, then it is a non-VPC DB instance.
@@ -872,6 +881,11 @@ type DBInstanceSpec struct {
 	// The time zone of the DB instance. The time zone parameter is currently supported
 	// only by Microsoft SQL Server (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.TimeZone).
 	Timezone *string `json:"timezone,omitempty"`
+	// A value that indicates whether the DB instance class of the DB instance uses
+	// its default processor features.
+	//
+	// This setting doesn't apply to RDS Custom.
+	UseDefaultProcessorFeatures *bool `json:"useDefaultProcessorFeatures,omitempty"`
 	// A list of Amazon EC2 VPC security groups to associate with this DB instance.
 	//
 	// Amazon Aurora

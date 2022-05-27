@@ -14,10 +14,14 @@
 package db_instance
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // NOTE(jaypipes): The below list is derived from looking at the RDS control
@@ -159,4 +163,34 @@ func instanceDeleting(r *resource) bool {
 	}
 	dbis := *r.ko.Status.DBInstanceStatus
 	return dbis == StatusDeleting
+}
+
+// function to create restoreDbInstanceFromDbSnapshot payload and call restoreDbInstanceFromDbSnapshot API
+func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
+	ctx context.Context,
+	r *resource,
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.restoreDbInstanceFromDbSnapshot")
+	defer func(err error) { exit(err) }(err)
+
+	resp, respErr := rm.sdkapi.RestoreDBInstanceFromDBSnapshotWithContext(ctx, rm.newRestoreDBInstanceFromDBSnapshotInput(r))
+	rm.metrics.RecordAPICall("CREATE", "RestoreDbInstanceFromDbSnapshot", respErr)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	rm.setResourceFromRestoreDBInstanceFromDBSnapshotOutput(r, resp)
+	rm.setStatusDefaults(r.ko)
+
+	// We expect the DB instance to be in 'creating' status since we just
+	// issued the call to create it, but I suppose it doesn't hurt to check
+	// here.
+	if instanceCreating(&resource{r.ko}) {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{r.ko}, corev1.ConditionFalse, nil, nil)
+		return &resource{r.ko}, nil
+	}
+	return &resource{r.ko}, nil
 }
