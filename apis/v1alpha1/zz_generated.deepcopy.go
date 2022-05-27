@@ -2451,6 +2451,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.UseDefaultProcessorFeatures != nil {
+		in, out := &in.UseDefaultProcessorFeatures, &out.UseDefaultProcessorFeatures
+		*out = new(bool)
+		**out = **in
+	}
 	if in.VPCSecurityGroupIDs != nil {
 		in, out := &in.VPCSecurityGroupIDs, &out.VPCSecurityGroupIDs
 		*out = make([]*string, len(*in))

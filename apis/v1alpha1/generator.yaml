@@ -147,6 +147,8 @@ resources:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
       delta_pre_compare:
         template_path: hooks/db_instance/delta_pre_compare.go.tpl
+      sdk_file_end:
+        template_path: hooks/db_instance/sdk_file_end.go.tpl
     exceptions:
       terminal_codes:
         - InvalidParameter
@@ -184,6 +186,10 @@ resources:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
           path: DBSnapshotIdentifier
+      UseDefaultProcessorFeatures:
+        from:
+          operation: RestoreDBInstanceFromDBSnapshot
+          path: UseDefaultProcessorFeatures
     renames:
       operations:
         CreateDBInstance:
