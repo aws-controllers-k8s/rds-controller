@@ -865,7 +865,7 @@ type EventSubscription struct {
 	CustomerAWSID            *string `json:"customerAWSID,omitempty"`
 	Enabled                  *bool   `json:"enabled,omitempty"`
 	EventSubscriptionARN     *string `json:"eventSubscriptionARN,omitempty"`
-	SnsTopicARN              *string `json:"snsTopicARN,omitempty"`
+	SNSTopicARN              *string `json:"snsTopicARN,omitempty"`
 	SourceType               *string `json:"sourceType,omitempty"`
 	Status                   *string `json:"status,omitempty"`
 	SubscriptionCreationTime *string `json:"subscriptionCreationTime,omitempty"`
