@@ -11,7 +11,7 @@ ignore:
     #- DBParameterGroup
     - DBProxy
     - DBProxyEndpoint
-    #- DBSecurityGroup
+    - DBSecurityGroup
     - DBSnapshot
     #- DBSubnetGroup
     - EventSubscription
@@ -154,7 +154,6 @@ resources:
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
-        - DBSecurityGroupNotFound
         - DBSubnetGroupNotFoundFault
         - DBParameterGroupNotFound
     fields:
@@ -163,19 +162,6 @@ resources:
         is_immutable: true
       DBInstanceIdentifier:
         is_primary_key: true
-      # Because the Create input and Create/Update/ReadOne output shapes for
-      # the DBSecurityGroups field have different Go types, we are instructing
-      # the code generator to set the Spec.DBSecurityGroups field (which is a
-      # []string field) to the set of DBSecurityGroups..DBSecurityGroupName
-      # values in the ReadOne method's Output shape.
-      DBSecurityGroups:
-        set:
-          - method: Update
-            from: DBSecurityGroupName
-          - method: Create
-            from: DBSecurityGroupName
-          - method: ReadOne
-            from: DBSecurityGroupName
       MasterUserPassword:
         is_secret: true
       KmsKeyId:
@@ -237,22 +223,6 @@ resources:
         from:
           operation: ModifyDBParameterGroup
           path: Parameters
-  DBSecurityGroup:
-    renames:
-      operations:
-        DescribeDBSecurityGroups:
-          input_fields:
-            DBSecurityGroupName: Name
-        CreateDBSecurityGroup:
-          input_fields:
-            DBSecurityGroupName: Name
-            DBSecurityGroupDescription: Description
-        DeleteDBSecurityGroup:
-          input_fields:
-            DBSecurityGroupName: Name
-    fields:
-      Name:
-        is_primary_key: true
   DBSubnetGroup:
     renames:
       operations:

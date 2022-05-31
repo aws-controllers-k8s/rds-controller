@@ -40,8 +40,6 @@ description: |-
 samples:
 - kind: DBParameterGroup
   spec: '{}'
-- kind: DBSecurityGroup
-  spec: '{}'
 - kind: DBSubnetGroup
   spec: '{}'
 maintainers:

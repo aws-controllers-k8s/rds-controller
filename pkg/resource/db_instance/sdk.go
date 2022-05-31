@@ -251,7 +251,6 @@ func (rm *resourceManager) sdkFind(
 			f26 := []*string{}
 			for _, f26iter := range elem.DBSecurityGroups {
 				var f26elem string
-				f26elem = *f26iter.DBSecurityGroupName
 				f26 = append(f26, &f26elem)
 			}
 			ko.Spec.DBSecurityGroups = f26
@@ -975,7 +974,6 @@ func (rm *resourceManager) sdkCreate(
 		f26 := []*string{}
 		for _, f26iter := range resp.DBInstance.DBSecurityGroups {
 			var f26elem string
-			f26elem = *f26iter.DBSecurityGroupName
 			f26 = append(f26, &f26elem)
 		}
 		ko.Spec.DBSecurityGroups = f26
@@ -1904,7 +1902,6 @@ func (rm *resourceManager) sdkUpdate(
 		f26 := []*string{}
 		for _, f26iter := range resp.DBInstance.DBSecurityGroups {
 			var f26elem string
-			f26elem = *f26iter.DBSecurityGroupName
 			f26 = append(f26, &f26elem)
 		}
 		ko.Spec.DBSecurityGroups = f26
@@ -2709,7 +2706,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	case "InvalidParameter",
 		"InvalidParameterValue",
 		"InvalidParameterCombination",
-		"DBSecurityGroupNotFound",
 		"DBSubnetGroupNotFoundFault",
 		"DBParameterGroupNotFound":
 		return true
@@ -3084,7 +3080,6 @@ func (rm *resourceManager) setResourceFromRestoreDBInstanceFromDBSnapshotOutput(
 		f26 := []*string{}
 		for _, f26iter := range resp.DBInstance.DBSecurityGroups {
 			var f26elem string
-			f26elem = *f26iter.DBSecurityGroupName
 			f26 = append(f26, &f26elem)
 		}
 		r.ko.Spec.DBSecurityGroups = f26
