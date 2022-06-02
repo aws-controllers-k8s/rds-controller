@@ -509,7 +509,6 @@ type DBInstance_SDK struct {
 	DBInstanceStatus                              *string                                  `json:"dbInstanceStatus,omitempty"`
 	DBName                                        *string                                  `json:"dbName,omitempty"`
 	DBParameterGroups                             []*DBParameterGroupStatus_SDK            `json:"dbParameterGroups,omitempty"`
-	DBSecurityGroups                              []*DBSecurityGroupMembership             `json:"dbSecurityGroups,omitempty"`
 	// Contains the details of an Amazon RDS DB subnet group.
 	//
 	// This data type is used as a response element in the DescribeDBSubnetGroups
@@ -984,7 +983,6 @@ type MinimumEngineVersionPerAllowedValue struct {
 
 // Option details.
 type Option struct {
-	DBSecurityGroupMemberships  []*DBSecurityGroupMembership  `json:"dbSecurityGroupMemberships,omitempty"`
 	OptionDescription           *string                       `json:"optionDescription,omitempty"`
 	OptionName                  *string                       `json:"optionName,omitempty"`
 	OptionVersion               *string                       `json:"optionVersion,omitempty"`

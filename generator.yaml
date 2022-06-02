@@ -18,6 +18,8 @@ ignore:
     #- GlobalCluster
     - OptionGroup
   field_paths:
+    - CreateDBInstanceInput.DBSecurityGroups
+    - DBInstance.DBSecurityGroups
 operations:
   ModifyDBCluster:
     override_values:

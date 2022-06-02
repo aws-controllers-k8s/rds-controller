@@ -325,10 +325,6 @@ type DBInstanceSpec struct {
 	//
 	//    * Can't end with a hyphen or contain two consecutive hyphens
 	DBParameterGroupName *string `json:"dbParameterGroupName,omitempty"`
-	// A list of DB security groups to associate with this DB instance.
-	//
-	// Default: The default DB security group for the database engine.
-	DBSecurityGroups []*string `json:"dbSecurityGroups,omitempty"`
 	// The identifier for the DB snapshot to restore from.
 	//
 	// Constraints:

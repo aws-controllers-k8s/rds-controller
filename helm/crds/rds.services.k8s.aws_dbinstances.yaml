@@ -211,13 +211,6 @@ spec:
                   character must be a letter \n    * Can't end with a hyphen or contain
                   two consecutive hyphens"
                 type: string
-              dbSecurityGroups:
-                description: "A list of DB security groups to associate with this
-                  DB instance. \n Default: The default DB security group for the database
-                  engine."
-                items:
-                  type: string
-                type: array
               dbSnapshotIdentifier:
                 description: "The identifier for the DB snapshot to restore from.
                   \n Constraints: \n    * Must match the identifier of an existing
