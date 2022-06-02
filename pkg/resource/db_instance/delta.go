@@ -81,6 +81,13 @@ func newResourceDelta(
 			delta.Add("Spec.BackupRetentionPeriod", a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget) {
+		delta.Add("Spec.BackupTarget", a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget)
+	} else if a.ko.Spec.BackupTarget != nil && b.ko.Spec.BackupTarget != nil {
+		if *a.ko.Spec.BackupTarget != *b.ko.Spec.BackupTarget {
+			delta.Add("Spec.BackupTarget", a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.CharacterSetName, b.ko.Spec.CharacterSetName) {
 		delta.Add("Spec.CharacterSetName", a.ko.Spec.CharacterSetName, b.ko.Spec.CharacterSetName)
 	} else if a.ko.Spec.CharacterSetName != nil && b.ko.Spec.CharacterSetName != nil {
@@ -274,6 +281,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.NcharCharacterSetName != nil && b.ko.Spec.NcharCharacterSetName != nil {
 		if *a.ko.Spec.NcharCharacterSetName != *b.ko.Spec.NcharCharacterSetName {
 			delta.Add("Spec.NcharCharacterSetName", a.ko.Spec.NcharCharacterSetName, b.ko.Spec.NcharCharacterSetName)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.NetworkType, b.ko.Spec.NetworkType) {
+		delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
+	} else if a.ko.Spec.NetworkType != nil && b.ko.Spec.NetworkType != nil {
+		if *a.ko.Spec.NetworkType != *b.ko.Spec.NetworkType {
+			delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.OptionGroupName, b.ko.Spec.OptionGroupName) {

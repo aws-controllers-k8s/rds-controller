@@ -105,9 +105,9 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.ActivityStreamStatus = nil
 		}
 		if elem.AllocatedStorage != nil {
-			ko.Status.AllocatedStorage = elem.AllocatedStorage
+			ko.Spec.AllocatedStorage = elem.AllocatedStorage
 		} else {
-			ko.Status.AllocatedStorage = nil
+			ko.Spec.AllocatedStorage = nil
 		}
 		if elem.AssociatedRoles != nil {
 			f5 := []*svcapitypes.DBClusterRole{}
@@ -128,19 +128,24 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.AssociatedRoles = nil
 		}
+		if elem.AutoMinorVersionUpgrade != nil {
+			ko.Spec.AutoMinorVersionUpgrade = elem.AutoMinorVersionUpgrade
+		} else {
+			ko.Spec.AutoMinorVersionUpgrade = nil
+		}
 		if elem.AutomaticRestartTime != nil {
 			ko.Status.AutomaticRestartTime = &metav1.Time{*elem.AutomaticRestartTime}
 		} else {
 			ko.Status.AutomaticRestartTime = nil
 		}
 		if elem.AvailabilityZones != nil {
-			f7 := []*string{}
-			for _, f7iter := range elem.AvailabilityZones {
-				var f7elem string
-				f7elem = *f7iter
-				f7 = append(f7, &f7elem)
+			f8 := []*string{}
+			for _, f8iter := range elem.AvailabilityZones {
+				var f8elem string
+				f8elem = *f8iter
+				f8 = append(f8, &f8elem)
 			}
-			ko.Spec.AvailabilityZones = f7
+			ko.Spec.AvailabilityZones = f8
 		} else {
 			ko.Spec.AvailabilityZones = nil
 		}
@@ -190,13 +195,13 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.CrossAccountClone = nil
 		}
 		if elem.CustomEndpoints != nil {
-			f17 := []*string{}
-			for _, f17iter := range elem.CustomEndpoints {
-				var f17elem string
-				f17elem = *f17iter
-				f17 = append(f17, &f17elem)
+			f18 := []*string{}
+			for _, f18iter := range elem.CustomEndpoints {
+				var f18elem string
+				f18elem = *f18iter
+				f18 = append(f18, &f18elem)
 			}
-			ko.Status.CustomEndpoints = f17
+			ko.Status.CustomEndpoints = f18
 		} else {
 			ko.Status.CustomEndpoints = nil
 		}
@@ -212,41 +217,46 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.DBClusterIdentifier = nil
 		}
+		if elem.DBClusterInstanceClass != nil {
+			ko.Spec.DBClusterInstanceClass = elem.DBClusterInstanceClass
+		} else {
+			ko.Spec.DBClusterInstanceClass = nil
+		}
 		if elem.DBClusterMembers != nil {
-			f20 := []*svcapitypes.DBClusterMember{}
-			for _, f20iter := range elem.DBClusterMembers {
-				f20elem := &svcapitypes.DBClusterMember{}
-				if f20iter.DBClusterParameterGroupStatus != nil {
-					f20elem.DBClusterParameterGroupStatus = f20iter.DBClusterParameterGroupStatus
+			f22 := []*svcapitypes.DBClusterMember{}
+			for _, f22iter := range elem.DBClusterMembers {
+				f22elem := &svcapitypes.DBClusterMember{}
+				if f22iter.DBClusterParameterGroupStatus != nil {
+					f22elem.DBClusterParameterGroupStatus = f22iter.DBClusterParameterGroupStatus
 				}
-				if f20iter.DBInstanceIdentifier != nil {
-					f20elem.DBInstanceIdentifier = f20iter.DBInstanceIdentifier
+				if f22iter.DBInstanceIdentifier != nil {
+					f22elem.DBInstanceIdentifier = f22iter.DBInstanceIdentifier
 				}
-				if f20iter.IsClusterWriter != nil {
-					f20elem.IsClusterWriter = f20iter.IsClusterWriter
+				if f22iter.IsClusterWriter != nil {
+					f22elem.IsClusterWriter = f22iter.IsClusterWriter
 				}
-				if f20iter.PromotionTier != nil {
-					f20elem.PromotionTier = f20iter.PromotionTier
+				if f22iter.PromotionTier != nil {
+					f22elem.PromotionTier = f22iter.PromotionTier
 				}
-				f20 = append(f20, f20elem)
+				f22 = append(f22, f22elem)
 			}
-			ko.Status.DBClusterMembers = f20
+			ko.Status.DBClusterMembers = f22
 		} else {
 			ko.Status.DBClusterMembers = nil
 		}
 		if elem.DBClusterOptionGroupMemberships != nil {
-			f21 := []*svcapitypes.DBClusterOptionGroupStatus{}
-			for _, f21iter := range elem.DBClusterOptionGroupMemberships {
-				f21elem := &svcapitypes.DBClusterOptionGroupStatus{}
-				if f21iter.DBClusterOptionGroupName != nil {
-					f21elem.DBClusterOptionGroupName = f21iter.DBClusterOptionGroupName
+			f23 := []*svcapitypes.DBClusterOptionGroupStatus{}
+			for _, f23iter := range elem.DBClusterOptionGroupMemberships {
+				f23elem := &svcapitypes.DBClusterOptionGroupStatus{}
+				if f23iter.DBClusterOptionGroupName != nil {
+					f23elem.DBClusterOptionGroupName = f23iter.DBClusterOptionGroupName
 				}
-				if f21iter.Status != nil {
-					f21elem.Status = f21iter.Status
+				if f23iter.Status != nil {
+					f23elem.Status = f23iter.Status
 				}
-				f21 = append(f21, f21elem)
+				f23 = append(f23, f23elem)
 			}
-			ko.Status.DBClusterOptionGroupMemberships = f21
+			ko.Status.DBClusterOptionGroupMemberships = f23
 		} else {
 			ko.Status.DBClusterOptionGroupMemberships = nil
 		}
@@ -276,24 +286,24 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.DeletionProtection = nil
 		}
 		if elem.DomainMemberships != nil {
-			f27 := []*svcapitypes.DomainMembership{}
-			for _, f27iter := range elem.DomainMemberships {
-				f27elem := &svcapitypes.DomainMembership{}
-				if f27iter.Domain != nil {
-					f27elem.Domain = f27iter.Domain
+			f29 := []*svcapitypes.DomainMembership{}
+			for _, f29iter := range elem.DomainMemberships {
+				f29elem := &svcapitypes.DomainMembership{}
+				if f29iter.Domain != nil {
+					f29elem.Domain = f29iter.Domain
 				}
-				if f27iter.FQDN != nil {
-					f27elem.FQDN = f27iter.FQDN
+				if f29iter.FQDN != nil {
+					f29elem.FQDN = f29iter.FQDN
 				}
-				if f27iter.IAMRoleName != nil {
-					f27elem.IAMRoleName = f27iter.IAMRoleName
+				if f29iter.IAMRoleName != nil {
+					f29elem.IAMRoleName = f29iter.IAMRoleName
 				}
-				if f27iter.Status != nil {
-					f27elem.Status = f27iter.Status
+				if f29iter.Status != nil {
+					f29elem.Status = f29iter.Status
 				}
-				f27 = append(f27, f27elem)
+				f29 = append(f29, f29elem)
 			}
-			ko.Status.DomainMemberships = f27
+			ko.Status.DomainMemberships = f29
 		} else {
 			ko.Status.DomainMemberships = nil
 		}
@@ -308,13 +318,13 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.EarliestRestorableTime = nil
 		}
 		if elem.EnabledCloudwatchLogsExports != nil {
-			f30 := []*string{}
-			for _, f30iter := range elem.EnabledCloudwatchLogsExports {
-				var f30elem string
-				f30elem = *f30iter
-				f30 = append(f30, &f30elem)
+			f32 := []*string{}
+			for _, f32iter := range elem.EnabledCloudwatchLogsExports {
+				var f32elem string
+				f32elem = *f32iter
+				f32 = append(f32, &f32elem)
 			}
-			ko.Status.EnabledCloudwatchLogsExports = f30
+			ko.Status.EnabledCloudwatchLogsExports = f32
 		} else {
 			ko.Status.EnabledCloudwatchLogsExports = nil
 		}
@@ -363,6 +373,11 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.IAMDatabaseAuthenticationEnabled = nil
 		}
+		if elem.Iops != nil {
+			ko.Spec.IOPS = elem.Iops
+		} else {
+			ko.Spec.IOPS = nil
+		}
 		if elem.KmsKeyId != nil {
 			ko.Spec.KMSKeyID = elem.KmsKeyId
 		} else {
@@ -378,48 +393,58 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.MasterUsername = nil
 		}
+		if elem.MonitoringInterval != nil {
+			ko.Spec.MonitoringInterval = elem.MonitoringInterval
+		} else {
+			ko.Spec.MonitoringInterval = nil
+		}
+		if elem.MonitoringRoleArn != nil {
+			ko.Spec.MonitoringRoleARN = elem.MonitoringRoleArn
+		} else {
+			ko.Spec.MonitoringRoleARN = nil
+		}
 		if elem.MultiAZ != nil {
 			ko.Status.MultiAZ = elem.MultiAZ
 		} else {
 			ko.Status.MultiAZ = nil
 		}
 		if elem.PendingModifiedValues != nil {
-			f44 := &svcapitypes.ClusterPendingModifiedValues{}
+			f49 := &svcapitypes.ClusterPendingModifiedValues{}
 			if elem.PendingModifiedValues.DBClusterIdentifier != nil {
-				f44.DBClusterIdentifier = elem.PendingModifiedValues.DBClusterIdentifier
+				f49.DBClusterIdentifier = elem.PendingModifiedValues.DBClusterIdentifier
 			}
 			if elem.PendingModifiedValues.EngineVersion != nil {
-				f44.EngineVersion = elem.PendingModifiedValues.EngineVersion
+				f49.EngineVersion = elem.PendingModifiedValues.EngineVersion
 			}
 			if elem.PendingModifiedValues.IAMDatabaseAuthenticationEnabled != nil {
-				f44.IAMDatabaseAuthenticationEnabled = elem.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
+				f49.IAMDatabaseAuthenticationEnabled = elem.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
 			}
 			if elem.PendingModifiedValues.MasterUserPassword != nil {
-				f44.MasterUserPassword = elem.PendingModifiedValues.MasterUserPassword
+				f49.MasterUserPassword = elem.PendingModifiedValues.MasterUserPassword
 			}
 			if elem.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
-				f44f4 := &svcapitypes.PendingCloudwatchLogsExports{}
+				f49f4 := &svcapitypes.PendingCloudwatchLogsExports{}
 				if elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-					f44f4f0 := []*string{}
-					for _, f44f4f0iter := range elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-						var f44f4f0elem string
-						f44f4f0elem = *f44f4f0iter
-						f44f4f0 = append(f44f4f0, &f44f4f0elem)
+					f49f4f0 := []*string{}
+					for _, f49f4f0iter := range elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
+						var f49f4f0elem string
+						f49f4f0elem = *f49f4f0iter
+						f49f4f0 = append(f49f4f0, &f49f4f0elem)
 					}
-					f44f4.LogTypesToDisable = f44f4f0
+					f49f4.LogTypesToDisable = f49f4f0
 				}
 				if elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-					f44f4f1 := []*string{}
-					for _, f44f4f1iter := range elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-						var f44f4f1elem string
-						f44f4f1elem = *f44f4f1iter
-						f44f4f1 = append(f44f4f1, &f44f4f1elem)
+					f49f4f1 := []*string{}
+					for _, f49f4f1iter := range elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
+						var f49f4f1elem string
+						f49f4f1elem = *f49f4f1iter
+						f49f4f1 = append(f49f4f1, &f49f4f1elem)
 					}
-					f44f4.LogTypesToEnable = f44f4f1
+					f49f4.LogTypesToEnable = f49f4f1
 				}
-				f44.PendingCloudwatchLogsExports = f44f4
+				f49.PendingCloudwatchLogsExports = f49f4
 			}
-			ko.Status.PendingModifiedValues = f44
+			ko.Status.PendingModifiedValues = f49
 		} else {
 			ko.Status.PendingModifiedValues = nil
 		}
@@ -427,6 +452,21 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.PercentProgress = elem.PercentProgress
 		} else {
 			ko.Status.PercentProgress = nil
+		}
+		if elem.PerformanceInsightsEnabled != nil {
+			ko.Status.PerformanceInsightsEnabled = elem.PerformanceInsightsEnabled
+		} else {
+			ko.Status.PerformanceInsightsEnabled = nil
+		}
+		if elem.PerformanceInsightsKMSKeyId != nil {
+			ko.Spec.PerformanceInsightsKMSKeyID = elem.PerformanceInsightsKMSKeyId
+		} else {
+			ko.Spec.PerformanceInsightsKMSKeyID = nil
+		}
+		if elem.PerformanceInsightsRetentionPeriod != nil {
+			ko.Spec.PerformanceInsightsRetentionPeriod = elem.PerformanceInsightsRetentionPeriod
+		} else {
+			ko.Spec.PerformanceInsightsRetentionPeriod = nil
 		}
 		if elem.Port != nil {
 			ko.Spec.Port = elem.Port
@@ -443,14 +483,19 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.PreferredMaintenanceWindow = nil
 		}
+		if elem.PubliclyAccessible != nil {
+			ko.Spec.PubliclyAccessible = elem.PubliclyAccessible
+		} else {
+			ko.Spec.PubliclyAccessible = nil
+		}
 		if elem.ReadReplicaIdentifiers != nil {
-			f49 := []*string{}
-			for _, f49iter := range elem.ReadReplicaIdentifiers {
-				var f49elem string
-				f49elem = *f49iter
-				f49 = append(f49, &f49elem)
+			f58 := []*string{}
+			for _, f58iter := range elem.ReadReplicaIdentifiers {
+				var f58elem string
+				f58elem = *f58iter
+				f58 = append(f58, &f58elem)
 			}
-			ko.Status.ReadReplicaIdentifiers = f49
+			ko.Status.ReadReplicaIdentifiers = f58
 		} else {
 			ko.Status.ReadReplicaIdentifiers = nil
 		}
@@ -465,28 +510,40 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.ReplicationSourceIdentifier = nil
 		}
 		if elem.ScalingConfigurationInfo != nil {
-			f52 := &svcapitypes.ScalingConfigurationInfo{}
+			f61 := &svcapitypes.ScalingConfigurationInfo{}
 			if elem.ScalingConfigurationInfo.AutoPause != nil {
-				f52.AutoPause = elem.ScalingConfigurationInfo.AutoPause
+				f61.AutoPause = elem.ScalingConfigurationInfo.AutoPause
 			}
 			if elem.ScalingConfigurationInfo.MaxCapacity != nil {
-				f52.MaxCapacity = elem.ScalingConfigurationInfo.MaxCapacity
+				f61.MaxCapacity = elem.ScalingConfigurationInfo.MaxCapacity
 			}
 			if elem.ScalingConfigurationInfo.MinCapacity != nil {
-				f52.MinCapacity = elem.ScalingConfigurationInfo.MinCapacity
+				f61.MinCapacity = elem.ScalingConfigurationInfo.MinCapacity
 			}
 			if elem.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
-				f52.SecondsBeforeTimeout = elem.ScalingConfigurationInfo.SecondsBeforeTimeout
+				f61.SecondsBeforeTimeout = elem.ScalingConfigurationInfo.SecondsBeforeTimeout
 			}
 			if elem.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-				f52.SecondsUntilAutoPause = elem.ScalingConfigurationInfo.SecondsUntilAutoPause
+				f61.SecondsUntilAutoPause = elem.ScalingConfigurationInfo.SecondsUntilAutoPause
 			}
 			if elem.ScalingConfigurationInfo.TimeoutAction != nil {
-				f52.TimeoutAction = elem.ScalingConfigurationInfo.TimeoutAction
+				f61.TimeoutAction = elem.ScalingConfigurationInfo.TimeoutAction
 			}
-			ko.Status.ScalingConfigurationInfo = f52
+			ko.Status.ScalingConfigurationInfo = f61
 		} else {
 			ko.Status.ScalingConfigurationInfo = nil
+		}
+		if elem.ServerlessV2ScalingConfiguration != nil {
+			f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
+			if elem.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+				f62.MaxCapacity = elem.ServerlessV2ScalingConfiguration.MaxCapacity
+			}
+			if elem.ServerlessV2ScalingConfiguration.MinCapacity != nil {
+				f62.MinCapacity = elem.ServerlessV2ScalingConfiguration.MinCapacity
+			}
+			ko.Spec.ServerlessV2ScalingConfiguration = f62
+		} else {
+			ko.Spec.ServerlessV2ScalingConfiguration = nil
 		}
 		if elem.Status != nil {
 			ko.Status.Status = elem.Status
@@ -498,35 +555,40 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.StorageEncrypted = nil
 		}
+		if elem.StorageType != nil {
+			ko.Spec.StorageType = elem.StorageType
+		} else {
+			ko.Spec.StorageType = nil
+		}
 		if elem.TagList != nil {
-			f55 := []*svcapitypes.Tag{}
-			for _, f55iter := range elem.TagList {
-				f55elem := &svcapitypes.Tag{}
-				if f55iter.Key != nil {
-					f55elem.Key = f55iter.Key
+			f66 := []*svcapitypes.Tag{}
+			for _, f66iter := range elem.TagList {
+				f66elem := &svcapitypes.Tag{}
+				if f66iter.Key != nil {
+					f66elem.Key = f66iter.Key
 				}
-				if f55iter.Value != nil {
-					f55elem.Value = f55iter.Value
+				if f66iter.Value != nil {
+					f66elem.Value = f66iter.Value
 				}
-				f55 = append(f55, f55elem)
+				f66 = append(f66, f66elem)
 			}
-			ko.Status.TagList = f55
+			ko.Status.TagList = f66
 		} else {
 			ko.Status.TagList = nil
 		}
 		if elem.VpcSecurityGroups != nil {
-			f56 := []*svcapitypes.VPCSecurityGroupMembership{}
-			for _, f56iter := range elem.VpcSecurityGroups {
-				f56elem := &svcapitypes.VPCSecurityGroupMembership{}
-				if f56iter.Status != nil {
-					f56elem.Status = f56iter.Status
+			f67 := []*svcapitypes.VPCSecurityGroupMembership{}
+			for _, f67iter := range elem.VpcSecurityGroups {
+				f67elem := &svcapitypes.VPCSecurityGroupMembership{}
+				if f67iter.Status != nil {
+					f67elem.Status = f67iter.Status
 				}
-				if f56iter.VpcSecurityGroupId != nil {
-					f56elem.VPCSecurityGroupID = f56iter.VpcSecurityGroupId
+				if f67iter.VpcSecurityGroupId != nil {
+					f67elem.VPCSecurityGroupID = f67iter.VpcSecurityGroupId
 				}
-				f56 = append(f56, f56elem)
+				f67 = append(f67, f67elem)
 			}
-			ko.Status.VPCSecurityGroups = f56
+			ko.Status.VPCSecurityGroups = f67
 		} else {
 			ko.Status.VPCSecurityGroups = nil
 		}
@@ -629,9 +691,9 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ActivityStreamStatus = nil
 	}
 	if resp.DBCluster.AllocatedStorage != nil {
-		ko.Status.AllocatedStorage = resp.DBCluster.AllocatedStorage
+		ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
 	} else {
-		ko.Status.AllocatedStorage = nil
+		ko.Spec.AllocatedStorage = nil
 	}
 	if resp.DBCluster.AssociatedRoles != nil {
 		f5 := []*svcapitypes.DBClusterRole{}
@@ -652,19 +714,24 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.AssociatedRoles = nil
 	}
+	if resp.DBCluster.AutoMinorVersionUpgrade != nil {
+		ko.Spec.AutoMinorVersionUpgrade = resp.DBCluster.AutoMinorVersionUpgrade
+	} else {
+		ko.Spec.AutoMinorVersionUpgrade = nil
+	}
 	if resp.DBCluster.AutomaticRestartTime != nil {
 		ko.Status.AutomaticRestartTime = &metav1.Time{*resp.DBCluster.AutomaticRestartTime}
 	} else {
 		ko.Status.AutomaticRestartTime = nil
 	}
 	if resp.DBCluster.AvailabilityZones != nil {
-		f7 := []*string{}
-		for _, f7iter := range resp.DBCluster.AvailabilityZones {
-			var f7elem string
-			f7elem = *f7iter
-			f7 = append(f7, &f7elem)
+		f8 := []*string{}
+		for _, f8iter := range resp.DBCluster.AvailabilityZones {
+			var f8elem string
+			f8elem = *f8iter
+			f8 = append(f8, &f8elem)
 		}
-		ko.Spec.AvailabilityZones = f7
+		ko.Spec.AvailabilityZones = f8
 	} else {
 		ko.Spec.AvailabilityZones = nil
 	}
@@ -714,13 +781,13 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.CrossAccountClone = nil
 	}
 	if resp.DBCluster.CustomEndpoints != nil {
-		f17 := []*string{}
-		for _, f17iter := range resp.DBCluster.CustomEndpoints {
-			var f17elem string
-			f17elem = *f17iter
-			f17 = append(f17, &f17elem)
+		f18 := []*string{}
+		for _, f18iter := range resp.DBCluster.CustomEndpoints {
+			var f18elem string
+			f18elem = *f18iter
+			f18 = append(f18, &f18elem)
 		}
-		ko.Status.CustomEndpoints = f17
+		ko.Status.CustomEndpoints = f18
 	} else {
 		ko.Status.CustomEndpoints = nil
 	}
@@ -736,41 +803,46 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.DBClusterIdentifier = nil
 	}
+	if resp.DBCluster.DBClusterInstanceClass != nil {
+		ko.Spec.DBClusterInstanceClass = resp.DBCluster.DBClusterInstanceClass
+	} else {
+		ko.Spec.DBClusterInstanceClass = nil
+	}
 	if resp.DBCluster.DBClusterMembers != nil {
-		f20 := []*svcapitypes.DBClusterMember{}
-		for _, f20iter := range resp.DBCluster.DBClusterMembers {
-			f20elem := &svcapitypes.DBClusterMember{}
-			if f20iter.DBClusterParameterGroupStatus != nil {
-				f20elem.DBClusterParameterGroupStatus = f20iter.DBClusterParameterGroupStatus
+		f22 := []*svcapitypes.DBClusterMember{}
+		for _, f22iter := range resp.DBCluster.DBClusterMembers {
+			f22elem := &svcapitypes.DBClusterMember{}
+			if f22iter.DBClusterParameterGroupStatus != nil {
+				f22elem.DBClusterParameterGroupStatus = f22iter.DBClusterParameterGroupStatus
 			}
-			if f20iter.DBInstanceIdentifier != nil {
-				f20elem.DBInstanceIdentifier = f20iter.DBInstanceIdentifier
+			if f22iter.DBInstanceIdentifier != nil {
+				f22elem.DBInstanceIdentifier = f22iter.DBInstanceIdentifier
 			}
-			if f20iter.IsClusterWriter != nil {
-				f20elem.IsClusterWriter = f20iter.IsClusterWriter
+			if f22iter.IsClusterWriter != nil {
+				f22elem.IsClusterWriter = f22iter.IsClusterWriter
 			}
-			if f20iter.PromotionTier != nil {
-				f20elem.PromotionTier = f20iter.PromotionTier
+			if f22iter.PromotionTier != nil {
+				f22elem.PromotionTier = f22iter.PromotionTier
 			}
-			f20 = append(f20, f20elem)
+			f22 = append(f22, f22elem)
 		}
-		ko.Status.DBClusterMembers = f20
+		ko.Status.DBClusterMembers = f22
 	} else {
 		ko.Status.DBClusterMembers = nil
 	}
 	if resp.DBCluster.DBClusterOptionGroupMemberships != nil {
-		f21 := []*svcapitypes.DBClusterOptionGroupStatus{}
-		for _, f21iter := range resp.DBCluster.DBClusterOptionGroupMemberships {
-			f21elem := &svcapitypes.DBClusterOptionGroupStatus{}
-			if f21iter.DBClusterOptionGroupName != nil {
-				f21elem.DBClusterOptionGroupName = f21iter.DBClusterOptionGroupName
+		f23 := []*svcapitypes.DBClusterOptionGroupStatus{}
+		for _, f23iter := range resp.DBCluster.DBClusterOptionGroupMemberships {
+			f23elem := &svcapitypes.DBClusterOptionGroupStatus{}
+			if f23iter.DBClusterOptionGroupName != nil {
+				f23elem.DBClusterOptionGroupName = f23iter.DBClusterOptionGroupName
 			}
-			if f21iter.Status != nil {
-				f21elem.Status = f21iter.Status
+			if f23iter.Status != nil {
+				f23elem.Status = f23iter.Status
 			}
-			f21 = append(f21, f21elem)
+			f23 = append(f23, f23elem)
 		}
-		ko.Status.DBClusterOptionGroupMemberships = f21
+		ko.Status.DBClusterOptionGroupMemberships = f23
 	} else {
 		ko.Status.DBClusterOptionGroupMemberships = nil
 	}
@@ -800,24 +872,24 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.DeletionProtection = nil
 	}
 	if resp.DBCluster.DomainMemberships != nil {
-		f27 := []*svcapitypes.DomainMembership{}
-		for _, f27iter := range resp.DBCluster.DomainMemberships {
-			f27elem := &svcapitypes.DomainMembership{}
-			if f27iter.Domain != nil {
-				f27elem.Domain = f27iter.Domain
+		f29 := []*svcapitypes.DomainMembership{}
+		for _, f29iter := range resp.DBCluster.DomainMemberships {
+			f29elem := &svcapitypes.DomainMembership{}
+			if f29iter.Domain != nil {
+				f29elem.Domain = f29iter.Domain
 			}
-			if f27iter.FQDN != nil {
-				f27elem.FQDN = f27iter.FQDN
+			if f29iter.FQDN != nil {
+				f29elem.FQDN = f29iter.FQDN
 			}
-			if f27iter.IAMRoleName != nil {
-				f27elem.IAMRoleName = f27iter.IAMRoleName
+			if f29iter.IAMRoleName != nil {
+				f29elem.IAMRoleName = f29iter.IAMRoleName
 			}
-			if f27iter.Status != nil {
-				f27elem.Status = f27iter.Status
+			if f29iter.Status != nil {
+				f29elem.Status = f29iter.Status
 			}
-			f27 = append(f27, f27elem)
+			f29 = append(f29, f29elem)
 		}
-		ko.Status.DomainMemberships = f27
+		ko.Status.DomainMemberships = f29
 	} else {
 		ko.Status.DomainMemberships = nil
 	}
@@ -832,13 +904,13 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.EarliestRestorableTime = nil
 	}
 	if resp.DBCluster.EnabledCloudwatchLogsExports != nil {
-		f30 := []*string{}
-		for _, f30iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
-			var f30elem string
-			f30elem = *f30iter
-			f30 = append(f30, &f30elem)
+		f32 := []*string{}
+		for _, f32iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
+			var f32elem string
+			f32elem = *f32iter
+			f32 = append(f32, &f32elem)
 		}
-		ko.Status.EnabledCloudwatchLogsExports = f30
+		ko.Status.EnabledCloudwatchLogsExports = f32
 	} else {
 		ko.Status.EnabledCloudwatchLogsExports = nil
 	}
@@ -887,6 +959,11 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.IAMDatabaseAuthenticationEnabled = nil
 	}
+	if resp.DBCluster.Iops != nil {
+		ko.Spec.IOPS = resp.DBCluster.Iops
+	} else {
+		ko.Spec.IOPS = nil
+	}
 	if resp.DBCluster.KmsKeyId != nil {
 		ko.Spec.KMSKeyID = resp.DBCluster.KmsKeyId
 	} else {
@@ -902,48 +979,58 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.MasterUsername = nil
 	}
+	if resp.DBCluster.MonitoringInterval != nil {
+		ko.Spec.MonitoringInterval = resp.DBCluster.MonitoringInterval
+	} else {
+		ko.Spec.MonitoringInterval = nil
+	}
+	if resp.DBCluster.MonitoringRoleArn != nil {
+		ko.Spec.MonitoringRoleARN = resp.DBCluster.MonitoringRoleArn
+	} else {
+		ko.Spec.MonitoringRoleARN = nil
+	}
 	if resp.DBCluster.MultiAZ != nil {
 		ko.Status.MultiAZ = resp.DBCluster.MultiAZ
 	} else {
 		ko.Status.MultiAZ = nil
 	}
 	if resp.DBCluster.PendingModifiedValues != nil {
-		f44 := &svcapitypes.ClusterPendingModifiedValues{}
+		f49 := &svcapitypes.ClusterPendingModifiedValues{}
 		if resp.DBCluster.PendingModifiedValues.DBClusterIdentifier != nil {
-			f44.DBClusterIdentifier = resp.DBCluster.PendingModifiedValues.DBClusterIdentifier
+			f49.DBClusterIdentifier = resp.DBCluster.PendingModifiedValues.DBClusterIdentifier
 		}
 		if resp.DBCluster.PendingModifiedValues.EngineVersion != nil {
-			f44.EngineVersion = resp.DBCluster.PendingModifiedValues.EngineVersion
+			f49.EngineVersion = resp.DBCluster.PendingModifiedValues.EngineVersion
 		}
 		if resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled != nil {
-			f44.IAMDatabaseAuthenticationEnabled = resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
+			f49.IAMDatabaseAuthenticationEnabled = resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
 		}
 		if resp.DBCluster.PendingModifiedValues.MasterUserPassword != nil {
-			f44.MasterUserPassword = resp.DBCluster.PendingModifiedValues.MasterUserPassword
+			f49.MasterUserPassword = resp.DBCluster.PendingModifiedValues.MasterUserPassword
 		}
 		if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
-			f44f4 := &svcapitypes.PendingCloudwatchLogsExports{}
+			f49f4 := &svcapitypes.PendingCloudwatchLogsExports{}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-				f44f4f0 := []*string{}
-				for _, f44f4f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-					var f44f4f0elem string
-					f44f4f0elem = *f44f4f0iter
-					f44f4f0 = append(f44f4f0, &f44f4f0elem)
+				f49f4f0 := []*string{}
+				for _, f49f4f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
+					var f49f4f0elem string
+					f49f4f0elem = *f49f4f0iter
+					f49f4f0 = append(f49f4f0, &f49f4f0elem)
 				}
-				f44f4.LogTypesToDisable = f44f4f0
+				f49f4.LogTypesToDisable = f49f4f0
 			}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-				f44f4f1 := []*string{}
-				for _, f44f4f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-					var f44f4f1elem string
-					f44f4f1elem = *f44f4f1iter
-					f44f4f1 = append(f44f4f1, &f44f4f1elem)
+				f49f4f1 := []*string{}
+				for _, f49f4f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
+					var f49f4f1elem string
+					f49f4f1elem = *f49f4f1iter
+					f49f4f1 = append(f49f4f1, &f49f4f1elem)
 				}
-				f44f4.LogTypesToEnable = f44f4f1
+				f49f4.LogTypesToEnable = f49f4f1
 			}
-			f44.PendingCloudwatchLogsExports = f44f4
+			f49.PendingCloudwatchLogsExports = f49f4
 		}
-		ko.Status.PendingModifiedValues = f44
+		ko.Status.PendingModifiedValues = f49
 	} else {
 		ko.Status.PendingModifiedValues = nil
 	}
@@ -951,6 +1038,21 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.PercentProgress = resp.DBCluster.PercentProgress
 	} else {
 		ko.Status.PercentProgress = nil
+	}
+	if resp.DBCluster.PerformanceInsightsEnabled != nil {
+		ko.Status.PerformanceInsightsEnabled = resp.DBCluster.PerformanceInsightsEnabled
+	} else {
+		ko.Status.PerformanceInsightsEnabled = nil
+	}
+	if resp.DBCluster.PerformanceInsightsKMSKeyId != nil {
+		ko.Spec.PerformanceInsightsKMSKeyID = resp.DBCluster.PerformanceInsightsKMSKeyId
+	} else {
+		ko.Spec.PerformanceInsightsKMSKeyID = nil
+	}
+	if resp.DBCluster.PerformanceInsightsRetentionPeriod != nil {
+		ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBCluster.PerformanceInsightsRetentionPeriod
+	} else {
+		ko.Spec.PerformanceInsightsRetentionPeriod = nil
 	}
 	if resp.DBCluster.Port != nil {
 		ko.Spec.Port = resp.DBCluster.Port
@@ -967,14 +1069,19 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.PreferredMaintenanceWindow = nil
 	}
+	if resp.DBCluster.PubliclyAccessible != nil {
+		ko.Spec.PubliclyAccessible = resp.DBCluster.PubliclyAccessible
+	} else {
+		ko.Spec.PubliclyAccessible = nil
+	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
-		f49 := []*string{}
-		for _, f49iter := range resp.DBCluster.ReadReplicaIdentifiers {
-			var f49elem string
-			f49elem = *f49iter
-			f49 = append(f49, &f49elem)
+		f58 := []*string{}
+		for _, f58iter := range resp.DBCluster.ReadReplicaIdentifiers {
+			var f58elem string
+			f58elem = *f58iter
+			f58 = append(f58, &f58elem)
 		}
-		ko.Status.ReadReplicaIdentifiers = f49
+		ko.Status.ReadReplicaIdentifiers = f58
 	} else {
 		ko.Status.ReadReplicaIdentifiers = nil
 	}
@@ -989,28 +1096,40 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.ReplicationSourceIdentifier = nil
 	}
 	if resp.DBCluster.ScalingConfigurationInfo != nil {
-		f52 := &svcapitypes.ScalingConfigurationInfo{}
+		f61 := &svcapitypes.ScalingConfigurationInfo{}
 		if resp.DBCluster.ScalingConfigurationInfo.AutoPause != nil {
-			f52.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
+			f61.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MaxCapacity != nil {
-			f52.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
+			f61.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MinCapacity != nil {
-			f52.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
+			f61.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
-			f52.SecondsBeforeTimeout = resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout
+			f61.SecondsBeforeTimeout = resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-			f52.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
+			f61.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
-			f52.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
+			f61.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
 		}
-		ko.Status.ScalingConfigurationInfo = f52
+		ko.Status.ScalingConfigurationInfo = f61
 	} else {
 		ko.Status.ScalingConfigurationInfo = nil
+	}
+	if resp.DBCluster.ServerlessV2ScalingConfiguration != nil {
+		f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+			f62.MaxCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MaxCapacity
+		}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity != nil {
+			f62.MinCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity
+		}
+		ko.Spec.ServerlessV2ScalingConfiguration = f62
+	} else {
+		ko.Spec.ServerlessV2ScalingConfiguration = nil
 	}
 	if resp.DBCluster.Status != nil {
 		ko.Status.Status = resp.DBCluster.Status
@@ -1022,35 +1141,40 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.StorageEncrypted = nil
 	}
+	if resp.DBCluster.StorageType != nil {
+		ko.Spec.StorageType = resp.DBCluster.StorageType
+	} else {
+		ko.Spec.StorageType = nil
+	}
 	if resp.DBCluster.TagList != nil {
-		f55 := []*svcapitypes.Tag{}
-		for _, f55iter := range resp.DBCluster.TagList {
-			f55elem := &svcapitypes.Tag{}
-			if f55iter.Key != nil {
-				f55elem.Key = f55iter.Key
+		f66 := []*svcapitypes.Tag{}
+		for _, f66iter := range resp.DBCluster.TagList {
+			f66elem := &svcapitypes.Tag{}
+			if f66iter.Key != nil {
+				f66elem.Key = f66iter.Key
 			}
-			if f55iter.Value != nil {
-				f55elem.Value = f55iter.Value
+			if f66iter.Value != nil {
+				f66elem.Value = f66iter.Value
 			}
-			f55 = append(f55, f55elem)
+			f66 = append(f66, f66elem)
 		}
-		ko.Status.TagList = f55
+		ko.Status.TagList = f66
 	} else {
 		ko.Status.TagList = nil
 	}
 	if resp.DBCluster.VpcSecurityGroups != nil {
-		f56 := []*svcapitypes.VPCSecurityGroupMembership{}
-		for _, f56iter := range resp.DBCluster.VpcSecurityGroups {
-			f56elem := &svcapitypes.VPCSecurityGroupMembership{}
-			if f56iter.Status != nil {
-				f56elem.Status = f56iter.Status
+		f67 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f67iter := range resp.DBCluster.VpcSecurityGroups {
+			f67elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f67iter.Status != nil {
+				f67elem.Status = f67iter.Status
 			}
-			if f56iter.VpcSecurityGroupId != nil {
-				f56elem.VPCSecurityGroupID = f56iter.VpcSecurityGroupId
+			if f67iter.VpcSecurityGroupId != nil {
+				f67elem.VPCSecurityGroupID = f67iter.VpcSecurityGroupId
 			}
-			f56 = append(f56, f56elem)
+			f67 = append(f67, f67elem)
 		}
-		ko.Status.VPCSecurityGroups = f56
+		ko.Status.VPCSecurityGroups = f67
 	} else {
 		ko.Status.VPCSecurityGroups = nil
 	}
@@ -1077,14 +1201,20 @@ func (rm *resourceManager) newCreateRequestPayload(
 ) (*svcsdk.CreateDBClusterInput, error) {
 	res := &svcsdk.CreateDBClusterInput{}
 
+	if r.ko.Spec.AllocatedStorage != nil {
+		res.SetAllocatedStorage(*r.ko.Spec.AllocatedStorage)
+	}
+	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
+		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+	}
 	if r.ko.Spec.AvailabilityZones != nil {
-		f0 := []*string{}
-		for _, f0iter := range r.ko.Spec.AvailabilityZones {
-			var f0elem string
-			f0elem = *f0iter
-			f0 = append(f0, &f0elem)
+		f2 := []*string{}
+		for _, f2iter := range r.ko.Spec.AvailabilityZones {
+			var f2elem string
+			f2elem = *f2iter
+			f2 = append(f2, &f2elem)
 		}
-		res.SetAvailabilityZones(f0)
+		res.SetAvailabilityZones(f2)
 	}
 	if r.ko.Spec.BacktrackWindow != nil {
 		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
@@ -1100,6 +1230,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	}
 	if r.ko.Spec.DBClusterIdentifier != nil {
 		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+	}
+	if r.ko.Spec.DBClusterInstanceClass != nil {
+		res.SetDBClusterInstanceClass(*r.ko.Spec.DBClusterInstanceClass)
 	}
 	if r.ko.Spec.DBClusterParameterGroupName != nil {
 		res.SetDBClusterParameterGroupName(*r.ko.Spec.DBClusterParameterGroupName)
@@ -1123,13 +1256,13 @@ func (rm *resourceManager) newCreateRequestPayload(
 		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
 	}
 	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
-		f13 := []*string{}
-		for _, f13iter := range r.ko.Spec.EnableCloudwatchLogsExports {
-			var f13elem string
-			f13elem = *f13iter
-			f13 = append(f13, &f13elem)
+		f16 := []*string{}
+		for _, f16iter := range r.ko.Spec.EnableCloudwatchLogsExports {
+			var f16elem string
+			f16elem = *f16iter
+			f16 = append(f16, &f16elem)
 		}
-		res.SetEnableCloudwatchLogsExports(f13)
+		res.SetEnableCloudwatchLogsExports(f16)
 	}
 	if r.ko.Spec.EnableGlobalWriteForwarding != nil {
 		res.SetEnableGlobalWriteForwarding(*r.ko.Spec.EnableGlobalWriteForwarding)
@@ -1139,6 +1272,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	}
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
 		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+	}
+	if r.ko.Spec.EnablePerformanceInsights != nil {
+		res.SetEnablePerformanceInsights(*r.ko.Spec.EnablePerformanceInsights)
 	}
 	if r.ko.Spec.Engine != nil {
 		res.SetEngine(*r.ko.Spec.Engine)
@@ -1151,6 +1287,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	}
 	if r.ko.Spec.GlobalClusterIdentifier != nil {
 		res.SetGlobalClusterIdentifier(*r.ko.Spec.GlobalClusterIdentifier)
+	}
+	if r.ko.Spec.IOPS != nil {
+		res.SetIops(*r.ko.Spec.IOPS)
 	}
 	if r.ko.Spec.KMSKeyID != nil {
 		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
@@ -1167,8 +1306,20 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.MasterUsername != nil {
 		res.SetMasterUsername(*r.ko.Spec.MasterUsername)
 	}
+	if r.ko.Spec.MonitoringInterval != nil {
+		res.SetMonitoringInterval(*r.ko.Spec.MonitoringInterval)
+	}
+	if r.ko.Spec.MonitoringRoleARN != nil {
+		res.SetMonitoringRoleArn(*r.ko.Spec.MonitoringRoleARN)
+	}
 	if r.ko.Spec.OptionGroupName != nil {
 		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+	}
+	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+		res.SetPerformanceInsightsKMSKeyId(*r.ko.Spec.PerformanceInsightsKMSKeyID)
+	}
+	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+		res.SetPerformanceInsightsRetentionPeriod(*r.ko.Spec.PerformanceInsightsRetentionPeriod)
 	}
 	if r.ko.Spec.Port != nil {
 		res.SetPort(*r.ko.Spec.Port)
@@ -1182,30 +1333,43 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.PreferredMaintenanceWindow != nil {
 		res.SetPreferredMaintenanceWindow(*r.ko.Spec.PreferredMaintenanceWindow)
 	}
+	if r.ko.Spec.PubliclyAccessible != nil {
+		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+	}
 	if r.ko.Spec.ReplicationSourceIdentifier != nil {
 		res.SetReplicationSourceIdentifier(*r.ko.Spec.ReplicationSourceIdentifier)
 	}
 	if r.ko.Spec.ScalingConfiguration != nil {
-		f30 := &svcsdk.ScalingConfiguration{}
+		f40 := &svcsdk.ScalingConfiguration{}
 		if r.ko.Spec.ScalingConfiguration.AutoPause != nil {
-			f30.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+			f40.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
 		}
 		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
-			f30.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+			f40.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
 		}
 		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil {
-			f30.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+			f40.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
-			f30.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+			f40.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
-			f30.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+			f40.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
 		}
 		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
-			f30.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+			f40.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
 		}
-		res.SetScalingConfiguration(f30)
+		res.SetScalingConfiguration(f40)
+	}
+	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil {
+		f41 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+			f41.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+		}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
+			f41.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+		}
+		res.SetServerlessV2ScalingConfiguration(f41)
 	}
 	if r.ko.Spec.SourceRegion != nil {
 		res.SetSourceRegion(*r.ko.Spec.SourceRegion)
@@ -1213,28 +1377,31 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.StorageEncrypted != nil {
 		res.SetStorageEncrypted(*r.ko.Spec.StorageEncrypted)
 	}
+	if r.ko.Spec.StorageType != nil {
+		res.SetStorageType(*r.ko.Spec.StorageType)
+	}
 	if r.ko.Spec.Tags != nil {
-		f33 := []*svcsdk.Tag{}
-		for _, f33iter := range r.ko.Spec.Tags {
-			f33elem := &svcsdk.Tag{}
-			if f33iter.Key != nil {
-				f33elem.SetKey(*f33iter.Key)
+		f45 := []*svcsdk.Tag{}
+		for _, f45iter := range r.ko.Spec.Tags {
+			f45elem := &svcsdk.Tag{}
+			if f45iter.Key != nil {
+				f45elem.SetKey(*f45iter.Key)
 			}
-			if f33iter.Value != nil {
-				f33elem.SetValue(*f33iter.Value)
+			if f45iter.Value != nil {
+				f45elem.SetValue(*f45iter.Value)
 			}
-			f33 = append(f33, f33elem)
+			f45 = append(f45, f45elem)
 		}
-		res.SetTags(f33)
+		res.SetTags(f45)
 	}
 	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		f34 := []*string{}
-		for _, f34iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var f34elem string
-			f34elem = *f34iter
-			f34 = append(f34, &f34elem)
+		f46 := []*string{}
+		for _, f46iter := range r.ko.Spec.VPCSecurityGroupIDs {
+			var f46elem string
+			f46elem = *f46iter
+			f46 = append(f46, &f46elem)
 		}
-		res.SetVpcSecurityGroupIds(f34)
+		res.SetVpcSecurityGroupIds(f46)
 	}
 
 	return res, nil

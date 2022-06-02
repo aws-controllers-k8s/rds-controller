@@ -136,6 +136,17 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.Subnets = nil
 		}
+		if elem.SupportedNetworkTypes != nil {
+			f5 := []*string{}
+			for _, f5iter := range elem.SupportedNetworkTypes {
+				var f5elem string
+				f5elem = *f5iter
+				f5 = append(f5, &f5elem)
+			}
+			ko.Status.SupportedNetworkTypes = f5
+		} else {
+			ko.Status.SupportedNetworkTypes = nil
+		}
 		if elem.VpcId != nil {
 			ko.Status.VPCID = elem.VpcId
 		} else {
@@ -264,6 +275,17 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Subnets = f4
 	} else {
 		ko.Status.Subnets = nil
+	}
+	if resp.DBSubnetGroup.SupportedNetworkTypes != nil {
+		f5 := []*string{}
+		for _, f5iter := range resp.DBSubnetGroup.SupportedNetworkTypes {
+			var f5elem string
+			f5elem = *f5iter
+			f5 = append(f5, &f5elem)
+		}
+		ko.Status.SupportedNetworkTypes = f5
+	} else {
+		ko.Status.SupportedNetworkTypes = nil
 	}
 	if resp.DBSubnetGroup.VpcId != nil {
 		ko.Status.VPCID = resp.DBSubnetGroup.VpcId
@@ -401,6 +423,17 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.Subnets = f4
 	} else {
 		ko.Status.Subnets = nil
+	}
+	if resp.DBSubnetGroup.SupportedNetworkTypes != nil {
+		f5 := []*string{}
+		for _, f5iter := range resp.DBSubnetGroup.SupportedNetworkTypes {
+			var f5elem string
+			f5elem = *f5iter
+			f5 = append(f5, &f5elem)
+		}
+		ko.Status.SupportedNetworkTypes = f5
+	} else {
+		ko.Status.SupportedNetworkTypes = nil
 	}
 	if resp.DBSubnetGroup.VpcId != nil {
 		ko.Status.VPCID = resp.DBSubnetGroup.VpcId
