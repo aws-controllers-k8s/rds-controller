@@ -509,7 +509,6 @@ type DBInstance_SDK struct {
 	DBInstanceStatus                              *string                                  `json:"dbInstanceStatus,omitempty"`
 	DBName                                        *string                                  `json:"dbName,omitempty"`
 	DBParameterGroups                             []*DBParameterGroupStatus_SDK            `json:"dbParameterGroups,omitempty"`
-	DBSecurityGroups                              []*DBSecurityGroupMembership             `json:"dbSecurityGroups,omitempty"`
 	// Contains the details of an Amazon RDS DB subnet group.
 	//
 	// This data type is used as a response element in the DescribeDBSubnetGroups
@@ -692,6 +691,18 @@ type DBProxyTargetGroup struct {
 	UpdatedDate     *metav1.Time `json:"updatedDate,omitempty"`
 }
 
+// Contains the details for an Amazon RDS DB security group.
+//
+// This data type is used as a response element in the DescribeDBSecurityGroups
+// action.
+type DBSecurityGroup struct {
+	DBSecurityGroupARN         *string `json:"dbSecurityGroupARN,omitempty"`
+	DBSecurityGroupDescription *string `json:"dbSecurityGroupDescription,omitempty"`
+	DBSecurityGroupName        *string `json:"dbSecurityGroupName,omitempty"`
+	OwnerID                    *string `json:"ownerID,omitempty"`
+	VPCID                      *string `json:"vpcID,omitempty"`
+}
+
 // This data type is used as a response element in the following actions:
 //
 //    * ModifyDBInstance
@@ -704,20 +715,6 @@ type DBProxyTargetGroup struct {
 type DBSecurityGroupMembership struct {
 	DBSecurityGroupName *string `json:"dbSecurityGroupName,omitempty"`
 	Status              *string `json:"status,omitempty"`
-}
-
-// Contains the details for an Amazon RDS DB security group.
-//
-// This data type is used as a response element in the DescribeDBSecurityGroups
-// action.
-type DBSecurityGroup_SDK struct {
-	DBSecurityGroupARN         *string             `json:"dbSecurityGroupARN,omitempty"`
-	DBSecurityGroupDescription *string             `json:"dbSecurityGroupDescription,omitempty"`
-	DBSecurityGroupName        *string             `json:"dbSecurityGroupName,omitempty"`
-	EC2SecurityGroups          []*EC2SecurityGroup `json:"ec2SecurityGroups,omitempty"`
-	IPRanges                   []*IPRange          `json:"iPRanges,omitempty"`
-	OwnerID                    *string             `json:"ownerID,omitempty"`
-	VPCID                      *string             `json:"vpcID,omitempty"`
 }
 
 // Contains the details of an Amazon RDS DB snapshot.
@@ -986,7 +983,6 @@ type MinimumEngineVersionPerAllowedValue struct {
 
 // Option details.
 type Option struct {
-	DBSecurityGroupMemberships  []*DBSecurityGroupMembership  `json:"dbSecurityGroupMemberships,omitempty"`
 	OptionDescription           *string                       `json:"optionDescription,omitempty"`
 	OptionName                  *string                       `json:"optionName,omitempty"`
 	OptionVersion               *string                       `json:"optionVersion,omitempty"`
