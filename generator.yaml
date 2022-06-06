@@ -179,6 +179,10 @@ resources:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
           path: UseDefaultProcessorFeatures
+      PerformanceInsightsKMSKeyID:
+        late_initialize: {}
+      PerformanceInsightsRetentionPeriod:
+        late_initialize: {}
     renames:
       operations:
         CreateDBInstance:
