@@ -424,6 +424,12 @@ type DBInstanceSpec struct {
 	// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
 	// in the Amazon RDS User Guide.
 	EnableIAMDatabaseAuthentication *bool `json:"enableIAMDatabaseAuthentication,omitempty"`
+	// A value that indicates whether to enable Performance Insights for the DB
+	// instance. For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
+	// in the Amazon Relational Database Service User Guide.
+	//
+	// This setting doesn't apply to RDS Custom.
+	EnablePerformanceInsights *bool `json:"enablePerformanceInsights,omitempty"`
 	// The name of the database engine to be used for this instance.
 	//
 	// Not every database engine is available for every Amazon Web Services Region.
@@ -689,12 +695,6 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	OptionGroupName *string `json:"optionGroupName,omitempty"`
-	// A value that indicates whether to enable Performance Insights for the DB
-	// instance. For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
-	// in the Amazon Relational Database Service User Guide.
-	//
-	// This setting doesn't apply to RDS Custom.
-	PerformanceInsightsEnabled *bool `json:"performanceInsightsEnabled,omitempty"`
 	// The Amazon Web Services KMS key identifier for encryption of Performance
 	// Insights data.
 	//
@@ -1039,6 +1039,10 @@ type DBInstanceStatus struct {
 	// by subelements.
 	// +kubebuilder:validation:Optional
 	PendingModifiedValues *PendingModifiedValues `json:"pendingModifiedValues,omitempty"`
+	// True if Performance Insights is enabled for the DB instance, and otherwise
+	// false.
+	// +kubebuilder:validation:Optional
+	PerformanceInsightsEnabled *bool `json:"performanceInsightsEnabled,omitempty"`
 	// Contains one or more identifiers of Aurora DB clusters to which the RDS DB
 	// instance is replicated as a read replica. For example, when you create an
 	// Aurora read replica of an RDS MySQL DB instance, the Aurora MySQL DB cluster

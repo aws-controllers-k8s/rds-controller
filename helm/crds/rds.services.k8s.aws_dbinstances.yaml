@@ -284,6 +284,13 @@ spec:
                   for MySQL and PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
                   in the Amazon RDS User Guide."
                 type: boolean
+              enablePerformanceInsights:
+                description: "A value that indicates whether to enable Performance
+                  Insights for the DB instance. For more information, see Using Amazon
+                  Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
+                  in the Amazon Relational Database Service User Guide. \n This setting
+                  doesn't apply to RDS Custom."
+                type: boolean
               engine:
                 description: "The name of the database engine to be used for this
                   instance. \n Not every database engine is available for every Amazon
@@ -461,13 +468,6 @@ spec:
                   from a DB instance after it is associated with a DB instance. \n
                   This setting doesn't apply to RDS Custom."
                 type: string
-              performanceInsightsEnabled:
-                description: "A value that indicates whether to enable Performance
-                  Insights for the DB instance. For more information, see Using Amazon
-                  Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
-                  in the Amazon Relational Database Service User Guide. \n This setting
-                  doesn't apply to RDS Custom."
-                type: boolean
               performanceInsightsKMSKeyID:
                 description: "The Amazon Web Services KMS key identifier for encryption
                   of Performance Insights data. \n The Amazon Web Services KMS key
@@ -1040,6 +1040,10 @@ spec:
                   storageType:
                     type: string
                 type: object
+              performanceInsightsEnabled:
+                description: True if Performance Insights is enabled for the DB instance,
+                  and otherwise false.
+                type: boolean
               readReplicaDBClusterIdentifiers:
                 description: "Contains one or more identifiers of Aurora DB clusters
                   to which the RDS DB instance is replicated as a read replica. For

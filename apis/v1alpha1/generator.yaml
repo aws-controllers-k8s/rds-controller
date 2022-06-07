@@ -55,6 +55,7 @@ operations:
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
       ApplyImmediately: true
+      AllowMajorVersionUpgrade: true
   DeleteDBInstance:
     override_values:
       # Clearly this is not ideal, but will suffice until we add custom hook
@@ -179,18 +180,6 @@ resources:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
           path: UseDefaultProcessorFeatures
-      PerformanceInsightsKMSKeyID:
-        late_initialize: {}
-      PerformanceInsightsRetentionPeriod:
-        late_initialize: {}
-    renames:
-      operations:
-        CreateDBInstance:
-          input_fields:
-            EnablePerformanceInsights: PerformanceInsightsEnabled
-        ModifyDBInstance:
-          input_fields:
-            EnablePerformanceInsights: PerformanceInsightsEnabled
   GlobalCluster:
     exceptions:
       terminal_codes:

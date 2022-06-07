@@ -45,7 +45,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AvailabilityZone", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod"}
+var lateInitializeFieldNames = []string{"AvailabilityZone"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -240,12 +240,6 @@ func (rm *resourceManager) incompleteLateInitialization(
 	if ko.Spec.AvailabilityZone == nil {
 		return true
 	}
-	if ko.Spec.PerformanceInsightsKMSKeyID == nil {
-		return true
-	}
-	if ko.Spec.PerformanceInsightsRetentionPeriod == nil {
-		return true
-	}
 	return false
 }
 
@@ -259,12 +253,6 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	latestKo := rm.concreteResource(latest).ko.DeepCopy()
 	if observedKo.Spec.AvailabilityZone != nil && latestKo.Spec.AvailabilityZone == nil {
 		latestKo.Spec.AvailabilityZone = observedKo.Spec.AvailabilityZone
-	}
-	if observedKo.Spec.PerformanceInsightsKMSKeyID != nil && latestKo.Spec.PerformanceInsightsKMSKeyID == nil {
-		latestKo.Spec.PerformanceInsightsKMSKeyID = observedKo.Spec.PerformanceInsightsKMSKeyID
-	}
-	if observedKo.Spec.PerformanceInsightsRetentionPeriod != nil && latestKo.Spec.PerformanceInsightsRetentionPeriod == nil {
-		latestKo.Spec.PerformanceInsightsRetentionPeriod = observedKo.Spec.PerformanceInsightsRetentionPeriod
 	}
 	return &resource{latestKo}
 }
