@@ -35,6 +35,11 @@ operations:
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
       ApplyImmediately: true
+      # We override the value of AllowMajorVersionUpgrade field in the modify
+      # call since any engine version change should apply directly.
+      # This flag was designed as a protect flag but not necessary in controller
+      # side when customer need to make the engine version change
+      AllowMajorVersionUpgrade: true
   DeleteDBCluster:
     override_values:
       # Clearly this is not ideal, but will suffice until we add custom hook
@@ -55,6 +60,10 @@ operations:
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
       ApplyImmediately: true
+      # We override the value of the ApplyImmediately field in the modify
+      # operations to "true" because we want changes that a Kubernetes user
+      # makes to a resource's Spec to be reconciled by the ACK service
+      # controller, not a different service.
       AllowMajorVersionUpgrade: true
   DeleteDBInstance:
     override_values:
