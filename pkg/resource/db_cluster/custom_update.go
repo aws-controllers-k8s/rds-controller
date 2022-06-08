@@ -542,6 +542,7 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 	res := &svcsdk.ModifyDBClusterInput{}
 
 	res.SetApplyImmediately(true)
+	res.SetAllowMajorVersionUpgrade(true)
 	if r.ko.Spec.BacktrackWindow != nil && delta.DifferentAt("Spec.BacktrackWindow") {
 		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
 	}
