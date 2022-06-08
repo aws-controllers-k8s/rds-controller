@@ -2252,6 +2252,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.DestinationRegion != nil {
+		in, out := &in.DestinationRegion, &out.DestinationRegion
+		*out = new(string)
+		**out = **in
+	}
 	if in.Domain != nil {
 		in, out := &in.Domain, &out.Domain
 		*out = new(string)
@@ -2280,6 +2285,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 	}
 	if in.EnableIAMDatabaseAuthentication != nil {
 		in, out := &in.EnableIAMDatabaseAuthentication, &out.EnableIAMDatabaseAuthentication
+		*out = new(bool)
+		**out = **in
+	}
+	if in.EnablePerformanceInsights != nil {
+		in, out := &in.EnablePerformanceInsights, &out.EnablePerformanceInsights
 		*out = new(bool)
 		**out = **in
 	}
@@ -2373,6 +2383,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(int64)
 		**out = **in
 	}
+	if in.PreSignedURL != nil {
+		in, out := &in.PreSignedURL, &out.PreSignedURL
+		*out = new(string)
+		**out = **in
+	}
 	if in.PreferredBackupWindow != nil {
 		in, out := &in.PreferredBackupWindow, &out.PreferredBackupWindow
 		*out = new(string)
@@ -2402,6 +2417,21 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 	if in.PubliclyAccessible != nil {
 		in, out := &in.PubliclyAccessible, &out.PubliclyAccessible
 		*out = new(bool)
+		**out = **in
+	}
+	if in.ReplicaMode != nil {
+		in, out := &in.ReplicaMode, &out.ReplicaMode
+		*out = new(string)
+		**out = **in
+	}
+	if in.SourceDBInstanceIdentifier != nil {
+		in, out := &in.SourceDBInstanceIdentifier, &out.SourceDBInstanceIdentifier
+		*out = new(string)
+		**out = **in
+	}
+	if in.SourceRegion != nil {
+		in, out := &in.SourceRegion, &out.SourceRegion
+		*out = new(string)
 		**out = **in
 	}
 	if in.StorageEncrypted != nil {
@@ -2679,11 +2709,6 @@ func (in *DBInstanceStatus) DeepCopyInto(out *DBInstanceStatus) {
 	}
 	if in.ReadReplicaSourceDBInstanceIdentifier != nil {
 		in, out := &in.ReadReplicaSourceDBInstanceIdentifier, &out.ReadReplicaSourceDBInstanceIdentifier
-		*out = new(string)
-		**out = **in
-	}
-	if in.ReplicaMode != nil {
-		in, out := &in.ReplicaMode, &out.ReplicaMode
 		*out = new(string)
 		**out = **in
 	}

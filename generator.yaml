@@ -189,12 +189,39 @@ resources:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
           path: UseDefaultProcessorFeatures
+      SourceDBInstanceIdentifier:
+        from:
+          operation: CreateDBInstanceReadReplica
+          path: SourceDBInstanceIdentifier
+      DestinationRegion:
+        from:
+          operation: CreateDBInstanceReadReplica
+          path: DestinationRegion
+      ReplicaMode:
+        from:
+          operation: CreateDBInstanceReadReplica
+          path: ReplicaMode
+      SourceRegion:
+        from:
+          operation: CreateDBInstanceReadReplica
+          path: SourceRegion
+      PreSignedUrl:
+        from:
+          operation: CreateDBInstanceReadReplica
+          path: PreSignedUrl
+      EnablePerformanceInsights:
+        from:
+          operation: CreateDBInstanceReadReplica
+          path: EnablePerformanceInsights
     renames:
       operations:
         CreateDBInstance:
           input_fields:
             EnablePerformanceInsights: PerformanceInsightsEnabled
         ModifyDBInstance:
+          input_fields:
+            EnablePerformanceInsights: PerformanceInsightsEnabled
+        CreateDBInstanceReadReplica:
           input_fields:
             EnablePerformanceInsights: PerformanceInsightsEnabled
   GlobalCluster:

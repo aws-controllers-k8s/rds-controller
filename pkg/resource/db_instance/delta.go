@@ -158,6 +158,13 @@ func newResourceDelta(
 			delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DestinationRegion, b.ko.Spec.DestinationRegion) {
+		delta.Add("Spec.DestinationRegion", a.ko.Spec.DestinationRegion, b.ko.Spec.DestinationRegion)
+	} else if a.ko.Spec.DestinationRegion != nil && b.ko.Spec.DestinationRegion != nil {
+		if *a.ko.Spec.DestinationRegion != *b.ko.Spec.DestinationRegion {
+			delta.Add("Spec.DestinationRegion", a.ko.Spec.DestinationRegion, b.ko.Spec.DestinationRegion)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Domain, b.ko.Spec.Domain) {
 		delta.Add("Spec.Domain", a.ko.Spec.Domain, b.ko.Spec.Domain)
 	} else if a.ko.Spec.Domain != nil && b.ko.Spec.Domain != nil {
@@ -187,6 +194,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.EnableIAMDatabaseAuthentication != nil && b.ko.Spec.EnableIAMDatabaseAuthentication != nil {
 		if *a.ko.Spec.EnableIAMDatabaseAuthentication != *b.ko.Spec.EnableIAMDatabaseAuthentication {
 			delta.Add("Spec.EnableIAMDatabaseAuthentication", a.ko.Spec.EnableIAMDatabaseAuthentication, b.ko.Spec.EnableIAMDatabaseAuthentication)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.EnablePerformanceInsights, b.ko.Spec.EnablePerformanceInsights) {
+		delta.Add("Spec.EnablePerformanceInsights", a.ko.Spec.EnablePerformanceInsights, b.ko.Spec.EnablePerformanceInsights)
+	} else if a.ko.Spec.EnablePerformanceInsights != nil && b.ko.Spec.EnablePerformanceInsights != nil {
+		if *a.ko.Spec.EnablePerformanceInsights != *b.ko.Spec.EnablePerformanceInsights {
+			delta.Add("Spec.EnablePerformanceInsights", a.ko.Spec.EnablePerformanceInsights, b.ko.Spec.EnablePerformanceInsights)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Engine, b.ko.Spec.Engine) {
@@ -311,6 +325,13 @@ func newResourceDelta(
 			delta.Add("Spec.Port", a.ko.Spec.Port, b.ko.Spec.Port)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.PreSignedURL, b.ko.Spec.PreSignedURL) {
+		delta.Add("Spec.PreSignedURL", a.ko.Spec.PreSignedURL, b.ko.Spec.PreSignedURL)
+	} else if a.ko.Spec.PreSignedURL != nil && b.ko.Spec.PreSignedURL != nil {
+		if *a.ko.Spec.PreSignedURL != *b.ko.Spec.PreSignedURL {
+			delta.Add("Spec.PreSignedURL", a.ko.Spec.PreSignedURL, b.ko.Spec.PreSignedURL)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.PreferredBackupWindow, b.ko.Spec.PreferredBackupWindow) {
 		delta.Add("Spec.PreferredBackupWindow", a.ko.Spec.PreferredBackupWindow, b.ko.Spec.PreferredBackupWindow)
 	} else if a.ko.Spec.PreferredBackupWindow != nil && b.ko.Spec.PreferredBackupWindow != nil {
@@ -340,6 +361,27 @@ func newResourceDelta(
 	} else if a.ko.Spec.PubliclyAccessible != nil && b.ko.Spec.PubliclyAccessible != nil {
 		if *a.ko.Spec.PubliclyAccessible != *b.ko.Spec.PubliclyAccessible {
 			delta.Add("Spec.PubliclyAccessible", a.ko.Spec.PubliclyAccessible, b.ko.Spec.PubliclyAccessible)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.ReplicaMode, b.ko.Spec.ReplicaMode) {
+		delta.Add("Spec.ReplicaMode", a.ko.Spec.ReplicaMode, b.ko.Spec.ReplicaMode)
+	} else if a.ko.Spec.ReplicaMode != nil && b.ko.Spec.ReplicaMode != nil {
+		if *a.ko.Spec.ReplicaMode != *b.ko.Spec.ReplicaMode {
+			delta.Add("Spec.ReplicaMode", a.ko.Spec.ReplicaMode, b.ko.Spec.ReplicaMode)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.SourceDBInstanceIdentifier, b.ko.Spec.SourceDBInstanceIdentifier) {
+		delta.Add("Spec.SourceDBInstanceIdentifier", a.ko.Spec.SourceDBInstanceIdentifier, b.ko.Spec.SourceDBInstanceIdentifier)
+	} else if a.ko.Spec.SourceDBInstanceIdentifier != nil && b.ko.Spec.SourceDBInstanceIdentifier != nil {
+		if *a.ko.Spec.SourceDBInstanceIdentifier != *b.ko.Spec.SourceDBInstanceIdentifier {
+			delta.Add("Spec.SourceDBInstanceIdentifier", a.ko.Spec.SourceDBInstanceIdentifier, b.ko.Spec.SourceDBInstanceIdentifier)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion) {
+		delta.Add("Spec.SourceRegion", a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion)
+	} else if a.ko.Spec.SourceRegion != nil && b.ko.Spec.SourceRegion != nil {
+		if *a.ko.Spec.SourceRegion != *b.ko.Spec.SourceRegion {
+			delta.Add("Spec.SourceRegion", a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.StorageEncrypted, b.ko.Spec.StorageEncrypted) {

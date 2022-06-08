@@ -194,3 +194,33 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 	}
 	return &resource{r.ko}, nil
 }
+
+// function to create createDBInstanceReadReplica payload and call createDBInstanceReadReplica API
+func (rm *resourceManager) createDBInstanceReadReplica(
+	ctx context.Context,
+	r *resource,
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.createDBInstanceReadReplica")
+	defer func(err error) { exit(err) }(err)
+
+	resp, respErr := rm.sdkapi.CreateDBInstanceReadReplicaWithContext(ctx, rm.newCreateDBInstanceReadReplicaInput(r))
+	rm.metrics.RecordAPICall("CREATE", "CreateDBInstanceReadReplica", respErr)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	rm.setResourceFromCreateDBInstanceReadReplicaOutput(r, resp)
+	rm.setStatusDefaults(r.ko)
+
+	// We expect the DB instance to be in 'creating' status since we just
+	// issued the call to create it, but I suppose it doesn't hurt to check
+	// here.
+	if instanceCreating(&resource{r.ko}) {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{r.ko}, corev1.ConditionFalse, nil, nil)
+		return &resource{r.ko}, nil
+	}
+	return &resource{r.ko}, nil
+}

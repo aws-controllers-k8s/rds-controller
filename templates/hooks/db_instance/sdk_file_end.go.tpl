@@ -1,7 +1,9 @@
 {{ $CRD := .CRD }}
 {{ $SDKAPI := .SDKAPI }}
 
-{{- $operation := (index $SDKAPI.API.Operations "RestoreDBInstanceFromDBSnapshot")}}
+{{ range $operationName := MakeSlice "RestoreDBInstanceFromDBSnapshot" "CreateDBInstanceReadReplica" }}
+
+{{- $operation := (index $SDKAPI.API.Operations $operationName)}}
 
 {{- $inputRef := $operation.InputRef }}
 {{- $inputShapeName := $inputRef.ShapeName }}
@@ -29,3 +31,5 @@ func (rm *resourceManager) setResourceFrom{{ $outputShapeName }}(
 ) {
 {{ GoCodeSetCreateOutput $CRD "resp" "r.ko" 1 }}
 }
+
+{{- end }}
