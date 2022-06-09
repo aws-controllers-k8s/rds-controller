@@ -181,6 +181,7 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      # Used by restore db instance from db snapshot
       DBSnapshotIdentifier:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
@@ -189,6 +190,7 @@ resources:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
           path: UseDefaultProcessorFeatures
+      # Used by create db instance read replica
       SourceDBInstanceIdentifier:
         from:
           operation: CreateDBInstanceReadReplica
