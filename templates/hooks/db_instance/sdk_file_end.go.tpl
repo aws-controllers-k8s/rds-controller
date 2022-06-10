@@ -1,7 +1,7 @@
 {{ $CRD := .CRD }}
 {{ $SDKAPI := .SDKAPI }}
 
-{{ range $operationName := MakeSlice "RestoreDBInstanceFromDBSnapshot" "CreateDBInstanceReadReplica" }}
+{{ range $operationName := Each "RestoreDBInstanceFromDBSnapshot" "CreateDBInstanceReadReplica" }}
 
 {{- $operation := (index $SDKAPI.API.Operations $operationName)}}
 
