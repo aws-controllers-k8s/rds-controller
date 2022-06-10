@@ -22,6 +22,7 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcfg "github.com/aws-controllers-k8s/runtime/pkg/config"
 	ackrt "github.com/aws-controllers-k8s/runtime/pkg/runtime"
+	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	ackrtutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	ackrtwebhook "github.com/aws-controllers-k8s/runtime/pkg/webhook"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
@@ -108,7 +109,7 @@ func main() {
 	)
 	sc := ackrt.NewServiceController(
 		awsServiceAlias, awsServiceAPIGroup, awsServiceEndpointsID,
-		ackrt.VersionInfo{
+		acktypes.VersionInfo{
 			version.GitCommit,
 			version.GitVersion,
 			version.BuildDate,

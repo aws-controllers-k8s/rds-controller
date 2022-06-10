@@ -27,19 +27,25 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackmetrics "github.com/aws-controllers-k8s/runtime/pkg/metrics"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	ackrt "github.com/aws-controllers-k8s/runtime/pkg/runtime"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	"github.com/aws/aws-sdk-go/aws/session"
+	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	svcsdkapi "github.com/aws/aws-sdk-go/service/rds/rdsiface"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
-	svcsdkapi "github.com/aws/aws-sdk-go/service/rds/rdsiface"
+	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
 var (
 	_ = ackutil.InStrings
+	_ = acktags.NewTags()
+	_ = ackrt.MissingImageTagValue
+	_ = svcapitypes.DBParameterGroup{}
 )
 
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbparametergroups,verbs=get;list;watch;create;update;patch;delete
@@ -257,6 +263,32 @@ func (rm *resourceManager) IsSynced(ctx context.Context, res acktypes.AWSResourc
 	}
 
 	return true, nil
+}
+
+// EnsureTags ensures that tags are present inside the AWSResource.
+// If the AWSResource does not have any existing resource tags, the 'tags'
+// field is initialized and the controller tags are added.
+// If the AWSResource has existing resource tags, then controller tags are
+// added to the existing resource tags without overriding them.
+// If the AWSResource does not support tags, only then the controller tags
+// will not be added to the AWSResource.
+func (rm *resourceManager) EnsureTags(
+	ctx context.Context,
+	res acktypes.AWSResource,
+	md acktypes.ServiceControllerMetadata,
+) error {
+	r := rm.concreteResource(res)
+	if r.ko == nil {
+		// Should never happen... if it does, it's buggy code.
+		panic("resource manager's EnsureTags method received resource with nil CR object")
+	}
+	defaultTags := ackrt.GetDefaultTags(&rm.cfg, r.ko, md)
+	var existingTags []*svcapitypes.Tag
+	existingTags = r.ko.Spec.Tags
+	resourceTags := ToACKTags(existingTags)
+	tags := acktags.Merge(resourceTags, defaultTags)
+	r.ko.Spec.Tags = FromACKTags(tags)
+	return nil
 }
 
 // newResourceManager returns a new struct implementing

@@ -25,6 +25,7 @@ from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e import condition
 from e2e import db_cluster_parameter_group
+from e2e import tag
 
 RESOURCE_PLURAL = 'dbclusterparametergroups'
 
@@ -72,7 +73,7 @@ class TestDBClusterParameterGroup:
             {"Key": "environment", "Value": "dev"}
         ]
         latest_tags = db_cluster_parameter_group.get_tags(arn)
-        assert expect_tags == latest_tags
+        assert expect_tags == tag.cleaned(latest_tags)
 
         # OK, now let's update the tag set and check that the tags are
         # updated accordingly.
@@ -95,7 +96,7 @@ class TestDBClusterParameterGroup:
                 "Value": "prod",
             }
         ]
-        assert latest_tags == after_update_expected_tags
+        assert after_update_expected_tags == tag.cleaned(latest_tags)
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)

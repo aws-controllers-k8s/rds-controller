@@ -25,6 +25,7 @@ from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
 from e2e import db_subnet_group
+from e2e import tag
 
 RESOURCE_PLURAL = 'dbsubnetgroups'
 
@@ -80,7 +81,7 @@ class TestDBSubnetGroup:
             {"Key": "environment", "Value": "dev"}
         ]
         latest_tags = db_subnet_group.get_tags(arn)
-        assert expect_tags == latest_tags
+        assert expect_tags == tag.cleaned(latest_tags)
 
         # OK, now let's update the tag set and check that the tags are
         # updated accordingly.
@@ -103,7 +104,7 @@ class TestDBSubnetGroup:
                 "Value": "prod",
             }
         ]
-        assert latest_tags == after_update_expected_tags
+        assert after_update_expected_tags == tag.cleaned(latest_tags)
 
         k8s.delete_custom_resource(ref)
 

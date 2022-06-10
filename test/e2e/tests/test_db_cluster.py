@@ -24,6 +24,7 @@ from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e import condition
 from e2e import db_cluster
+from e2e import tag
 from e2e.fixtures import k8s_secret
 
 RESOURCE_PLURAL = 'dbclusters'
@@ -144,7 +145,7 @@ class TestDBCluster:
             {"Key": "environment", "Value": "dev"}
         ]
         latest_tags = db_cluster.get_tags(arn)
-        assert expect_tags == latest_tags
+        assert expect_tags == tag.cleaned(latest_tags)
 
         # OK, now let's update the tag set and check that the tags are
         # updated accordingly.
@@ -167,7 +168,7 @@ class TestDBCluster:
                 "Value": "prod",
             }
         ]
-        assert latest_tags == after_update_expected_tags
+        assert after_update_expected_tags == tag.cleaned(latest_tags)
 
         k8s.delete_custom_resource(ref)
 
