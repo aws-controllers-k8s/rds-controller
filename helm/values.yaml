@@ -50,6 +50,13 @@ aws:
   # If specified, use the AWS region for AWS API calls
   region: ""
   endpoint_url: ""
+  credentials:
+    # If specified, Secret with shared credentials file to use.
+    secretName: ""
+    # Secret stringData key that contains the credentials
+    secretKey: "credentials"
+    # Profile used for AWS credentials
+    profile: "default"
 
 # log level for the controller
 log:
