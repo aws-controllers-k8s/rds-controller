@@ -113,7 +113,7 @@ spec:
       hostPID: false
       {{ if .Values.aws.credentials.secretName -}}
       volumes:
-          - name: {{ .Values.aws.credentials.secretName }}
-            secret:
-              secretName: {{ .Values.aws.credentials.secretName }}
+        - name: {{ .Values.aws.credentials.secretName }}
+          secret:
+            secretName: {{ .Values.aws.credentials.secretName }}
       {{ end -}}
