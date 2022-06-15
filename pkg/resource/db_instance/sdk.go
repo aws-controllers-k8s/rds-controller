@@ -2673,9 +2673,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	switch awsErr.Code() {
 	case "InvalidParameter",
 		"InvalidParameterValue",
-		"InvalidParameterCombination",
-		"DBSubnetGroupNotFoundFault",
-		"DBParameterGroupNotFound":
+		"InvalidParameterCombination":
 		return true
 	default:
 		return false
