@@ -89,6 +89,11 @@ func (rm *resourceManager) sdkFind(
 			tmpARN := ackv1alpha1.AWSResourceName(*elem.DBSubnetGroupArn)
 			ko.Status.ACKResourceMetadata.ARN = &tmpARN
 		}
+		if elem.DBSubnetGroupDescription != nil {
+			ko.Spec.Description = elem.DBSubnetGroupDescription
+		} else {
+			ko.Spec.Description = nil
+		}
 		if elem.DBSubnetGroupName != nil {
 			ko.Spec.Name = elem.DBSubnetGroupName
 		} else {
