@@ -91,7 +91,6 @@ resources:
       terminal_codes:
         - DBClusterQuotaExceededFault
         - DBSubnetGroupDoesNotCoverEnoughAZs
-        - DomainNotFoundFault
         - InsufficientStorageClusterCapacity
         - InvalidParameter
         - InvalidParameterValue
