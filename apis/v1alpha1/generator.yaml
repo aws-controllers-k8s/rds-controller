@@ -97,7 +97,6 @@ resources:
         - InvalidParameterValue
         - InvalidParameterCombination
         - InvalidSubnet
-        - KMSKeyNotAccessibleFault
         - StorageQuotaExceeded
     fields:
       DBClusterIdentifier:

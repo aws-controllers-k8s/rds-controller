@@ -1400,7 +1400,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"InvalidParameterValue",
 		"InvalidParameterCombination",
 		"InvalidSubnet",
-		"KMSKeyNotAccessibleFault",
 		"StorageQuotaExceeded":
 		return true
 	default:
