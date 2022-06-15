@@ -90,8 +90,6 @@ resources:
     exceptions:
       terminal_codes:
         - DBClusterQuotaExceededFault
-        - DBParameterGroupNotFound
-        - DBSubnetGroupNotFoundFault
         - DBSubnetGroupDoesNotCoverEnoughAZs
         - DomainNotFoundFault
         - InsufficientStorageClusterCapacity
@@ -166,8 +164,6 @@ resources:
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
-        - DBSubnetGroupNotFoundFault
-        - DBParameterGroupNotFound
     fields:
       AvailabilityZone:
         late_initialize: {}
