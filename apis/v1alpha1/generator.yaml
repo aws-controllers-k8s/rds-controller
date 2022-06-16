@@ -205,6 +205,7 @@ resources:
         DescribeDBParameterGroups:
           input_fields:
             DBParameterGroupName: Name
+            DBParameterGroupFamily: Family
         CreateDBParameterGroup:
           input_fields:
             DBParameterGroupName: Name
@@ -212,6 +213,10 @@ resources:
         DeleteDBParameterGroup:
           input_fields:
             DBParameterGroupName: Name
+        ModifyDBParameterGroup:
+          input_fields:
+            DBParameterGroupName: Name
+            DBParameterGroupFamily: Family
     update_operation:
       # We need a custom update implementation until the issue behind
       # https://github.com/aws-controllers-k8s/community/issues/869 is
@@ -235,6 +240,7 @@ resources:
         DescribeDBSubnetGroups:
           input_fields:
             DBSubnetGroupName: Name
+            DBSubnetGroupDescription: Description
         CreateDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
