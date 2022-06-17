@@ -66,7 +66,7 @@ spec:
         - name: ACK_LOG_LEVEL
           value: "info"
         - name: ACK_RESOURCE_TAGS
-          value: "services.k8s.aws/managed=true,services.k8s.aws/created=%UTCNOW%,services.k8s.aws/namespace=%KUBERNETES_NAMESPACE%"
+          value: "services.k8s.aws/controller-version=%CONTROLLER_SERVICE%-%CONTROLLER_VERSION%,services.k8s.aws/namespace=%K8S_NAMESPACE%"
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
