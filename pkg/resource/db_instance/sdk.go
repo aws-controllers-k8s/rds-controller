@@ -54,7 +54,9 @@ func (rm *resourceManager) sdkFind(
 ) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkFind")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. Return NotFound here to indicate to callers that the
 	// resource isn't yet created.
@@ -771,7 +773,9 @@ func (rm *resourceManager) sdkCreate(
 ) (created *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkCreate")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	// if request has DBSnapshotIdentifier spec, create request will call RestoreDBInstanceFromDBSnapshotWithContext
 	// instead of normal create api
 	if desired.ko.Spec.DBSnapshotIdentifier != nil {
@@ -1662,7 +1666,9 @@ func (rm *resourceManager) sdkUpdate(
 ) (updated *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkUpdate")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	if instanceDeleting(latest) {
 		msg := "DB instance is currently being deleted"
 		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
@@ -1696,6 +1702,21 @@ func (rm *resourceManager) sdkUpdate(
 	// from ModifyDBInstanceRequest
 	if !delta.DifferentAt("Spec.DBSubnetGroupName") {
 		input.DBSubnetGroupName = nil
+	}
+
+	// RDS will not compare diff value and accept any modify db call
+	// for below values, MonitoringInterval, CACertificateIdentifier
+	// and user master password
+	// hence if there is no delta between desired
+	// and latest, exclude it from ModifyDBInstanceRequest
+	if !delta.DifferentAt("Spec.MonitoringInterval") {
+		input.MonitoringInterval = nil
+	}
+	if !delta.DifferentAt("Spec.CACertificateIdentifier") {
+		input.CACertificateIdentifier = nil
+	}
+	if !delta.DifferentAt("Spec.MasterUserPassword.Name") {
+		input.MasterUserPassword = nil
 	}
 
 	var resp *svcsdk.ModifyDBInstanceOutput
@@ -2524,7 +2545,9 @@ func (rm *resourceManager) sdkDelete(
 ) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkDelete")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	if instanceDeleting(r) {
 		return r, requeueWaitWhileDeleting
 	}
@@ -2664,9 +2687,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	switch awsErr.Code() {
 	case "InvalidParameter",
 		"InvalidParameterValue",
-		"InvalidParameterCombination",
-		"DBSubnetGroupNotFoundFault",
-		"DBParameterGroupNotFound":
+		"InvalidParameterCombination":
 		return true
 	default:
 		return false

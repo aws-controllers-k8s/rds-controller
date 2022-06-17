@@ -90,16 +90,12 @@ resources:
     exceptions:
       terminal_codes:
         - DBClusterQuotaExceededFault
-        - DBParameterGroupNotFound
-        - DBSubnetGroupNotFoundFault
         - DBSubnetGroupDoesNotCoverEnoughAZs
-        - DomainNotFoundFault
         - InsufficientStorageClusterCapacity
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
         - InvalidSubnet
-        - KMSKeyNotAccessibleFault
         - StorageQuotaExceeded
     fields:
       DBClusterIdentifier:
@@ -166,8 +162,6 @@ resources:
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
-        - DBSubnetGroupNotFoundFault
-        - DBParameterGroupNotFound
     fields:
       AvailabilityZone:
         late_initialize: {}
@@ -234,12 +228,15 @@ resources:
     fields:
       GlobalClusterIdentifier:
         is_primary_key: true
+    tags:
+      ignore: true
   DBParameterGroup:
     renames:
       operations:
         DescribeDBParameterGroups:
           input_fields:
             DBParameterGroupName: Name
+            DBParameterGroupFamily: Family
         CreateDBParameterGroup:
           input_fields:
             DBParameterGroupName: Name
@@ -247,6 +244,10 @@ resources:
         DeleteDBParameterGroup:
           input_fields:
             DBParameterGroupName: Name
+        ModifyDBParameterGroup:
+          input_fields:
+            DBParameterGroupName: Name
+            DBParameterGroupFamily: Family
     update_operation:
       # We need a custom update implementation until the issue behind
       # https://github.com/aws-controllers-k8s/community/issues/869 is
@@ -270,6 +271,7 @@ resources:
         DescribeDBSubnetGroups:
           input_fields:
             DBSubnetGroupName: Name
+            DBSubnetGroupDescription: Description
         CreateDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name

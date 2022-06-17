@@ -36,3 +36,13 @@ If release name contains chart name it will be used as a full name.
 {{- .Release.Namespace -}}
 {{- end -}}
 {{- end -}}
+
+{{/* The mount path for the shared credentials file */}}
+{{- define "aws.credentials.secret_mount_path" -}}
+{{- "/var/run/secrets/aws" -}}
+{{- end -}}
+
+{{/* The path the shared credentials file is mounted */}}
+{{- define "aws.credentials.path" -}}
+{{- printf "%s/%s" (include "aws.credentials.secret_mount_path" .) .Values.aws.credentials.secretKey -}}
+{{- end -}}

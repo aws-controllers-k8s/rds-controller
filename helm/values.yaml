@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: v0.0.24
+  tag: v0.0.25
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -50,6 +50,13 @@ aws:
   # If specified, use the AWS region for AWS API calls
   region: ""
   endpoint_url: ""
+  credentials:
+    # If specified, Secret with shared credentials file to use.
+    secretName: ""
+    # Secret stringData key that contains the credentials
+    secretKey: "credentials"
+    # Profile used for AWS credentials
+    profile: "default"  
 
 # log level for the controller
 log:
@@ -64,9 +71,8 @@ installScope: cluster
 resourceTags:
   # Configures the ACK service controller to always set key/value pairs tags on
   # resources that it manages.
-  - services.k8s.aws/managed=true
-  - services.k8s.aws/created=%UTCNOW%
-  - services.k8s.aws/namespace=%KUBERNETES_NAMESPACE%
+  - services.k8s.aws/controller-version=%CONTROLLER_SERVICE%-%CONTROLLER_VERSION%
+  - services.k8s.aws/namespace=%K8S_NAMESPACE%
 
 serviceAccount:
   # Specifies whether a service account should be created
