@@ -54,6 +54,11 @@ func (rm *resourceManager) ResolveReferences(
 		err = resolveReferenceForKMSKeyID(ctx, apiReader, namespace, ko)
 	}
 
+	// If there was an error while resolving any reference, reset all the
+	// resolved values so that they do not get persisted inside etcd
+	if err != nil {
+		ko = rm.concreteResource(res).ko.DeepCopy()
+	}
 	if hasNonNilReferences(ko) {
 		return ackcondition.WithReferencesResolvedCondition(&resource{ko}, err)
 	}

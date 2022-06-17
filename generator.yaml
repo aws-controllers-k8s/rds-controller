@@ -199,6 +199,8 @@ resources:
     fields:
       GlobalClusterIdentifier:
         is_primary_key: true
+    tags:
+      ignore: true
   DBParameterGroup:
     renames:
       operations:
