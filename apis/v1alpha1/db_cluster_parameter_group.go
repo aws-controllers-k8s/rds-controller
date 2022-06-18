@@ -37,11 +37,19 @@ type DBClusterParameterGroupSpec struct {
 	//
 	// Aurora MySQL
 	//
-	// Example: aurora5.6, aurora-mysql5.7
+	// Example: aurora5.6, aurora-mysql5.7, aurora-mysql8.0
 	//
 	// Aurora PostgreSQL
 	//
 	// Example: aurora-postgresql9.6
+	//
+	// RDS for MySQL
+	//
+	// Example: mysql8.0
+	//
+	// RDS for PostgreSQL
+	//
+	// Example: postgres12
 	//
 	// To list all of the available parameter group families for a DB engine, use
 	// the following command:
@@ -61,16 +69,20 @@ type DBClusterParameterGroupSpec struct {
 	//
 	//    * aurora (for MySQL 5.6-compatible Aurora)
 	//
-	//    * aurora-mysql (for MySQL 5.7-compatible Aurora)
+	//    * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
 	//
 	//    * aurora-postgresql
+	//
+	//    * mysql
+	//
+	//    * postgres
 	// +kubebuilder:validation:Required
 	Family *string `json:"family"`
 	// The name of the DB cluster parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must match the name of an existing DB cluster parameter group.
+	//    * Must not match the name of an existing DB cluster parameter group.
 	//
 	// This value is stored as a lowercase string.
 	// +kubebuilder:validation:Required
