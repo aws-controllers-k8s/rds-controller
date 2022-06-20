@@ -55,7 +55,7 @@ func newResourceDelta(
 
 	// RDS will choose preferred engine minor version if only
 	// engine major version is provided and controler should not
-	// treat them as different, sunch as spec has 14, status has 14.1
+	// treat them as different, such as spec has 14, status has 14.1
 	// controller should treat them as same
 	reconcileEngineVersion(a, b)
 
