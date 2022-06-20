@@ -1744,7 +1744,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	// RDS will not compare diff value and accept any modify db call
 	// for below values, MonitoringInterval, CACertificateIdentifier
-	// and user master password
+	// and user master password, NetworkType
 	// hence if there is no delta between desired
 	// and latest, exclude it from ModifyDBInstanceRequest
 	if !delta.DifferentAt("Spec.MonitoringInterval") {
@@ -1755,6 +1755,9 @@ func (rm *resourceManager) sdkUpdate(
 	}
 	if !delta.DifferentAt("Spec.MasterUserPassword.Name") {
 		input.MasterUserPassword = nil
+	}
+	if !delta.DifferentAt("Spec.NetworkType") {
+		input.NetworkType = nil
 	}
 
 	var resp *svcsdk.ModifyDBInstanceOutput

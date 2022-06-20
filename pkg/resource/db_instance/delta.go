@@ -53,6 +53,12 @@ func newResourceDelta(
 		a.ko.Spec.AvailabilityZone = b.ko.Spec.AvailabilityZone
 	}
 
+	// RDS will choose preferred engine minor version if only
+	// engine major version is provided and controler should not
+	// treat them as different, such as spec has 14, status has 14.1
+	// controller should treat them as same
+	reconcileEngineVersion(a, b)
+
 	if ackcompare.HasNilDifference(a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage) {
 		delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)
 	} else if a.ko.Spec.AllocatedStorage != nil && b.ko.Spec.AllocatedStorage != nil {
