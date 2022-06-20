@@ -2388,6 +2388,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.EnablePerformanceInsights != nil {
+		in, out := &in.EnablePerformanceInsights, &out.EnablePerformanceInsights
+		*out = new(bool)
+		**out = **in
+	}
 	if in.Engine != nil {
 		in, out := &in.Engine, &out.Engine
 		*out = new(string)

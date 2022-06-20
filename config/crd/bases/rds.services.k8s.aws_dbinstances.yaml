@@ -303,6 +303,13 @@ spec:
                   Authentication for MySQL and PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
                   in the Amazon RDS User Guide."
                 type: boolean
+              enablePerformanceInsights:
+                description: "A value that indicates whether to enable Performance
+                  Insights for the read replica. \n For more information, see Using
+                  Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
+                  in the Amazon RDS User Guide. \n This setting doesn't apply to RDS
+                  Custom."
+                type: boolean
               engine:
                 description: "The name of the database engine to be used for this
                   instance. \n Not every database engine is available for every Amazon

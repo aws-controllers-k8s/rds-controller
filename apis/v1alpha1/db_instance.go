@@ -446,6 +446,14 @@ type DBInstanceSpec struct {
 	// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
 	// in the Amazon RDS User Guide.
 	EnableIAMDatabaseAuthentication *bool `json:"enableIAMDatabaseAuthentication,omitempty"`
+	// A value that indicates whether to enable Performance Insights for the read
+	// replica.
+	//
+	// For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
+	// in the Amazon RDS User Guide.
+	//
+	// This setting doesn't apply to RDS Custom.
+	EnablePerformanceInsights *bool `json:"enablePerformanceInsights,omitempty"`
 	// The name of the database engine to be used for this instance.
 	//
 	// Not every database engine is available for every Amazon Web Services Region.
