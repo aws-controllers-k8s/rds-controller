@@ -191,7 +191,6 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource. No need to return a requeue error here.
 		ackcondition.SetSynced(&resource{r.ko}, corev1.ConditionFalse, nil, nil)
-		return &resource{r.ko}, nil
 	}
 	return &resource{r.ko}, nil
 }
@@ -221,9 +220,9 @@ func (rm *resourceManager) createDBInstanceReadReplica(
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource. No need to return a requeue error here.
 		ackcondition.SetSynced(&resource{r.ko}, corev1.ConditionFalse, nil, nil)
-		return &resource{r.ko}, nil
 	}
 	return &resource{r.ko}, nil
+}
 
 // RDS will choose preferred engine minor version if only
 // engine major version is provided and controler should not

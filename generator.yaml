@@ -205,10 +205,6 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
-      EnablePerformanceInsights:
-        from:
-          operation: CreateDBInstanceReadReplica
-          path: EnablePerformanceInsights
     renames:
       operations:
         CreateDBInstance:

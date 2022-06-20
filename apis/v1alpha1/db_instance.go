@@ -446,14 +446,6 @@ type DBInstanceSpec struct {
 	// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
 	// in the Amazon RDS User Guide.
 	EnableIAMDatabaseAuthentication *bool `json:"enableIAMDatabaseAuthentication,omitempty"`
-	// A value that indicates whether to enable Performance Insights for the read
-	// replica.
-	//
-	// For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
-	// in the Amazon RDS User Guide.
-	//
-	// This setting doesn't apply to RDS Custom.
-	EnablePerformanceInsights *bool `json:"enablePerformanceInsights,omitempty"`
 	// The name of the database engine to be used for this instance.
 	//
 	// Not every database engine is available for every Amazon Web Services Region.
@@ -821,7 +813,7 @@ type DBInstanceSpec struct {
 	// Web Services Region.
 	//
 	// SourceRegion isn't supported for SQL Server, because SQL Server on Amazon
-	// RDS doesn't support cross-region read replicas.
+	// RDS doesn't support cross-Region read replicas.
 	//
 	// This setting doesn't apply to RDS Custom.
 	PreSignedURL *string `json:"preSignedURL,omitempty"`
@@ -949,7 +941,7 @@ type DBInstanceSpec struct {
 	//    in the Amazon RDS User Guide.
 	//
 	//    * Can specify a PostgreSQL DB instance only if the source is running PostgreSQL
-	//    9.3.5 or later (9.4.7 and higher for cross-region replication).
+	//    9.3.5 or later (9.4.7 and higher for cross-Region replication).
 	//
 	//    * The specified DB instance must have automatic backups enabled, that
 	//    is, its backup retention period must be greater than 0.
