@@ -53,6 +53,12 @@ func newResourceDelta(
 		a.ko.Spec.AvailabilityZone = b.ko.Spec.AvailabilityZone
 	}
 
+	// RDS will choose preferred engine minor version if only
+	// engine major version is provided and controler should not
+	// treat them as different, such as spec has 14, status has 14.1
+	// controller should treat them as same
+	reconcileEngineVersion(a, b)
+
 	if ackcompare.HasNilDifference(a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage) {
 		delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)
 	} else if a.ko.Spec.AllocatedStorage != nil && b.ko.Spec.AllocatedStorage != nil {
@@ -79,6 +85,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.BackupRetentionPeriod != nil && b.ko.Spec.BackupRetentionPeriod != nil {
 		if *a.ko.Spec.BackupRetentionPeriod != *b.ko.Spec.BackupRetentionPeriod {
 			delta.Add("Spec.BackupRetentionPeriod", a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget) {
+		delta.Add("Spec.BackupTarget", a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget)
+	} else if a.ko.Spec.BackupTarget != nil && b.ko.Spec.BackupTarget != nil {
+		if *a.ko.Spec.BackupTarget != *b.ko.Spec.BackupTarget {
+			delta.Add("Spec.BackupTarget", a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.CharacterSetName, b.ko.Spec.CharacterSetName) {
@@ -288,6 +301,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.NcharCharacterSetName != nil && b.ko.Spec.NcharCharacterSetName != nil {
 		if *a.ko.Spec.NcharCharacterSetName != *b.ko.Spec.NcharCharacterSetName {
 			delta.Add("Spec.NcharCharacterSetName", a.ko.Spec.NcharCharacterSetName, b.ko.Spec.NcharCharacterSetName)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.NetworkType, b.ko.Spec.NetworkType) {
+		delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
+	} else if a.ko.Spec.NetworkType != nil && b.ko.Spec.NetworkType != nil {
+		if *a.ko.Spec.NetworkType != *b.ko.Spec.NetworkType {
+			delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.OptionGroupName, b.ko.Spec.OptionGroupName) {

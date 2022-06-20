@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
@@ -223,4 +224,16 @@ func (rm *resourceManager) createDBInstanceReadReplica(
 		return &resource{r.ko}, nil
 	}
 	return &resource{r.ko}, nil
+
+// RDS will choose preferred engine minor version if only
+// engine major version is provided and controler should not
+// treat them as different, such as spec has 14, status has 14.1
+// controller should treat them as same
+func reconcileEngineVersion(
+	a *resource,
+	b *resource,
+) {
+	if a != nil && b != nil && strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) {
+		a.ko.Spec.EngineVersion = b.ko.Spec.EngineVersion
+	}
 }

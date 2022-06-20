@@ -53,7 +53,7 @@ type DBParameterGroupSpec struct {
 	//
 	//    * aurora (for MySQL 5.6-compatible Aurora)
 	//
-	//    * aurora-mysql (for MySQL 5.7-compatible Aurora)
+	//    * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
 	//
 	//    * aurora-postgresql
 	//
@@ -95,7 +95,7 @@ type DBParameterGroupSpec struct {
 	Name *string `json:"name"`
 	// An array of parameter names, values, and the application methods for the
 	// parameter update. At least one parameter name, value, and application method
-	// method must be supplied; later arguments are optional. A maximum of 20 parameters
+	// must be supplied; later arguments are optional. A maximum of 20 parameters
 	// can be modified in a single request.
 	//
 	// Valid Values (for the application method): immediate | pending-reboot
@@ -105,9 +105,17 @@ type DBParameterGroupSpec struct {
 	//
 	// When the application method is immediate, changes to dynamic parameters are
 	// applied immediately to the DB instances associated with the parameter group.
+	//
 	// When the application method is pending-reboot, changes to dynamic and static
 	// parameters are applied after a reboot without failover to the DB instances
 	// associated with the parameter group.
+	//
+	// You can't use pending-reboot with dynamic parameters on RDS for SQL Server
+	// DB instances. Use immediate.
+	//
+	// For more information on modifying DB parameters, see Working with DB parameter
+	// groups (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithParamGroups.html)
+	// in the Amazon RDS User Guide.
 	Parameters []*Parameter `json:"parameters,omitempty"`
 	// Tags to assign to the DB parameter group.
 	Tags []*Tag `json:"tags,omitempty"`
