@@ -201,7 +201,7 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: SourceRegion
-      PreSignedUrl:
+      PreSignedURL:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
