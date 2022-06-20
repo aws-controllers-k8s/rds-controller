@@ -15,6 +15,4 @@
     // engine major version is provided and controler should not
     // treat them as different, sunch as spec has 14, status has 14.1
     // controller should treat them as same
-    if a != nil && b != nil && strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) {
-        a.ko.Spec.EngineVersion = b.ko.Spec.EngineVersion
-    }
+    reconcileEngineVersion(a, b)
