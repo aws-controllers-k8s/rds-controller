@@ -205,19 +205,12 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
-      EnablePerformanceInsights:
-        from:
-          operation: CreateDBInstanceReadReplica
-          path: EnablePerformanceInsights
     renames:
       operations:
         CreateDBInstance:
           input_fields:
             EnablePerformanceInsights: PerformanceInsightsEnabled
         ModifyDBInstance:
-          input_fields:
-            EnablePerformanceInsights: PerformanceInsightsEnabled
-        CreateDBInstanceReadReplica:
           input_fields:
             EnablePerformanceInsights: PerformanceInsightsEnabled
   GlobalCluster:

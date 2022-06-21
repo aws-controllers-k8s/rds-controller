@@ -22,6 +22,7 @@ import (
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -195,6 +196,163 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 	return &resource{r.ko}, nil
 }
 
+// newCreateDBInstanceReadReplicaInput returns a CreateDBInstanceReadReplicaInput object
+// with each the field set by the corresponding configuration's fields.
+// We copy the function here because currently we don't have logic to rename param
+// that went through this call, espeically we want to use PerformanceInsightsEnabled instead of
+// EnablePerformanceInsights here
+// we will remove this part when code generator can have logic to add rename in newStructure()
+func newCreateDBInstanceReadReplicaInput(
+	r *resource,
+) *svcsdk.CreateDBInstanceReadReplicaInput {
+	res := &svcsdk.CreateDBInstanceReadReplicaInput{}
+
+	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
+		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+	}
+	if r.ko.Spec.AvailabilityZone != nil {
+		res.SetAvailabilityZone(*r.ko.Spec.AvailabilityZone)
+	}
+	if r.ko.Spec.CopyTagsToSnapshot != nil {
+		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+	}
+	if r.ko.Spec.CustomIAMInstanceProfile != nil {
+		res.SetCustomIamInstanceProfile(*r.ko.Spec.CustomIAMInstanceProfile)
+	}
+	if r.ko.Spec.DBInstanceClass != nil {
+		res.SetDBInstanceClass(*r.ko.Spec.DBInstanceClass)
+	}
+	if r.ko.Spec.DBInstanceIdentifier != nil {
+		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
+	}
+	if r.ko.Spec.DBParameterGroupName != nil {
+		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
+	}
+	if r.ko.Spec.DBSubnetGroupName != nil {
+		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+	}
+	if r.ko.Spec.DeletionProtection != nil {
+		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+	}
+	if r.ko.Spec.DestinationRegion != nil {
+		res.SetDestinationRegion(*r.ko.Spec.DestinationRegion)
+	}
+	if r.ko.Spec.Domain != nil {
+		res.SetDomain(*r.ko.Spec.Domain)
+	}
+	if r.ko.Spec.DomainIAMRoleName != nil {
+		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+	}
+	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
+		resf12 := []*string{}
+		for _, resf12iter := range r.ko.Spec.EnableCloudwatchLogsExports {
+			var resf12elem string
+			resf12elem = *resf12iter
+			resf12 = append(resf12, &resf12elem)
+		}
+		res.SetEnableCloudwatchLogsExports(resf12)
+	}
+	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
+		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+	}
+	if r.ko.Spec.PerformanceInsightsEnabled != nil {
+		res.SetEnablePerformanceInsights(*r.ko.Spec.PerformanceInsightsEnabled)
+	}
+	if r.ko.Spec.IOPS != nil {
+		res.SetIops(*r.ko.Spec.IOPS)
+	}
+	if r.ko.Spec.KMSKeyID != nil {
+		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+	}
+	if r.ko.Spec.MaxAllocatedStorage != nil {
+		res.SetMaxAllocatedStorage(*r.ko.Spec.MaxAllocatedStorage)
+	}
+	if r.ko.Spec.MonitoringInterval != nil {
+		res.SetMonitoringInterval(*r.ko.Spec.MonitoringInterval)
+	}
+	if r.ko.Spec.MonitoringRoleARN != nil {
+		res.SetMonitoringRoleArn(*r.ko.Spec.MonitoringRoleARN)
+	}
+	if r.ko.Spec.MultiAZ != nil {
+		res.SetMultiAZ(*r.ko.Spec.MultiAZ)
+	}
+	if r.ko.Spec.NetworkType != nil {
+		res.SetNetworkType(*r.ko.Spec.NetworkType)
+	}
+	if r.ko.Spec.OptionGroupName != nil {
+		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+	}
+	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+		res.SetPerformanceInsightsKMSKeyId(*r.ko.Spec.PerformanceInsightsKMSKeyID)
+	}
+	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+		res.SetPerformanceInsightsRetentionPeriod(*r.ko.Spec.PerformanceInsightsRetentionPeriod)
+	}
+	if r.ko.Spec.Port != nil {
+		res.SetPort(*r.ko.Spec.Port)
+	}
+	if r.ko.Spec.PreSignedURL != nil {
+		res.SetPreSignedUrl(*r.ko.Spec.PreSignedURL)
+	}
+	if r.ko.Spec.ProcessorFeatures != nil {
+		resf27 := []*svcsdk.ProcessorFeature{}
+		for _, resf27iter := range r.ko.Spec.ProcessorFeatures {
+			resf27elem := &svcsdk.ProcessorFeature{}
+			if resf27iter.Name != nil {
+				resf27elem.SetName(*resf27iter.Name)
+			}
+			if resf27iter.Value != nil {
+				resf27elem.SetValue(*resf27iter.Value)
+			}
+			resf27 = append(resf27, resf27elem)
+		}
+		res.SetProcessorFeatures(resf27)
+	}
+	if r.ko.Spec.PubliclyAccessible != nil {
+		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+	}
+	if r.ko.Spec.ReplicaMode != nil {
+		res.SetReplicaMode(*r.ko.Spec.ReplicaMode)
+	}
+	if r.ko.Spec.SourceDBInstanceIdentifier != nil {
+		res.SetSourceDBInstanceIdentifier(*r.ko.Spec.SourceDBInstanceIdentifier)
+	}
+	if r.ko.Spec.SourceRegion != nil {
+		res.SetSourceRegion(*r.ko.Spec.SourceRegion)
+	}
+	if r.ko.Spec.StorageType != nil {
+		res.SetStorageType(*r.ko.Spec.StorageType)
+	}
+	if r.ko.Spec.Tags != nil {
+		resf33 := []*svcsdk.Tag{}
+		for _, resf33iter := range r.ko.Spec.Tags {
+			resf33elem := &svcsdk.Tag{}
+			if resf33iter.Key != nil {
+				resf33elem.SetKey(*resf33iter.Key)
+			}
+			if resf33iter.Value != nil {
+				resf33elem.SetValue(*resf33iter.Value)
+			}
+			resf33 = append(resf33, resf33elem)
+		}
+		res.SetTags(resf33)
+	}
+	if r.ko.Spec.UseDefaultProcessorFeatures != nil {
+		res.SetUseDefaultProcessorFeatures(*r.ko.Spec.UseDefaultProcessorFeatures)
+	}
+	if r.ko.Spec.VPCSecurityGroupIDs != nil {
+		resf35 := []*string{}
+		for _, resf35iter := range r.ko.Spec.VPCSecurityGroupIDs {
+			var resf35elem string
+			resf35elem = *resf35iter
+			resf35 = append(resf35, &resf35elem)
+		}
+		res.SetVpcSecurityGroupIds(resf35)
+	}
+
+	return res
+}
+
 // function to create createDBInstanceReadReplica payload and call createDBInstanceReadReplica API
 func (rm *resourceManager) createDBInstanceReadReplica(
 	ctx context.Context,
@@ -204,7 +362,7 @@ func (rm *resourceManager) createDBInstanceReadReplica(
 	exit := rlog.Trace("rm.createDBInstanceReadReplica")
 	defer func(err error) { exit(err) }(err)
 
-	resp, respErr := rm.sdkapi.CreateDBInstanceReadReplicaWithContext(ctx, rm.newCreateDBInstanceReadReplicaInput(r))
+	resp, respErr := rm.sdkapi.CreateDBInstanceReadReplicaWithContext(ctx, newCreateDBInstanceReadReplicaInput(r))
 	rm.metrics.RecordAPICall("CREATE", "CreateDBInstanceReadReplica", respErr)
 	if respErr != nil {
 		return nil, respErr
@@ -232,7 +390,7 @@ func reconcileEngineVersion(
 	a *resource,
 	b *resource,
 ) {
-	if a != nil && b != nil && strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) {
+	if a != nil && b != nil && a.ko.Spec.EngineVersion != nil && b.ko.Spec.EngineVersion != nil && strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) {
 		a.ko.Spec.EngineVersion = b.ko.Spec.EngineVersion
 	}
 }
