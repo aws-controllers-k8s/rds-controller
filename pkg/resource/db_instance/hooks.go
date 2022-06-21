@@ -201,7 +201,7 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 // We copy the function here because currently we don't have logic to rename param
 // that went through this call, espeically we want to use PerformanceInsightsEnabled instead of
 // EnablePerformanceInsights here
-// we will remove this part when code generator can have logic to add rename in newStructure()
+// we will remove this part when code generator can have logic to add rename in `GoCodeSetSDKForStruct`
 func newCreateDBInstanceReadReplicaInput(
 	r *resource,
 ) *svcsdk.CreateDBInstanceReadReplicaInput {
