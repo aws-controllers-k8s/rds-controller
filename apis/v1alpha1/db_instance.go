@@ -370,6 +370,8 @@ type DBInstanceSpec struct {
 	// cluster can be deleted even when deletion protection is enabled for the DB
 	// cluster.
 	DeletionProtection *bool `json:"deletionProtection,omitempty"`
+	// DestinationRegion is used for presigning the request to a given region.
+	DestinationRegion *string `json:"destinationRegion,omitempty"`
 	// The Active Directory directory ID to create the DB instance in. Currently,
 	// only MySQL, Microsoft SQL Server, Oracle, and PostgreSQL DB instances can
 	// be created in an Active Directory Domain.
@@ -760,6 +762,61 @@ type DBInstanceSpec struct {
 	//
 	// Type: Integer
 	Port *int64 `json:"port,omitempty"`
+	// The URL that contains a Signature Version 4 signed request for the CreateDBInstanceReadReplica
+	// API action in the source Amazon Web Services Region that contains the source
+	// DB instance.
+	//
+	// You must specify this parameter when you create an encrypted read replica
+	// from another Amazon Web Services Region by using the Amazon RDS API. Don't
+	// specify PreSignedUrl when you are creating an encrypted read replica in the
+	// same Amazon Web Services Region.
+	//
+	// The presigned URL must be a valid request for the CreateDBInstanceReadReplica
+	// API action that can be executed in the source Amazon Web Services Region
+	// that contains the encrypted source DB instance. The presigned URL request
+	// must contain the following parameter values:
+	//
+	//    * DestinationRegion - The Amazon Web Services Region that the encrypted
+	//    read replica is created in. This Amazon Web Services Region is the same
+	//    one where the CreateDBInstanceReadReplica action is called that contains
+	//    this presigned URL. For example, if you create an encrypted DB instance
+	//    in the us-west-1 Amazon Web Services Region, from a source DB instance
+	//    in the us-east-2 Amazon Web Services Region, then you call the CreateDBInstanceReadReplica
+	//    action in the us-east-1 Amazon Web Services Region and provide a presigned
+	//    URL that contains a call to the CreateDBInstanceReadReplica action in
+	//    the us-west-2 Amazon Web Services Region. For this example, the DestinationRegion
+	//    in the presigned URL must be set to the us-east-1 Amazon Web Services
+	//    Region.
+	//
+	//    * KmsKeyId - The Amazon Web Services KMS key identifier for the key to
+	//    use to encrypt the read replica in the destination Amazon Web Services
+	//    Region. This is the same identifier for both the CreateDBInstanceReadReplica
+	//    action that is called in the destination Amazon Web Services Region, and
+	//    the action contained in the presigned URL.
+	//
+	//    * SourceDBInstanceIdentifier - The DB instance identifier for the encrypted
+	//    DB instance to be replicated. This identifier must be in the Amazon Resource
+	//    Name (ARN) format for the source Amazon Web Services Region. For example,
+	//    if you are creating an encrypted read replica from a DB instance in the
+	//    us-west-2 Amazon Web Services Region, then your SourceDBInstanceIdentifier
+	//    looks like the following example: arn:aws:rds:us-west-2:123456789012:instance:mysql-instance1-20161115.
+	//
+	// To learn how to generate a Signature Version 4 signed request, see Authenticating
+	// Requests: Using Query Parameters (Amazon Web Services Signature Version 4)
+	// (https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html)
+	// and Signature Version 4 Signing Process (https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html).
+	//
+	// If you are using an Amazon Web Services SDK tool or the CLI, you can specify
+	// SourceRegion (or --source-region for the CLI) instead of specifying PreSignedUrl
+	// manually. Specifying SourceRegion autogenerates a presigned URL that is a
+	// valid request for the operation that can be executed in the source Amazon
+	// Web Services Region.
+	//
+	// SourceRegion isn't supported for SQL Server, because SQL Server on Amazon
+	// RDS doesn't support cross-Region read replicas.
+	//
+	// This setting doesn't apply to RDS Custom.
+	PreSignedURL *string `json:"preSignedURL,omitempty"`
 	// The daily time range during which automated backups are created if automated
 	// backups are enabled, using the BackupRetentionPeriod parameter. The default
 	// is a 30-minute window selected at random from an 8-hour block of time for
@@ -845,6 +902,63 @@ type DBInstanceSpec struct {
 	//    * If the subnets are part of a VPC that has an internet gateway attached
 	//    to it, the DB instance is public.
 	PubliclyAccessible *bool `json:"publiclyAccessible,omitempty"`
+	// The open mode of the replica database: mounted or read-only.
+	//
+	// This parameter is only supported for Oracle DB instances.
+	//
+	// Mounted DB replicas are included in Oracle Database Enterprise Edition. The
+	// main use case for mounted replicas is cross-Region disaster recovery. The
+	// primary database doesn't use Active Data Guard to transmit information to
+	// the mounted replica. Because it doesn't accept user connections, a mounted
+	// replica can't serve a read-only workload.
+	//
+	// You can create a combination of mounted and read-only DB replicas for the
+	// same primary DB instance. For more information, see Working with Oracle Read
+	// Replicas for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html)
+	// in the Amazon RDS User Guide.
+	//
+	// For RDS Custom, you must specify this parameter and set it to mounted. The
+	// value won't be set by default. After replica creation, you can manage the
+	// open mode manually.
+	ReplicaMode *string `json:"replicaMode,omitempty"`
+	// The identifier of the DB instance that will act as the source for the read
+	// replica. Each DB instance can have up to five read replicas.
+	//
+	// Constraints:
+	//
+	//    * Must be the identifier of an existing MySQL, MariaDB, Oracle, PostgreSQL,
+	//    or SQL Server DB instance.
+	//
+	//    * Can specify a DB instance that is a MySQL read replica only if the source
+	//    is running MySQL 5.6 or later.
+	//
+	//    * For the limitations of Oracle read replicas, see Read Replica Limitations
+	//    with Oracle (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html)
+	//    in the Amazon RDS User Guide.
+	//
+	//    * For the limitations of SQL Server read replicas, see Read Replica Limitations
+	//    with Microsoft SQL Server (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.ReadReplicas.Limitations.html)
+	//    in the Amazon RDS User Guide.
+	//
+	//    * Can specify a PostgreSQL DB instance only if the source is running PostgreSQL
+	//    9.3.5 or later (9.4.7 and higher for cross-Region replication).
+	//
+	//    * The specified DB instance must have automatic backups enabled, that
+	//    is, its backup retention period must be greater than 0.
+	//
+	//    * If the source DB instance is in the same Amazon Web Services Region
+	//    as the read replica, specify a valid DB instance identifier.
+	//
+	//    * If the source DB instance is in a different Amazon Web Services Region
+	//    from the read replica, specify a valid DB instance ARN. For more information,
+	//    see Constructing an ARN for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.ARN.html#USER_Tagging.ARN.Constructing)
+	//    in the Amazon RDS User Guide. This doesn't apply to SQL Server or RDS
+	//    Custom, which don't support cross-Region replicas.
+	SourceDBInstanceIdentifier *string `json:"sourceDBInstanceIdentifier,omitempty"`
+	// SourceRegion is the source region where the resource exists. This is not
+	// sent over the wire and is only used for presigning. This value should always
+	// have the same region as the source ARN.
+	SourceRegion *string `json:"sourceRegion,omitempty"`
 	// A value that indicates whether the DB instance is encrypted. By default,
 	// it isn't encrypted.
 	//
@@ -1056,13 +1170,6 @@ type DBInstanceStatus struct {
 	// a read replica.
 	// +kubebuilder:validation:Optional
 	ReadReplicaSourceDBInstanceIdentifier *string `json:"readReplicaSourceDBInstanceIdentifier,omitempty"`
-	// The open mode of an Oracle read replica. The default is open-read-only. For
-	// more information, see Working with Oracle Read Replicas for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html)
-	// in the Amazon RDS User Guide.
-	//
-	// This attribute is only supported in RDS for Oracle.
-	// +kubebuilder:validation:Optional
-	ReplicaMode *string `json:"replicaMode,omitempty"`
 	// The number of minutes to pause the automation. When the time period ends,
 	// RDS Custom resumes full automation. The minimum value is 60 (default). The
 	// maximum value is 1,440.

@@ -105,9 +105,9 @@ func (rm *resourceManager) customUpdate(
 		ko.Status.ActivityStreamStatus = nil
 	}
 	if resp.DBCluster.AllocatedStorage != nil {
-		ko.Status.AllocatedStorage = resp.DBCluster.AllocatedStorage
+		ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
 	} else {
-		ko.Status.AllocatedStorage = nil
+		ko.Spec.AllocatedStorage = nil
 	}
 	if resp.DBCluster.AssociatedRoles != nil {
 		f5 := []*svcapitypes.DBClusterRole{}

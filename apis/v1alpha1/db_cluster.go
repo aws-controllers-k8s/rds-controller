@@ -627,12 +627,6 @@ type DBClusterStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// For all database engines except Amazon Aurora, AllocatedStorage specifies
-	// the allocated storage size in gibibytes (GiB). For Aurora, AllocatedStorage
-	// always returns 1, because Aurora DB cluster storage size isn't fixed, but
-	// instead automatically adjusts as needed.
-	// +kubebuilder:validation:Optional
-	AllocatedStorage *int64 `json:"allocatedStorage,omitempty"`
 	// All CRS managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
