@@ -1195,6 +1195,7 @@ type DBInstanceStatus struct {
 // DBInstance is the Schema for the DBInstances API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="STATUS",type=string,priority=0,JSONPath=`.status.dbInstanceStatus`
 type DBInstance struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
