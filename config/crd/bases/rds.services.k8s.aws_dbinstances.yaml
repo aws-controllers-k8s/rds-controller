@@ -16,7 +16,11 @@ spec:
     singular: dbinstance
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.dbInstanceStatus
+      name: STATUS
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: DBInstance is the Schema for the DBInstances API

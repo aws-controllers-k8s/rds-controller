@@ -53,51 +53,66 @@ MAX_WAIT_FOR_SYNCED_MINUTES = 20
 
 MODIFY_WAIT_AFTER_SECONDS = 60
 
+# MUP == Master user password...
+MUP_NS = "default"
+MUP_SEC_NAME_PREFIX = "dbinstancesecrets"
+MUP_SEC_KEY = "master_user_password"
+MUP_SEC_VAL = "secretpass123456"
+
+@pytest.fixture
+def postgres14_t3_micro_instance(k8s_secret):
+    db_instance_id = random_suffix_name("pg14-t3-micro", 20)
+    secret = k8s_secret(
+        MUP_NS,
+        random_suffix_name(MUP_SEC_NAME_PREFIX, 32),
+        MUP_SEC_KEY,
+        MUP_SEC_VAL,
+    )
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
+    replacements["DB_INSTANCE_ID"] = db_instance_id
+    replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
+    replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
+    replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
+    replacements["DB_SUBNET_GROUP_NAME"] = get_bootstrap_resources().DBSubnetGroupName
+
+    resource_data = load_rds_resource(
+        "db_instance_postgres14_t3_micro",
+        additional_replacements=replacements,
+    )
+
+    # Create the k8s resource
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        db_instance_id, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+
+    yield (ref, cr)
+
+    # Try to delete, if doesn't already exist
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        db_instance.wait_until_deleted(db_instance_id)
+    except:
+        pass
 
 @service_marker
 @pytest.mark.canary
-class TestDBInstance:
-
-    # MUP == Master user password...
-    MUP_NS = "default"
-    MUP_SEC_NAME = "dbinstancesecrets"
-    MUP_SEC_KEY = "master_user_password"
-    MUP_SEC_VAL = "secretpass123456"
-
+class TestDBInstance:  
     def test_crud_postgres14_t3_micro(
             self,
-            k8s_secret,
+            postgres14_t3_micro_instance,
     ):
-        db_instance_id = random_suffix_name("pg14-t3-micro", 20)
-        secret = k8s_secret(
-            self.MUP_NS,
-            self.MUP_SEC_NAME,
-            self.MUP_SEC_KEY,
-            self.MUP_SEC_VAL,
-        )
+        (ref, cr) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
 
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
-        replacements["DB_INSTANCE_ID"] = db_instance_id
-        replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
-        replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
-        replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
-        replacements["DB_SUBNET_GROUP_NAME"] = get_bootstrap_resources().DBSubnetGroupName
-
-        resource_data = load_rds_resource(
-            "db_instance_postgres14_t3_micro",
-            additional_replacements=replacements,
-        )
-
-        # Create the k8s resource
-        ref = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            db_instance_id, namespace="default",
-        )
-        k8s.create_custom_resource(ref, resource_data)
-        cr = k8s.wait_resource_consumed_by_controller(ref)
-
-        assert cr is not None
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
@@ -169,3 +184,52 @@ class TestDBInstance:
         time.sleep(DELETE_WAIT_AFTER_SECONDS)
 
         db_instance.wait_until_deleted(db_instance_id)
+
+    def test_enable_pi_postgres14_t3_micro(
+            self,
+            postgres14_t3_micro_instance,
+    ):
+        (ref, cr) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] == 'creating'
+        condition.assert_not_synced(ref)
+
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After the resource is synced, assert that DBInstanceStatus is available
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['MultiAZ'] is False
+
+        # We're now going to enable the PerformanceInsights, which should force 
+        # instance to change out of "available" status and temporarily make it
+        # not synced
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['PerformanceInsightsEnabled'] is False
+        updates = {
+            "spec": {"performanceInsightsEnabled": True},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        # Wait less time, so we can see it moving to ResourceSynced = False
+        time.sleep(5)
+
+        # Ensure the controller properly detects the status change
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "False", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # The resource should eventually come back into ResourceSynced = True
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After resource is synced again, assert that patches are reflected in the AWS resource
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['PerformanceInsightsEnabled'] is True
+
+        # TODO: Ensure that the server side defaults
+        # (PerformanceInsightsRetentionPeriod and PerformanceInsightsKMSKeyID)
+        # are also persisted back into the spec. This currently does not work

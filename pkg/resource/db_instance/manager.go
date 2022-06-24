@@ -51,7 +51,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AvailabilityZone"}
+var lateInitializeFieldNames = []string{"AvailabilityZone", "BackupTarget", "NetworkType"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -252,6 +252,12 @@ func (rm *resourceManager) incompleteLateInitialization(
 	if ko.Spec.AvailabilityZone == nil {
 		return true
 	}
+	if ko.Spec.BackupTarget == nil {
+		return true
+	}
+	if ko.Spec.NetworkType == nil {
+		return true
+	}
 	return false
 }
 
@@ -265,6 +271,12 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	latestKo := rm.concreteResource(latest).ko.DeepCopy()
 	if observedKo.Spec.AvailabilityZone != nil && latestKo.Spec.AvailabilityZone == nil {
 		latestKo.Spec.AvailabilityZone = observedKo.Spec.AvailabilityZone
+	}
+	if observedKo.Spec.BackupTarget != nil && latestKo.Spec.BackupTarget == nil {
+		latestKo.Spec.BackupTarget = observedKo.Spec.BackupTarget
+	}
+	if observedKo.Spec.NetworkType != nil && latestKo.Spec.NetworkType == nil {
+		latestKo.Spec.NetworkType = observedKo.Spec.NetworkType
 	}
 	return &resource{latestKo}
 }
