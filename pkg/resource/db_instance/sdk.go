@@ -18,6 +18,7 @@ package db_instance
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -25,6 +26,7 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
@@ -45,6 +47,8 @@ var (
 	_ = &ackerr.NotFound
 	_ = &ackcondition.NotManagedMessage
 	_ = &reflect.Value{}
+	_ = fmt.Sprintf("")
+	_ = &ackrequeue.NoRequeue{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -1591,7 +1595,7 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.MasterUserPassword != nil {
 		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
 		if err != nil {
-			return nil, err
+			return nil, ackrequeue.Needed(err)
 		}
 		if tmpSecret != "" {
 			res.SetMasterUserPassword(tmpSecret)
@@ -1711,6 +1715,10 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if immutableFieldChanges := rm.getImmutableFieldChanges(delta); len(immutableFieldChanges) > 0 {
+		msg := fmt.Sprintf("Immutable Spec fields have been modified: %s", strings.Join(immutableFieldChanges, ","))
+		return nil, ackerr.NewTerminalError(fmt.Errorf(msg))
+	}
 	if instanceDeleting(latest) {
 		msg := "DB instance is currently being deleted"
 		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
@@ -1771,7 +1779,6 @@ func (rm *resourceManager) sdkUpdate(
 	if err != nil {
 		return nil, err
 	}
-	desired = rm.handleImmutableFieldsChangedCondition(desired, delta)
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
@@ -2521,7 +2528,7 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.MasterUserPassword != nil {
 		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
 		if err != nil {
-			return nil, err
+			return nil, ackrequeue.Needed(err)
 		}
 		if tmpSecret != "" {
 			res.SetMasterUserPassword(tmpSecret)
@@ -2766,54 +2773,11 @@ func (rm *resourceManager) getImmutableFieldChanges(
 	delta *ackcompare.Delta,
 ) []string {
 	var fields []string
-	if delta.DifferentAt("AvailabilityZone") {
+	if delta.DifferentAt("Spec.AvailabilityZone") {
 		fields = append(fields, "AvailabilityZone")
 	}
 
 	return fields
-}
-
-// handleImmutableFieldsChangedCondition validates the immutable fields and set appropriate condition
-func (rm *resourceManager) handleImmutableFieldsChangedCondition(
-	r *resource,
-	delta *ackcompare.Delta,
-) *resource {
-
-	fields := rm.getImmutableFieldChanges(delta)
-	ko := r.ko.DeepCopy()
-	var advisoryCondition *ackv1alpha1.Condition = nil
-	for _, condition := range ko.Status.Conditions {
-		if condition.Type == ackv1alpha1.ConditionTypeAdvisory {
-			advisoryCondition = condition
-			break
-		}
-	}
-
-	// Remove the advisory condition if issue is no longer present
-	if len(fields) == 0 && advisoryCondition != nil {
-		var newConditions []*ackv1alpha1.Condition
-		for _, condition := range ko.Status.Conditions {
-			if condition.Type != ackv1alpha1.ConditionTypeAdvisory {
-				newConditions = append(newConditions, condition)
-			}
-		}
-		ko.Status.Conditions = newConditions
-	}
-
-	if len(fields) > 0 {
-		if advisoryCondition == nil {
-			advisoryCondition = &ackv1alpha1.Condition{
-				Type: ackv1alpha1.ConditionTypeAdvisory,
-			}
-			ko.Status.Conditions = append(ko.Status.Conditions, advisoryCondition)
-		}
-
-		advisoryCondition.Status = corev1.ConditionTrue
-		message := "Immutable Spec fields have been modified : " + strings.Join(fields, ",")
-		advisoryCondition.Message = &message
-	}
-
-	return &resource{ko}
 }
 
 // newRestoreDBInstanceFromDBSnapshotInput returns a RestoreDBInstanceFromDBSnapshotInput object

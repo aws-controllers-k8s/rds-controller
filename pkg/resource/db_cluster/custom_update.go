@@ -15,6 +15,7 @@ package db_cluster
 
 import (
 	"context"
+	"fmt"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -480,6 +481,18 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.ScalingConfigurationInfo = nil
 	}
+	if resp.DBCluster.ServerlessV2ScalingConfigurationInfo != nil {
+		f52 := &svcapitypes.ServerlessV2ScalingConfigurationInfo{}
+		if resp.DBCluster.ServerlessV2ScalingConfigurationInfo.MinCapacity != nil {
+			f52.MinCapacity = resp.DBCluster.ServerlessV2ScalingConfigurationInfo.MinCapacity
+		}
+		if resp.DBCluster.ServerlessV2ScalingConfigurationInfo.MaxCapacity != nil {
+			f52.MaxCapacity = resp.DBCluster.ServerlessV2ScalingConfigurationInfo.MaxCapacity
+		}
+		ko.Status.ServerlessV2ScalingConfigurationInfo = f52
+	} else {
+		ko.Status.ServerlessV2ScalingConfigurationInfo = nil
+	}
 	if resp.DBCluster.Status != nil {
 		ko.Status.Status = resp.DBCluster.Status
 	} else {
@@ -630,6 +643,14 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetVpcSecurityGroupIds(f23)
 	}
-
+	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
+		f23 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") {
+			f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+		}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
+			f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+		}
+	}
 	return res, nil
 }
