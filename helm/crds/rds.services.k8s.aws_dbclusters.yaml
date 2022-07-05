@@ -484,7 +484,7 @@ spec:
                   or DB cluster if this DB cluster is created as a read replica. \n
                   Valid for: Aurora DB clusters only"
                 type: string
-              scalingConfiguration:
+              scalingConfigurationInfo:
                 description: "For DB clusters in serverless DB engine mode, the scaling
                   properties of the DB cluster. \n Valid for: Aurora DB clusters only"
                 properties:
@@ -869,29 +869,6 @@ spec:
                   to other Aurora Replicas in the cluster, you can then reconnect
                   to the reader endpoint."
                 type: string
-              scalingConfigurationInfo:
-                description: "Shows the scaling configuration for an Aurora DB cluster
-                  in serverless DB engine mode. \n For more information, see Using
-                  Amazon Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html)
-                  in the Amazon Aurora User Guide."
-                properties:
-                  autoPause:
-                    type: boolean
-                  maxCapacity:
-                    format: int64
-                    type: integer
-                  minCapacity:
-                    format: int64
-                    type: integer
-                  secondsBeforeTimeout:
-                    format: int64
-                    type: integer
-                  secondsUntilAutoPause:
-                    format: int64
-                    type: integer
-                  timeoutAction:
-                    type: string
-                type: object
               status:
                 description: Specifies the current state of this DB cluster.
                 type: string

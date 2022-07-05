@@ -317,49 +317,49 @@ func newResourceDelta(
 			delta.Add("Spec.ReplicationSourceIdentifier", a.ko.Spec.ReplicationSourceIdentifier, b.ko.Spec.ReplicationSourceIdentifier)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration, b.ko.Spec.ScalingConfiguration) {
-		delta.Add("Spec.ScalingConfiguration", a.ko.Spec.ScalingConfiguration, b.ko.Spec.ScalingConfiguration)
-	} else if a.ko.Spec.ScalingConfiguration != nil && b.ko.Spec.ScalingConfiguration != nil {
-		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.AutoPause, b.ko.Spec.ScalingConfiguration.AutoPause) {
-			delta.Add("Spec.ScalingConfiguration.AutoPause", a.ko.Spec.ScalingConfiguration.AutoPause, b.ko.Spec.ScalingConfiguration.AutoPause)
-		} else if a.ko.Spec.ScalingConfiguration.AutoPause != nil && b.ko.Spec.ScalingConfiguration.AutoPause != nil {
-			if *a.ko.Spec.ScalingConfiguration.AutoPause != *b.ko.Spec.ScalingConfiguration.AutoPause {
-				delta.Add("Spec.ScalingConfiguration.AutoPause", a.ko.Spec.ScalingConfiguration.AutoPause, b.ko.Spec.ScalingConfiguration.AutoPause)
+	if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo, b.ko.Spec.ScalingConfigurationInfo) {
+		delta.Add("Spec.ScalingConfigurationInfo", a.ko.Spec.ScalingConfigurationInfo, b.ko.Spec.ScalingConfigurationInfo)
+	} else if a.ko.Spec.ScalingConfigurationInfo != nil && b.ko.Spec.ScalingConfigurationInfo != nil {
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo.AutoPause, b.ko.Spec.ScalingConfigurationInfo.AutoPause) {
+			delta.Add("Spec.ScalingConfigurationInfo.AutoPause", a.ko.Spec.ScalingConfigurationInfo.AutoPause, b.ko.Spec.ScalingConfigurationInfo.AutoPause)
+		} else if a.ko.Spec.ScalingConfigurationInfo.AutoPause != nil && b.ko.Spec.ScalingConfigurationInfo.AutoPause != nil {
+			if *a.ko.Spec.ScalingConfigurationInfo.AutoPause != *b.ko.Spec.ScalingConfigurationInfo.AutoPause {
+				delta.Add("Spec.ScalingConfigurationInfo.AutoPause", a.ko.Spec.ScalingConfigurationInfo.AutoPause, b.ko.Spec.ScalingConfigurationInfo.AutoPause)
 			}
 		}
-		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.MaxCapacity, b.ko.Spec.ScalingConfiguration.MaxCapacity) {
-			delta.Add("Spec.ScalingConfiguration.MaxCapacity", a.ko.Spec.ScalingConfiguration.MaxCapacity, b.ko.Spec.ScalingConfiguration.MaxCapacity)
-		} else if a.ko.Spec.ScalingConfiguration.MaxCapacity != nil && b.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
-			if *a.ko.Spec.ScalingConfiguration.MaxCapacity != *b.ko.Spec.ScalingConfiguration.MaxCapacity {
-				delta.Add("Spec.ScalingConfiguration.MaxCapacity", a.ko.Spec.ScalingConfiguration.MaxCapacity, b.ko.Spec.ScalingConfiguration.MaxCapacity)
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo.MaxCapacity, b.ko.Spec.ScalingConfigurationInfo.MaxCapacity) {
+			delta.Add("Spec.ScalingConfigurationInfo.MaxCapacity", a.ko.Spec.ScalingConfigurationInfo.MaxCapacity, b.ko.Spec.ScalingConfigurationInfo.MaxCapacity)
+		} else if a.ko.Spec.ScalingConfigurationInfo.MaxCapacity != nil && b.ko.Spec.ScalingConfigurationInfo.MaxCapacity != nil {
+			if *a.ko.Spec.ScalingConfigurationInfo.MaxCapacity != *b.ko.Spec.ScalingConfigurationInfo.MaxCapacity {
+				delta.Add("Spec.ScalingConfigurationInfo.MaxCapacity", a.ko.Spec.ScalingConfigurationInfo.MaxCapacity, b.ko.Spec.ScalingConfigurationInfo.MaxCapacity)
 			}
 		}
-		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.MinCapacity, b.ko.Spec.ScalingConfiguration.MinCapacity) {
-			delta.Add("Spec.ScalingConfiguration.MinCapacity", a.ko.Spec.ScalingConfiguration.MinCapacity, b.ko.Spec.ScalingConfiguration.MinCapacity)
-		} else if a.ko.Spec.ScalingConfiguration.MinCapacity != nil && b.ko.Spec.ScalingConfiguration.MinCapacity != nil {
-			if *a.ko.Spec.ScalingConfiguration.MinCapacity != *b.ko.Spec.ScalingConfiguration.MinCapacity {
-				delta.Add("Spec.ScalingConfiguration.MinCapacity", a.ko.Spec.ScalingConfiguration.MinCapacity, b.ko.Spec.ScalingConfiguration.MinCapacity)
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo.MinCapacity, b.ko.Spec.ScalingConfigurationInfo.MinCapacity) {
+			delta.Add("Spec.ScalingConfigurationInfo.MinCapacity", a.ko.Spec.ScalingConfigurationInfo.MinCapacity, b.ko.Spec.ScalingConfigurationInfo.MinCapacity)
+		} else if a.ko.Spec.ScalingConfigurationInfo.MinCapacity != nil && b.ko.Spec.ScalingConfigurationInfo.MinCapacity != nil {
+			if *a.ko.Spec.ScalingConfigurationInfo.MinCapacity != *b.ko.Spec.ScalingConfigurationInfo.MinCapacity {
+				delta.Add("Spec.ScalingConfigurationInfo.MinCapacity", a.ko.Spec.ScalingConfigurationInfo.MinCapacity, b.ko.Spec.ScalingConfigurationInfo.MinCapacity)
 			}
 		}
-		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout, b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout) {
-			delta.Add("Spec.ScalingConfiguration.SecondsBeforeTimeout", a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout, b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
-		} else if a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil && b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
-			if *a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != *b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout {
-				delta.Add("Spec.ScalingConfiguration.SecondsBeforeTimeout", a.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout, b.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout, b.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout) {
+			delta.Add("Spec.ScalingConfigurationInfo.SecondsBeforeTimeout", a.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout, b.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout)
+		} else if a.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout != nil && b.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
+			if *a.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout != *b.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout {
+				delta.Add("Spec.ScalingConfigurationInfo.SecondsBeforeTimeout", a.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout, b.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout)
 			}
 		}
-		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause) {
-			delta.Add("Spec.ScalingConfiguration.SecondsUntilAutoPause", a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
-		} else if a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil && b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
-			if *a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != *b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause {
-				delta.Add("Spec.ScalingConfiguration.SecondsUntilAutoPause", a.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause, b.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause) {
+			delta.Add("Spec.ScalingConfigurationInfo.SecondsUntilAutoPause", a.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause, b.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause)
+		} else if a.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause != nil && b.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
+			if *a.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause != *b.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause {
+				delta.Add("Spec.ScalingConfigurationInfo.SecondsUntilAutoPause", a.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause, b.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause)
 			}
 		}
-		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration.TimeoutAction, b.ko.Spec.ScalingConfiguration.TimeoutAction) {
-			delta.Add("Spec.ScalingConfiguration.TimeoutAction", a.ko.Spec.ScalingConfiguration.TimeoutAction, b.ko.Spec.ScalingConfiguration.TimeoutAction)
-		} else if a.ko.Spec.ScalingConfiguration.TimeoutAction != nil && b.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
-			if *a.ko.Spec.ScalingConfiguration.TimeoutAction != *b.ko.Spec.ScalingConfiguration.TimeoutAction {
-				delta.Add("Spec.ScalingConfiguration.TimeoutAction", a.ko.Spec.ScalingConfiguration.TimeoutAction, b.ko.Spec.ScalingConfiguration.TimeoutAction)
+		if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfigurationInfo.TimeoutAction, b.ko.Spec.ScalingConfigurationInfo.TimeoutAction) {
+			delta.Add("Spec.ScalingConfigurationInfo.TimeoutAction", a.ko.Spec.ScalingConfigurationInfo.TimeoutAction, b.ko.Spec.ScalingConfigurationInfo.TimeoutAction)
+		} else if a.ko.Spec.ScalingConfigurationInfo.TimeoutAction != nil && b.ko.Spec.ScalingConfigurationInfo.TimeoutAction != nil {
+			if *a.ko.Spec.ScalingConfigurationInfo.TimeoutAction != *b.ko.Spec.ScalingConfigurationInfo.TimeoutAction {
+				delta.Add("Spec.ScalingConfigurationInfo.TimeoutAction", a.ko.Spec.ScalingConfigurationInfo.TimeoutAction, b.ko.Spec.ScalingConfigurationInfo.TimeoutAction)
 			}
 		}
 	}

@@ -107,6 +107,14 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+    renames:
+      operations:
+        CreateDBCluster:
+          input_fields:
+            ScalingConfiguration: ScalingConfigurationInfo
+        ModifyDBCluster:
+          input_fields:
+            ScalingConfiguration: ScalingConfigurationInfo
   DBClusterParameterGroup:
     renames:
       operations:

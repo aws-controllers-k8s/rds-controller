@@ -587,7 +587,7 @@ type DBClusterSpec struct {
 	// DB cluster.
 	//
 	// Valid for: Aurora DB clusters only
-	ScalingConfiguration *ScalingConfiguration `json:"scalingConfiguration,omitempty"`
+	ScalingConfigurationInfo *ScalingConfiguration `json:"scalingConfigurationInfo,omitempty"`
 
 	ServerlessV2ScalingConfiguration *ServerlessV2ScalingConfiguration `json:"serverlessV2ScalingConfiguration,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
@@ -792,9 +792,6 @@ type DBClusterStatus struct {
 	// then reconnect to the reader endpoint.
 	// +kubebuilder:validation:Optional
 	ReaderEndpoint *string `json:"readerEndpoint,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	ScalingConfigurationInfo *ScalingConfigurationInfo `json:"scalingConfigurationInfo,omitempty"`
 	// Specifies the current state of this DB cluster.
 	// +kubebuilder:validation:Optional
 	Status *string `json:"status,omitempty"`

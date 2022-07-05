@@ -514,7 +514,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.ReplicationSourceIdentifier = nil
 		}
 		if elem.ScalingConfigurationInfo != nil {
-			f61 := &svcapitypes.ScalingConfigurationInfo{}
+			f61 := &svcapitypes.ScalingConfiguration{}
 			if elem.ScalingConfigurationInfo.AutoPause != nil {
 				f61.AutoPause = elem.ScalingConfigurationInfo.AutoPause
 			}
@@ -533,9 +533,9 @@ func (rm *resourceManager) sdkFind(
 			if elem.ScalingConfigurationInfo.TimeoutAction != nil {
 				f61.TimeoutAction = elem.ScalingConfigurationInfo.TimeoutAction
 			}
-			ko.Status.ScalingConfigurationInfo = f61
+			ko.Spec.ScalingConfigurationInfo = f61
 		} else {
-			ko.Status.ScalingConfigurationInfo = nil
+			ko.Spec.ScalingConfigurationInfo = nil
 		}
 		if elem.ServerlessV2ScalingConfiguration != nil {
 			f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
@@ -1100,7 +1100,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.ReplicationSourceIdentifier = nil
 	}
 	if resp.DBCluster.ScalingConfigurationInfo != nil {
-		f61 := &svcapitypes.ScalingConfigurationInfo{}
+		f61 := &svcapitypes.ScalingConfiguration{}
 		if resp.DBCluster.ScalingConfigurationInfo.AutoPause != nil {
 			f61.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
 		}
@@ -1119,9 +1119,9 @@ func (rm *resourceManager) sdkCreate(
 		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
 			f61.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
 		}
-		ko.Status.ScalingConfigurationInfo = f61
+		ko.Spec.ScalingConfigurationInfo = f61
 	} else {
-		ko.Status.ScalingConfigurationInfo = nil
+		ko.Spec.ScalingConfigurationInfo = nil
 	}
 	if resp.DBCluster.ServerlessV2ScalingConfiguration != nil {
 		f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
@@ -1343,25 +1343,25 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.ReplicationSourceIdentifier != nil {
 		res.SetReplicationSourceIdentifier(*r.ko.Spec.ReplicationSourceIdentifier)
 	}
-	if r.ko.Spec.ScalingConfiguration != nil {
+	if r.ko.Spec.ScalingConfigurationInfo != nil {
 		f40 := &svcsdk.ScalingConfiguration{}
-		if r.ko.Spec.ScalingConfiguration.AutoPause != nil {
-			f40.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+		if r.ko.Spec.ScalingConfigurationInfo.AutoPause != nil {
+			f40.SetAutoPause(*r.ko.Spec.ScalingConfigurationInfo.AutoPause)
 		}
-		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
-			f40.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+		if r.ko.Spec.ScalingConfigurationInfo.MaxCapacity != nil {
+			f40.SetMaxCapacity(*r.ko.Spec.ScalingConfigurationInfo.MaxCapacity)
 		}
-		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil {
-			f40.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+		if r.ko.Spec.ScalingConfigurationInfo.MinCapacity != nil {
+			f40.SetMinCapacity(*r.ko.Spec.ScalingConfigurationInfo.MinCapacity)
 		}
-		if r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
-			f40.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+		if r.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
+			f40.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfigurationInfo.SecondsBeforeTimeout)
 		}
-		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
-			f40.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+		if r.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
+			f40.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause)
 		}
-		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
-			f40.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+		if r.ko.Spec.ScalingConfigurationInfo.TimeoutAction != nil {
+			f40.SetTimeoutAction(*r.ko.Spec.ScalingConfigurationInfo.TimeoutAction)
 		}
 		res.SetScalingConfiguration(f40)
 	}
