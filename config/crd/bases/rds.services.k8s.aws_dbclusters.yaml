@@ -484,7 +484,7 @@ spec:
                   or DB cluster if this DB cluster is created as a read replica. \n
                   Valid for: Aurora DB clusters only"
                 type: string
-              scalingConfigurationInfo:
+              scalingConfiguration:
                 description: "For DB clusters in serverless DB engine mode, the scaling
                   properties of the DB cluster. \n Valid for: Aurora DB clusters only"
                 properties:

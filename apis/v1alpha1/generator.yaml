@@ -110,11 +110,11 @@ resources:
     renames:
       operations:
         CreateDBCluster:
-          input_fields:
-            ScalingConfiguration: ScalingConfigurationInfo
+          output_fields:
+            ScalingConfigurationInfo: ScalingConfiguration
         ModifyDBCluster:
-          input_fields:
-            ScalingConfiguration: ScalingConfigurationInfo
+          output_fields:
+            ScalingConfigurationInfo: ScalingConfiguration
   DBClusterParameterGroup:
     renames:
       operations:

@@ -580,22 +580,22 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 	if r.ko.Spec.PreferredMaintenanceWindow != nil && delta.DifferentAt("Spec.PreferredMaintenanceWindow") {
 		res.SetPreferredMaintenanceWindow(*r.ko.Spec.PreferredMaintenanceWindow)
 	}
-	if r.ko.Spec.ScalingConfigurationInfo != nil && delta.DifferentAt("Spec.ScalingConfigurationInfo") {
+	if r.ko.Spec.ScalingConfiguration != nil && delta.DifferentAt("Spec.ScalingConfiguration") {
 		f22 := &svcsdk.ScalingConfiguration{}
-		if r.ko.Spec.ScalingConfigurationInfo.AutoPause != nil && delta.DifferentAt("Spec.ScalingConfigurationInfo.AutoPause") {
-			f22.SetAutoPause(*r.ko.Spec.ScalingConfigurationInfo.AutoPause)
+		if r.ko.Spec.ScalingConfiguration.AutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.AutoPause") {
+			f22.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
 		}
-		if r.ko.Spec.ScalingConfigurationInfo.MaxCapacity != nil && delta.DifferentAt("Spec.ScalingConfigurationInfo.MaxCapacity") {
-			f22.SetMaxCapacity(*r.ko.Spec.ScalingConfigurationInfo.MaxCapacity)
+		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MaxCapacity") {
+			f22.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
 		}
-		if r.ko.Spec.ScalingConfigurationInfo.MinCapacity != nil && delta.DifferentAt("Spec.ScalingConfigurationInfo.MinCapacity") {
-			f22.SetMinCapacity(*r.ko.Spec.ScalingConfigurationInfo.MinCapacity)
+		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MinCapacity") {
+			f22.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
 		}
-		if r.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause != nil && delta.DifferentAt("Spec.ScalingConfigurationInfo.SecondsUntilAutoPause") {
-			f22.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfigurationInfo.SecondsUntilAutoPause)
+		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.SecondsUntilAutoPause") {
+			f22.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
 		}
-		if r.ko.Spec.ScalingConfigurationInfo.TimeoutAction != nil && delta.DifferentAt("Spec.ScalingConfigurationInfo.TimeoutAction") {
-			f22.SetTimeoutAction(*r.ko.Spec.ScalingConfigurationInfo.TimeoutAction)
+		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil && delta.DifferentAt("Spec.ScalingConfiguration.TimeoutAction") {
+			f22.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
 		}
 		res.SetScalingConfiguration(f22)
 	}
@@ -608,16 +608,18 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetVpcSecurityGroupIds(f23)
 	}
-        // For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to be modified
+	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to be modified
 	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
 		f23 := &svcsdk.ServerlessV2ScalingConfiguration{}
-                if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil && r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
-                        if delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") || delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
-                                f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
-                                f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
-                        }
-                }
-                res.SetServerlessV2ScalingConfiguration(f23)
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") {
+			f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+		}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
+			f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+		}
+		res.SetServerlessV2ScalingConfiguration(f23)
 	}
 	return res, nil
 }

@@ -1139,8 +1139,8 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.ScalingConfigurationInfo != nil {
-		in, out := &in.ScalingConfigurationInfo, &out.ScalingConfigurationInfo
+	if in.ScalingConfiguration != nil {
+		in, out := &in.ScalingConfiguration, &out.ScalingConfiguration
 		*out = new(ScalingConfiguration)
 		(*in).DeepCopyInto(*out)
 	}

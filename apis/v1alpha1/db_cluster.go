@@ -587,7 +587,7 @@ type DBClusterSpec struct {
 	// DB cluster.
 	//
 	// Valid for: Aurora DB clusters only
-	ScalingConfigurationInfo *ScalingConfiguration `json:"scalingConfigurationInfo,omitempty"`
+	ScalingConfiguration *ScalingConfiguration `json:"scalingConfiguration,omitempty"`
 
 	ServerlessV2ScalingConfiguration *ServerlessV2ScalingConfiguration `json:"serverlessV2ScalingConfiguration,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
