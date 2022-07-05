@@ -608,14 +608,14 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetVpcSecurityGroupIds(f23)
 	}
-	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to be modified
+	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to get ServerlessV2ScalingConfiguration modified
 	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
 		f23 := &svcsdk.ServerlessV2ScalingConfiguration{}
-		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") {
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil && r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") {
 			f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
 			f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
 		}
-		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil && r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
 			f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
 			f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
 		}
