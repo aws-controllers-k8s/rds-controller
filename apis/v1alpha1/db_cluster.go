@@ -792,9 +792,6 @@ type DBClusterStatus struct {
 	// then reconnect to the reader endpoint.
 	// +kubebuilder:validation:Optional
 	ReaderEndpoint *string `json:"readerEndpoint,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	ScalingConfigurationInfo *ScalingConfigurationInfo `json:"scalingConfigurationInfo,omitempty"`
 	// Specifies the current state of this DB cluster.
 	// +kubebuilder:validation:Optional
 	Status *string `json:"status,omitempty"`

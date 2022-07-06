@@ -62,7 +62,6 @@ func (rm *resourceManager) customUpdate(
 		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
 	}
-
 	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
@@ -459,27 +458,6 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Spec.ReplicationSourceIdentifier = nil
 	}
-	if resp.DBCluster.ScalingConfigurationInfo != nil {
-		f51 := &svcapitypes.ScalingConfigurationInfo{}
-		if resp.DBCluster.ScalingConfigurationInfo.AutoPause != nil {
-			f51.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
-		}
-		if resp.DBCluster.ScalingConfigurationInfo.MaxCapacity != nil {
-			f51.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
-		}
-		if resp.DBCluster.ScalingConfigurationInfo.MinCapacity != nil {
-			f51.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
-		}
-		if resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-			f51.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
-		}
-		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
-			f51.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
-		}
-		ko.Status.ScalingConfigurationInfo = f51
-	} else {
-		ko.Status.ScalingConfigurationInfo = nil
-	}
 	if resp.DBCluster.Status != nil {
 		ko.Status.Status = resp.DBCluster.Status
 	} else {
@@ -630,6 +608,18 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetVpcSecurityGroupIds(f23)
 	}
-
+	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to get ServerlessV2ScalingConfiguration modified
+	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
+		f23 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		if delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") || delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
+			if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+				f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			}
+			if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+				f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+			}
+		}
+		res.SetServerlessV2ScalingConfiguration(f23)
+	}
 	return res, nil
 }

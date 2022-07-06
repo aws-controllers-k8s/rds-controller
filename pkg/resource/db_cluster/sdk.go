@@ -18,6 +18,7 @@ package db_cluster
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -25,6 +26,7 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
@@ -45,6 +47,8 @@ var (
 	_ = &ackerr.NotFound
 	_ = &ackcondition.NotManagedMessage
 	_ = &reflect.Value{}
+	_ = fmt.Sprintf("")
+	_ = &ackrequeue.NoRequeue{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -508,30 +512,6 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.ReplicationSourceIdentifier = elem.ReplicationSourceIdentifier
 		} else {
 			ko.Spec.ReplicationSourceIdentifier = nil
-		}
-		if elem.ScalingConfigurationInfo != nil {
-			f61 := &svcapitypes.ScalingConfigurationInfo{}
-			if elem.ScalingConfigurationInfo.AutoPause != nil {
-				f61.AutoPause = elem.ScalingConfigurationInfo.AutoPause
-			}
-			if elem.ScalingConfigurationInfo.MaxCapacity != nil {
-				f61.MaxCapacity = elem.ScalingConfigurationInfo.MaxCapacity
-			}
-			if elem.ScalingConfigurationInfo.MinCapacity != nil {
-				f61.MinCapacity = elem.ScalingConfigurationInfo.MinCapacity
-			}
-			if elem.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
-				f61.SecondsBeforeTimeout = elem.ScalingConfigurationInfo.SecondsBeforeTimeout
-			}
-			if elem.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-				f61.SecondsUntilAutoPause = elem.ScalingConfigurationInfo.SecondsUntilAutoPause
-			}
-			if elem.ScalingConfigurationInfo.TimeoutAction != nil {
-				f61.TimeoutAction = elem.ScalingConfigurationInfo.TimeoutAction
-			}
-			ko.Status.ScalingConfigurationInfo = f61
-		} else {
-			ko.Status.ScalingConfigurationInfo = nil
 		}
 		if elem.ServerlessV2ScalingConfiguration != nil {
 			f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
@@ -1096,7 +1076,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.ReplicationSourceIdentifier = nil
 	}
 	if resp.DBCluster.ScalingConfigurationInfo != nil {
-		f61 := &svcapitypes.ScalingConfigurationInfo{}
+		f61 := &svcapitypes.ScalingConfiguration{}
 		if resp.DBCluster.ScalingConfigurationInfo.AutoPause != nil {
 			f61.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
 		}
@@ -1115,9 +1095,9 @@ func (rm *resourceManager) sdkCreate(
 		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
 			f61.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
 		}
-		ko.Status.ScalingConfigurationInfo = f61
+		ko.Spec.ScalingConfiguration = f61
 	} else {
-		ko.Status.ScalingConfigurationInfo = nil
+		ko.Spec.ScalingConfiguration = nil
 	}
 	if resp.DBCluster.ServerlessV2ScalingConfiguration != nil {
 		f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
@@ -1297,7 +1277,7 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.MasterUserPassword != nil {
 		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
 		if err != nil {
-			return nil, err
+			return nil, ackrequeue.Needed(err)
 		}
 		if tmpSecret != "" {
 			res.SetMasterUserPassword(tmpSecret)
