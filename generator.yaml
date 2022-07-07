@@ -107,6 +107,19 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      DBClusterParameterGroupName:
+        reference:
+          resource: DBClusterParameterGroup
+          path: Spec.Name
+      DBSubnetGroupName:
+        reference:
+          resource: DBSubnetGroup
+          path: Spec.Name
+      VpcSecurityGroupIds:
+        reference:
+          resource: SecurityGroup
+          service_name: ec2
+          path: Status.ID
     renames:
       operations:
         CreateDBCluster:
@@ -186,6 +199,19 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      DBParameterGroupName:
+        reference:
+          resource: DBParameterGroup
+          path: Spec.Name
+      DBSubnetGroupName:
+        reference:
+          resource: DBSubnetGroup
+          path: Spec.Name
+      VpcSecurityGroupIds:
+        reference:
+          resource: SecurityGroup
+          service_name: ec2
+          path: Status.ID
       BackupTarget:
         late_initialize: {}
       NetworkType:
