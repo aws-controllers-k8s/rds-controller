@@ -341,7 +341,8 @@ type DBInstanceSpec struct {
 	//    * First character must be a letter
 	//
 	//    * Can't end with a hyphen or contain two consecutive hyphens
-	DBParameterGroupName *string `json:"dbParameterGroupName,omitempty"`
+	DBParameterGroupName *string                                  `json:"dbParameterGroupName,omitempty"`
+	DBParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbParameterGroupRef,omitempty"`
 	// The identifier for the DB snapshot to restore from.
 	//
 	// Constraints:
@@ -357,7 +358,8 @@ type DBInstanceSpec struct {
 	// default.
 	//
 	// Example: mydbsubnetgroup
-	DBSubnetGroupName *string `json:"dbSubnetGroupName,omitempty"`
+	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
+	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
 	// A value that indicates whether the DB instance has deletion protection enabled.
 	// The database can't be deleted when deletion protection is enabled. By default,
 	// deletion protection isn't enabled. For more information, see Deleting a DB
@@ -1004,7 +1006,8 @@ type DBInstanceSpec struct {
 	// by the DB cluster.
 	//
 	// Default: The default EC2 VPC security group for the DB subnet group's VPC.
-	VPCSecurityGroupIDs []*string `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSecurityGroupIDs  []*string                                  `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSecurityGroupRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"vpcSecurityGroupRefs,omitempty"`
 }
 
 // DBInstanceStatus defines the observed state of DBInstance

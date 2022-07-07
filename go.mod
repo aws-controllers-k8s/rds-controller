@@ -3,6 +3,7 @@ module github.com/aws-controllers-k8s/rds-controller
 go 1.17
 
 require (
+	github.com/aws-controllers-k8s/ec2-controller v0.0.16
 	github.com/aws-controllers-k8s/kms-controller v0.0.15
 	github.com/aws-controllers-k8s/runtime v0.19.2
 	github.com/aws/aws-sdk-go v1.44.27

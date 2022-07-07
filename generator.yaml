@@ -108,15 +108,15 @@ resources:
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
       DBClusterParameterGroupName:
-        reference:
+        references:
           resource: DBClusterParameterGroup
           path: Spec.Name
       DBSubnetGroupName:
-        reference:
+        references:
           resource: DBSubnetGroup
           path: Spec.Name
       VpcSecurityGroupIds:
-        reference:
+        references:
           resource: SecurityGroup
           service_name: ec2
           path: Status.ID
@@ -200,15 +200,15 @@ resources:
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
       DBParameterGroupName:
-        reference:
+        references:
           resource: DBParameterGroup
           path: Spec.Name
       DBSubnetGroupName:
-        reference:
+        references:
           resource: DBSubnetGroup
           path: Spec.Name
       VpcSecurityGroupIds:
-        reference:
+        references:
           resource: SecurityGroup
           service_name: ec2
           path: Status.ID

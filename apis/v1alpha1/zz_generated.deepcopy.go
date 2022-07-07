@@ -978,10 +978,20 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DBClusterParameterGroupRef != nil {
+		in, out := &in.DBClusterParameterGroupRef, &out.DBClusterParameterGroupRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.DBSubnetGroupName != nil {
 		in, out := &in.DBSubnetGroupName, &out.DBSubnetGroupName
 		*out = new(string)
 		**out = **in
+	}
+	if in.DBSubnetGroupRef != nil {
+		in, out := &in.DBSubnetGroupRef, &out.DBSubnetGroupRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.DatabaseName != nil {
 		in, out := &in.DatabaseName, &out.DatabaseName
@@ -1183,6 +1193,17 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 				in, out := &(*in)[i], &(*out)[i]
 				*out = new(string)
 				**out = **in
+			}
+		}
+	}
+	if in.VPCSecurityGroupRefs != nil {
+		in, out := &in.VPCSecurityGroupRefs, &out.VPCSecurityGroupRefs
+		*out = make([]*corev1alpha1.AWSResourceReferenceWrapper, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+				(*in).DeepCopyInto(*out)
 			}
 		}
 	}
@@ -2332,6 +2353,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DBParameterGroupRef != nil {
+		in, out := &in.DBParameterGroupRef, &out.DBParameterGroupRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.DBSnapshotIdentifier != nil {
 		in, out := &in.DBSnapshotIdentifier, &out.DBSnapshotIdentifier
 		*out = new(string)
@@ -2341,6 +2367,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		in, out := &in.DBSubnetGroupName, &out.DBSubnetGroupName
 		*out = new(string)
 		**out = **in
+	}
+	if in.DBSubnetGroupRef != nil {
+		in, out := &in.DBSubnetGroupRef, &out.DBSubnetGroupRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.DeletionProtection != nil {
 		in, out := &in.DeletionProtection, &out.DeletionProtection
@@ -2578,6 +2609,17 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 				in, out := &(*in)[i], &(*out)[i]
 				*out = new(string)
 				**out = **in
+			}
+		}
+	}
+	if in.VPCSecurityGroupRefs != nil {
+		in, out := &in.VPCSecurityGroupRefs, &out.VPCSecurityGroupRefs
+		*out = make([]*corev1alpha1.AWSResourceReferenceWrapper, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+				(*in).DeepCopyInto(*out)
 			}
 		}
 	}

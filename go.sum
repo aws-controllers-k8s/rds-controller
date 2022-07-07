@@ -64,6 +64,8 @@ github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hC
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
+github.com/aws-controllers-k8s/ec2-controller v0.0.16 h1:KCNeGks9WzMTf9QquV1qwBkhXCjgq1vfI8wSP/w6EoE=
+github.com/aws-controllers-k8s/ec2-controller v0.0.16/go.mod h1:ib1x1axY932YylqbnW8f4ltz7NNqCt38KoVZ6gwNWxw=
 github.com/aws-controllers-k8s/kms-controller v0.0.15 h1:v9LLAE2Q517CvlP80EgXNq2juGCTLUfpn1OjBGY+n8Y=
 github.com/aws-controllers-k8s/kms-controller v0.0.15/go.mod h1:EbxvdZDS2n3JCMmhfjhavSutzt/9J0jXSvGj2bufS68=
 github.com/aws-controllers-k8s/runtime v0.18.4/go.mod h1:oA8ML1/LL3chPn26P6SzBNu1CUI2nekB+PTqykNs0qU=

@@ -130,6 +130,20 @@ spec:
                   of an existing DB cluster parameter    group. \n Valid for: Aurora
                   DB clusters and Multi-AZ DB clusters"
                 type: string
+              dbClusterParameterGroupRef:
+                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference type to provide more user friendly syntax
+                  for references using ''from'' field Ex: APIIDRef:   from:     name:
+                  my-api'
+                properties:
+                  from:
+                    description: AWSResourceReference provides all the values necessary
+                      to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                type: object
               dbSubnetGroupName:
                 description: "A DB subnet group to associate with this DB cluster.
                   \n This setting is required to create a Multi-AZ DB cluster. \n
@@ -137,6 +151,20 @@ spec:
                   not be default. \n Example: mydbsubnetgroup \n Valid for: Aurora
                   DB clusters and Multi-AZ DB clusters"
                 type: string
+              dbSubnetGroupRef:
+                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference type to provide more user friendly syntax
+                  for references using ''from'' field Ex: APIIDRef:   from:     name:
+                  my-api'
+                properties:
+                  from:
+                    description: AWSResourceReference provides all the values necessary
+                      to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                type: object
               deletionProtection:
                 description: "A value that indicates whether the DB cluster has deletion
                   protection enabled. The database can't be deleted when deletion
@@ -551,6 +579,22 @@ spec:
                   clusters"
                 items:
                   type: string
+                type: array
+              vpcSecurityGroupRefs:
+                items:
+                  description: 'AWSResourceReferenceWrapper provides a wrapper around
+                    *AWSResourceReference type to provide more user friendly syntax
+                    for references using ''from'' field Ex: APIIDRef:   from:     name:
+                    my-api'
+                  properties:
+                    from:
+                      description: AWSResourceReference provides all the values necessary
+                        to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                  type: object
                 type: array
             required:
             - dbClusterIdentifier
