@@ -229,6 +229,20 @@ spec:
                   character must be a letter \n    * Can't end with a hyphen or contain
                   two consecutive hyphens"
                 type: string
+              dbParameterGroupRef:
+                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference type to provide more user friendly syntax
+                  for references using ''from'' field Ex: APIIDRef:   from:     name:
+                  my-api'
+                properties:
+                  from:
+                    description: AWSResourceReference provides all the values necessary
+                      to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                type: object
               dbSnapshotIdentifier:
                 description: "The identifier for the DB snapshot to restore from.
                   \n Constraints: \n    * Must match the identifier of an existing
@@ -241,6 +255,20 @@ spec:
                   \n Constraints: Must match the name of an existing DBSubnetGroup.
                   Must not be default. \n Example: mydbsubnetgroup"
                 type: string
+              dbSubnetGroupRef:
+                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference type to provide more user friendly syntax
+                  for references using ''from'' field Ex: APIIDRef:   from:     name:
+                  my-api'
+                properties:
+                  from:
+                    description: AWSResourceReference provides all the values necessary
+                      to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                type: object
               deletionProtection:
                 description: "A value that indicates whether the DB instance has deletion
                   protection enabled. The database can't be deleted when deletion
@@ -757,6 +785,22 @@ spec:
                   VPC."
                 items:
                   type: string
+                type: array
+              vpcSecurityGroupRefs:
+                items:
+                  description: 'AWSResourceReferenceWrapper provides a wrapper around
+                    *AWSResourceReference type to provide more user friendly syntax
+                    for references using ''from'' field Ex: APIIDRef:   from:     name:
+                    my-api'
+                  properties:
+                    from:
+                      description: AWSResourceReference provides all the values necessary
+                        to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                  type: object
                 type: array
             required:
             - dbInstanceClass

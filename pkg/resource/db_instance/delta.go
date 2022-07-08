@@ -133,6 +133,9 @@ func newResourceDelta(
 			delta.Add("Spec.DBParameterGroupName", a.ko.Spec.DBParameterGroupName, b.ko.Spec.DBParameterGroupName)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.DBParameterGroupRef, b.ko.Spec.DBParameterGroupRef) {
+		delta.Add("Spec.DBParameterGroupRef", a.ko.Spec.DBParameterGroupRef, b.ko.Spec.DBParameterGroupRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier) {
 		delta.Add("Spec.DBSnapshotIdentifier", a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier)
 	} else if a.ko.Spec.DBSnapshotIdentifier != nil && b.ko.Spec.DBSnapshotIdentifier != nil {
@@ -146,6 +149,9 @@ func newResourceDelta(
 		if *a.ko.Spec.DBSubnetGroupName != *b.ko.Spec.DBSubnetGroupName {
 			delta.Add("Spec.DBSubnetGroupName", a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName)
 		}
+	}
+	if !reflect.DeepEqual(a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef) {
+		delta.Add("Spec.DBSubnetGroupRef", a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection) {
 		delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
@@ -427,6 +433,9 @@ func newResourceDelta(
 	}
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {
 		delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
+	}
+	if !reflect.DeepEqual(a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs) {
+		delta.Add("Spec.VPCSecurityGroupRefs", a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs)
 	}
 
 	return delta

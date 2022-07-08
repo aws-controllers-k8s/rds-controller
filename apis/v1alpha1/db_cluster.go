@@ -132,7 +132,8 @@ type DBClusterSpec struct {
 	//    group.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
-	DBClusterParameterGroupName *string `json:"dbClusterParameterGroupName,omitempty"`
+	DBClusterParameterGroupName *string                                  `json:"dbClusterParameterGroupName,omitempty"`
+	DBClusterParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterParameterGroupRef,omitempty"`
 	// A DB subnet group to associate with this DB cluster.
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
@@ -143,7 +144,8 @@ type DBClusterSpec struct {
 	// Example: mydbsubnetgroup
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
-	DBSubnetGroupName *string `json:"dbSubnetGroupName,omitempty"`
+	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
+	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
 	// The name for your database of up to 64 alphanumeric characters. If you do
 	// not provide a name, Amazon RDS doesn't create a database in the DB cluster
 	// you are creating.
@@ -617,7 +619,8 @@ type DBClusterSpec struct {
 	// A list of EC2 VPC security groups to associate with this DB cluster.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
-	VPCSecurityGroupIDs []*string `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSecurityGroupIDs  []*string                                  `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSecurityGroupRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"vpcSecurityGroupRefs,omitempty"`
 }
 
 // DBClusterStatus defines the observed state of DBCluster
