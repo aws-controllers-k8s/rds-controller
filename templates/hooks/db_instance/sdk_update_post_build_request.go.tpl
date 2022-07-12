@@ -24,3 +24,15 @@
         if !delta.DifferentAt("Spec.NetworkType") {
                 input.NetworkType = nil
         }
+
+        // For dbInstance inside dbCluster, it's either aurora or 
+        // multi-az cluster case, in either case, the below params
+        // are not controlled in instance level. 
+        // hence when DBClusterIdentifier appear, set them to nil
+        // Please refer to doc : https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DeleteDBInstance.html 
+        if desired.ko.Spec.DBClusterIdentifier != nil {
+                input.AllocatedStorage = nil
+                input.BackupRetentionPeriod = nil
+                input.PreferredBackupWindow = nil
+                input.DeletionProtection = nil
+        }
