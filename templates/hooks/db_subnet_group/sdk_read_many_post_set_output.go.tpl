@@ -9,8 +9,8 @@
 
         if ko.Status.Subnets != nil {
                 for _, subnetIdIter := range ko.Status.Subnets {
-                    if subnetIdIter.SubnetIdentifier != nil {
-                        ko.Spec.SubnetIDs = append(ko.Spec.SubnetIDs, subnetIdIter.SubnetIdentifier)
-                    }
+                        if subnetIdIter.SubnetIdentifier != nil {
+                                ko.Spec.SubnetIDs = append(ko.Spec.SubnetIDs, subnetIdIter.SubnetIdentifier)
+                        }
                 }
         }
