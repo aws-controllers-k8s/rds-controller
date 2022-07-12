@@ -134,6 +134,7 @@ resources:
         DescribeDBClusterParameterGroups:
           input_fields:
             DBClusterParameterGroupName: Name
+            DBParameterGroupFamily: Family
         CreateDBClusterParameterGroup:
           input_fields:
             DBClusterParameterGroupName: Name
@@ -141,6 +142,10 @@ resources:
         DeleteDBClusterParameterGroup:
           input_fields:
             DBClusterParameterGroupName: Name
+        ModifyDBClusterParameterGroup:
+          input_fields:
+            DBClusterParameterGroupName: Name
+            DBParameterGroupFamily: Family
     update_operation:
       # We need a custom update implementation until the issue behind
       # https://github.com/aws-controllers-k8s/community/issues/869 is
@@ -306,14 +311,17 @@ resources:
           input_fields:
             DBSubnetGroupName: Name
             DBSubnetGroupDescription: Description
+            Subnet.SubnetIdentifier: SubnetIDs
         CreateDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
             DBSubnetGroupDescription: Description
+            Subnet.SubnetIdentifier: SubnetIDs
         ModifyDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
             DBSubnetGroupDescription: Description
+            Subnet.SubnetIdentifier: SubnetIDs
         DeleteDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name

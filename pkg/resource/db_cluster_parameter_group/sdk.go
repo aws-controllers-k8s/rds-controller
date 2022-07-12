@@ -100,6 +100,11 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.Name = nil
 		}
+		if elem.DBParameterGroupFamily != nil {
+			ko.Spec.Family = elem.DBParameterGroupFamily
+		} else {
+			ko.Spec.Family = nil
+		}
 		if elem.Description != nil {
 			ko.Spec.Description = elem.Description
 		} else {

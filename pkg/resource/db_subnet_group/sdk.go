@@ -173,6 +173,14 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.Tags = tags
 	}
 
+	if ko.Status.Subnets != nil {
+		for _, subnetIdIter := range ko.Status.Subnets {
+			if subnetIdIter.SubnetIdentifier != nil {
+				ko.Spec.SubnetIDs = append(ko.Spec.SubnetIDs, subnetIdIter.SubnetIdentifier)
+			}
+		}
+	}
+
 	return &resource{ko}, nil
 }
 
