@@ -311,17 +311,14 @@ resources:
           input_fields:
             DBSubnetGroupName: Name
             DBSubnetGroupDescription: Description
-            Subnet.SubnetIdentifier: SubnetIDs
         CreateDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
             DBSubnetGroupDescription: Description
-            Subnet.SubnetIdentifier: SubnetIDs
         ModifyDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
             DBSubnetGroupDescription: Description
-            Subnet.SubnetIdentifier: SubnetIDs
         DeleteDBSubnetGroup:
           input_fields:
             DBSubnetGroupName: Name
