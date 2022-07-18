@@ -20,9 +20,11 @@ import (
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // NOTE(jaypipes): The below list is derived from looking at the RDS control
@@ -317,4 +319,33 @@ func equalStrings(a, b *string) bool {
 		return b == nil || *b == ""
 	}
 	return (*a == "" && b == nil) || *a == *b
+}
+
+// function to create restoreDbClusterFromSnapshot payload and call restoreDbClusterFromSnapshot API
+func (rm *resourceManager) restoreDbClusterFromSnapshot(
+	ctx context.Context,
+	r *resource,
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.restoreDbClusterFromSnapshot")
+	defer func(err error) { exit(err) }(err)
+
+	resp, respErr := rm.sdkapi.RestoreDBClusterFromSnapshotWithContext(ctx, rm.newRestoreDBClusterFromSnapshotInput(r))
+	rm.metrics.RecordAPICall("CREATE", "RestoreDbClusterFromSnapshot", respErr)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	rm.setResourceFromRestoreDBClusterFromSnapshotOutput(r, resp)
+	rm.setStatusDefaults(r.ko)
+
+	// We expect the DB cluster to be in 'creating' status since we just
+	// issued the call to create it, but I suppose it doesn't hurt to check
+	// here.
+	if clusterCreating(&resource{r.ko}) {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{r.ko}, corev1.ConditionFalse, nil, nil)
+	}
+	return &resource{r.ko}, nil
 }
