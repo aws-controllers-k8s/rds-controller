@@ -592,6 +592,18 @@ type DBClusterSpec struct {
 	ScalingConfiguration *ScalingConfiguration `json:"scalingConfiguration,omitempty"`
 
 	ServerlessV2ScalingConfiguration *ServerlessV2ScalingConfiguration `json:"serverlessV2ScalingConfiguration,omitempty"`
+	// The identifier for the DB snapshot or DB cluster snapshot to restore from.
+	//
+	// You can use either the name or the Amazon Resource Name (ARN) to specify
+	// a DB cluster snapshot. However, you can use only the ARN to specify a DB
+	// snapshot.
+	//
+	// Constraints:
+	//
+	//    * Must match the identifier of an existing Snapshot.
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	SnapshotIdentifier *string `json:"snapshotIdentifier,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
 	// sent over the wire and is only used for presigning. This value should always
 	// have the same region as the source ARN.

@@ -634,6 +634,12 @@ func (rm *resourceManager) sdkCreate(
 	defer func() {
 		exit(err)
 	}()
+	// if request has SnapshotIdentifier spec, create request will call RestoreDBClusterFromSnapshotWithContext
+	// instead of normal create api
+	if desired.ko.Spec.SnapshotIdentifier != nil {
+		return rm.restoreDbClusterFromSnapshot(ctx, desired)
+	}
+
 	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
@@ -1557,4 +1563,669 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	default:
 		return false
 	}
+}
+
+// newRestoreDBClusterFromSnapshotInput returns a RestoreDBClusterFromSnapshotInput object
+// with each the field set by the corresponding configuration's fields.
+func (rm *resourceManager) newRestoreDBClusterFromSnapshotInput(
+	r *resource,
+) *svcsdk.RestoreDBClusterFromSnapshotInput {
+	res := &svcsdk.RestoreDBClusterFromSnapshotInput{}
+
+	if r.ko.Spec.AvailabilityZones != nil {
+		resf0 := []*string{}
+		for _, resf0iter := range r.ko.Spec.AvailabilityZones {
+			var resf0elem string
+			resf0elem = *resf0iter
+			resf0 = append(resf0, &resf0elem)
+		}
+		res.SetAvailabilityZones(resf0)
+	}
+	if r.ko.Spec.BacktrackWindow != nil {
+		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
+	}
+	if r.ko.Spec.CopyTagsToSnapshot != nil {
+		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+	}
+	if r.ko.Spec.DBClusterIdentifier != nil {
+		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+	}
+	if r.ko.Spec.DBClusterInstanceClass != nil {
+		res.SetDBClusterInstanceClass(*r.ko.Spec.DBClusterInstanceClass)
+	}
+	if r.ko.Spec.DBClusterParameterGroupName != nil {
+		res.SetDBClusterParameterGroupName(*r.ko.Spec.DBClusterParameterGroupName)
+	}
+	if r.ko.Spec.DBSubnetGroupName != nil {
+		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+	}
+	if r.ko.Spec.DatabaseName != nil {
+		res.SetDatabaseName(*r.ko.Spec.DatabaseName)
+	}
+	if r.ko.Spec.DeletionProtection != nil {
+		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+	}
+	if r.ko.Spec.Domain != nil {
+		res.SetDomain(*r.ko.Spec.Domain)
+	}
+	if r.ko.Spec.DomainIAMRoleName != nil {
+		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+	}
+	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
+		resf11 := []*string{}
+		for _, resf11iter := range r.ko.Spec.EnableCloudwatchLogsExports {
+			var resf11elem string
+			resf11elem = *resf11iter
+			resf11 = append(resf11, &resf11elem)
+		}
+		res.SetEnableCloudwatchLogsExports(resf11)
+	}
+	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
+		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+	}
+	if r.ko.Spec.Engine != nil {
+		res.SetEngine(*r.ko.Spec.Engine)
+	}
+	if r.ko.Spec.EngineMode != nil {
+		res.SetEngineMode(*r.ko.Spec.EngineMode)
+	}
+	if r.ko.Spec.EngineVersion != nil {
+		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+	}
+	if r.ko.Spec.IOPS != nil {
+		res.SetIops(*r.ko.Spec.IOPS)
+	}
+	if r.ko.Spec.KMSKeyID != nil {
+		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+	}
+	if r.ko.Spec.OptionGroupName != nil {
+		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+	}
+	if r.ko.Spec.Port != nil {
+		res.SetPort(*r.ko.Spec.Port)
+	}
+	if r.ko.Spec.PubliclyAccessible != nil {
+		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+	}
+	if r.ko.Spec.ScalingConfiguration != nil {
+		resf21 := &svcsdk.ScalingConfiguration{}
+		if r.ko.Spec.ScalingConfiguration.AutoPause != nil {
+			resf21.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+		}
+		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
+			resf21.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+		}
+		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil {
+			resf21.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+		}
+		if r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
+			resf21.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+		}
+		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
+			resf21.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+		}
+		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
+			resf21.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+		}
+		res.SetScalingConfiguration(resf21)
+	}
+	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil {
+		resf22 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+			resf22.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+		}
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
+			resf22.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+		}
+		res.SetServerlessV2ScalingConfiguration(resf22)
+	}
+	if r.ko.Spec.SnapshotIdentifier != nil {
+		res.SetSnapshotIdentifier(*r.ko.Spec.SnapshotIdentifier)
+	}
+	if r.ko.Spec.StorageType != nil {
+		res.SetStorageType(*r.ko.Spec.StorageType)
+	}
+	if r.ko.Spec.Tags != nil {
+		resf25 := []*svcsdk.Tag{}
+		for _, resf25iter := range r.ko.Spec.Tags {
+			resf25elem := &svcsdk.Tag{}
+			if resf25iter.Key != nil {
+				resf25elem.SetKey(*resf25iter.Key)
+			}
+			if resf25iter.Value != nil {
+				resf25elem.SetValue(*resf25iter.Value)
+			}
+			resf25 = append(resf25, resf25elem)
+		}
+		res.SetTags(resf25)
+	}
+	if r.ko.Spec.VPCSecurityGroupIDs != nil {
+		resf26 := []*string{}
+		for _, resf26iter := range r.ko.Spec.VPCSecurityGroupIDs {
+			var resf26elem string
+			resf26elem = *resf26iter
+			resf26 = append(resf26, &resf26elem)
+		}
+		res.SetVpcSecurityGroupIds(resf26)
+	}
+
+	return res
+}
+
+// setResourceFromRestoreDBClusterFromSnapshotOutput sets a resource RestoreDBClusterFromSnapshotOutput type
+// given the SDK type.
+func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
+	r *resource,
+	resp *svcsdk.RestoreDBClusterFromSnapshotOutput,
+) {
+
+	if resp.DBCluster.ActivityStreamKinesisStreamName != nil {
+		r.ko.Status.ActivityStreamKinesisStreamName = resp.DBCluster.ActivityStreamKinesisStreamName
+	} else {
+		r.ko.Status.ActivityStreamKinesisStreamName = nil
+	}
+	if resp.DBCluster.ActivityStreamKmsKeyId != nil {
+		r.ko.Status.ActivityStreamKMSKeyID = resp.DBCluster.ActivityStreamKmsKeyId
+	} else {
+		r.ko.Status.ActivityStreamKMSKeyID = nil
+	}
+	if resp.DBCluster.ActivityStreamMode != nil {
+		r.ko.Status.ActivityStreamMode = resp.DBCluster.ActivityStreamMode
+	} else {
+		r.ko.Status.ActivityStreamMode = nil
+	}
+	if resp.DBCluster.ActivityStreamStatus != nil {
+		r.ko.Status.ActivityStreamStatus = resp.DBCluster.ActivityStreamStatus
+	} else {
+		r.ko.Status.ActivityStreamStatus = nil
+	}
+	if resp.DBCluster.AllocatedStorage != nil {
+		r.ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
+	} else {
+		r.ko.Spec.AllocatedStorage = nil
+	}
+	if resp.DBCluster.AssociatedRoles != nil {
+		f5 := []*svcapitypes.DBClusterRole{}
+		for _, f5iter := range resp.DBCluster.AssociatedRoles {
+			f5elem := &svcapitypes.DBClusterRole{}
+			if f5iter.FeatureName != nil {
+				f5elem.FeatureName = f5iter.FeatureName
+			}
+			if f5iter.RoleArn != nil {
+				f5elem.RoleARN = f5iter.RoleArn
+			}
+			if f5iter.Status != nil {
+				f5elem.Status = f5iter.Status
+			}
+			f5 = append(f5, f5elem)
+		}
+		r.ko.Status.AssociatedRoles = f5
+	} else {
+		r.ko.Status.AssociatedRoles = nil
+	}
+	if resp.DBCluster.AutoMinorVersionUpgrade != nil {
+		r.ko.Spec.AutoMinorVersionUpgrade = resp.DBCluster.AutoMinorVersionUpgrade
+	} else {
+		r.ko.Spec.AutoMinorVersionUpgrade = nil
+	}
+	if resp.DBCluster.AutomaticRestartTime != nil {
+		r.ko.Status.AutomaticRestartTime = &metav1.Time{*resp.DBCluster.AutomaticRestartTime}
+	} else {
+		r.ko.Status.AutomaticRestartTime = nil
+	}
+	if resp.DBCluster.AvailabilityZones != nil {
+		f8 := []*string{}
+		for _, f8iter := range resp.DBCluster.AvailabilityZones {
+			var f8elem string
+			f8elem = *f8iter
+			f8 = append(f8, &f8elem)
+		}
+		r.ko.Spec.AvailabilityZones = f8
+	} else {
+		r.ko.Spec.AvailabilityZones = nil
+	}
+	if resp.DBCluster.BacktrackConsumedChangeRecords != nil {
+		r.ko.Status.BacktrackConsumedChangeRecords = resp.DBCluster.BacktrackConsumedChangeRecords
+	} else {
+		r.ko.Status.BacktrackConsumedChangeRecords = nil
+	}
+	if resp.DBCluster.BacktrackWindow != nil {
+		r.ko.Spec.BacktrackWindow = resp.DBCluster.BacktrackWindow
+	} else {
+		r.ko.Spec.BacktrackWindow = nil
+	}
+	if resp.DBCluster.BackupRetentionPeriod != nil {
+		r.ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+	} else {
+		r.ko.Spec.BackupRetentionPeriod = nil
+	}
+	if resp.DBCluster.Capacity != nil {
+		r.ko.Status.Capacity = resp.DBCluster.Capacity
+	} else {
+		r.ko.Status.Capacity = nil
+	}
+	if resp.DBCluster.CharacterSetName != nil {
+		r.ko.Spec.CharacterSetName = resp.DBCluster.CharacterSetName
+	} else {
+		r.ko.Spec.CharacterSetName = nil
+	}
+	if resp.DBCluster.CloneGroupId != nil {
+		r.ko.Status.CloneGroupID = resp.DBCluster.CloneGroupId
+	} else {
+		r.ko.Status.CloneGroupID = nil
+	}
+	if resp.DBCluster.ClusterCreateTime != nil {
+		r.ko.Status.ClusterCreateTime = &metav1.Time{*resp.DBCluster.ClusterCreateTime}
+	} else {
+		r.ko.Status.ClusterCreateTime = nil
+	}
+	if resp.DBCluster.CopyTagsToSnapshot != nil {
+		r.ko.Spec.CopyTagsToSnapshot = resp.DBCluster.CopyTagsToSnapshot
+	} else {
+		r.ko.Spec.CopyTagsToSnapshot = nil
+	}
+	if resp.DBCluster.CrossAccountClone != nil {
+		r.ko.Status.CrossAccountClone = resp.DBCluster.CrossAccountClone
+	} else {
+		r.ko.Status.CrossAccountClone = nil
+	}
+	if resp.DBCluster.CustomEndpoints != nil {
+		f18 := []*string{}
+		for _, f18iter := range resp.DBCluster.CustomEndpoints {
+			var f18elem string
+			f18elem = *f18iter
+			f18 = append(f18, &f18elem)
+		}
+		r.ko.Status.CustomEndpoints = f18
+	} else {
+		r.ko.Status.CustomEndpoints = nil
+	}
+	if r.ko.Status.ACKResourceMetadata == nil {
+		r.ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
+	if resp.DBCluster.DBClusterArn != nil {
+		arn := ackv1alpha1.AWSResourceName(*resp.DBCluster.DBClusterArn)
+		r.ko.Status.ACKResourceMetadata.ARN = &arn
+	}
+	if resp.DBCluster.DBClusterIdentifier != nil {
+		r.ko.Spec.DBClusterIdentifier = resp.DBCluster.DBClusterIdentifier
+	} else {
+		r.ko.Spec.DBClusterIdentifier = nil
+	}
+	if resp.DBCluster.DBClusterInstanceClass != nil {
+		r.ko.Spec.DBClusterInstanceClass = resp.DBCluster.DBClusterInstanceClass
+	} else {
+		r.ko.Spec.DBClusterInstanceClass = nil
+	}
+	if resp.DBCluster.DBClusterMembers != nil {
+		f22 := []*svcapitypes.DBClusterMember{}
+		for _, f22iter := range resp.DBCluster.DBClusterMembers {
+			f22elem := &svcapitypes.DBClusterMember{}
+			if f22iter.DBClusterParameterGroupStatus != nil {
+				f22elem.DBClusterParameterGroupStatus = f22iter.DBClusterParameterGroupStatus
+			}
+			if f22iter.DBInstanceIdentifier != nil {
+				f22elem.DBInstanceIdentifier = f22iter.DBInstanceIdentifier
+			}
+			if f22iter.IsClusterWriter != nil {
+				f22elem.IsClusterWriter = f22iter.IsClusterWriter
+			}
+			if f22iter.PromotionTier != nil {
+				f22elem.PromotionTier = f22iter.PromotionTier
+			}
+			f22 = append(f22, f22elem)
+		}
+		r.ko.Status.DBClusterMembers = f22
+	} else {
+		r.ko.Status.DBClusterMembers = nil
+	}
+	if resp.DBCluster.DBClusterOptionGroupMemberships != nil {
+		f23 := []*svcapitypes.DBClusterOptionGroupStatus{}
+		for _, f23iter := range resp.DBCluster.DBClusterOptionGroupMemberships {
+			f23elem := &svcapitypes.DBClusterOptionGroupStatus{}
+			if f23iter.DBClusterOptionGroupName != nil {
+				f23elem.DBClusterOptionGroupName = f23iter.DBClusterOptionGroupName
+			}
+			if f23iter.Status != nil {
+				f23elem.Status = f23iter.Status
+			}
+			f23 = append(f23, f23elem)
+		}
+		r.ko.Status.DBClusterOptionGroupMemberships = f23
+	} else {
+		r.ko.Status.DBClusterOptionGroupMemberships = nil
+	}
+	if resp.DBCluster.DBClusterParameterGroup != nil {
+		r.ko.Status.DBClusterParameterGroup = resp.DBCluster.DBClusterParameterGroup
+	} else {
+		r.ko.Status.DBClusterParameterGroup = nil
+	}
+	if resp.DBCluster.DBSubnetGroup != nil {
+		r.ko.Status.DBSubnetGroup = resp.DBCluster.DBSubnetGroup
+	} else {
+		r.ko.Status.DBSubnetGroup = nil
+	}
+	if resp.DBCluster.DatabaseName != nil {
+		r.ko.Spec.DatabaseName = resp.DBCluster.DatabaseName
+	} else {
+		r.ko.Spec.DatabaseName = nil
+	}
+	if resp.DBCluster.DbClusterResourceId != nil {
+		r.ko.Status.DBClusterResourceID = resp.DBCluster.DbClusterResourceId
+	} else {
+		r.ko.Status.DBClusterResourceID = nil
+	}
+	if resp.DBCluster.DeletionProtection != nil {
+		r.ko.Spec.DeletionProtection = resp.DBCluster.DeletionProtection
+	} else {
+		r.ko.Spec.DeletionProtection = nil
+	}
+	if resp.DBCluster.DomainMemberships != nil {
+		f29 := []*svcapitypes.DomainMembership{}
+		for _, f29iter := range resp.DBCluster.DomainMemberships {
+			f29elem := &svcapitypes.DomainMembership{}
+			if f29iter.Domain != nil {
+				f29elem.Domain = f29iter.Domain
+			}
+			if f29iter.FQDN != nil {
+				f29elem.FQDN = f29iter.FQDN
+			}
+			if f29iter.IAMRoleName != nil {
+				f29elem.IAMRoleName = f29iter.IAMRoleName
+			}
+			if f29iter.Status != nil {
+				f29elem.Status = f29iter.Status
+			}
+			f29 = append(f29, f29elem)
+		}
+		r.ko.Status.DomainMemberships = f29
+	} else {
+		r.ko.Status.DomainMemberships = nil
+	}
+	if resp.DBCluster.EarliestBacktrackTime != nil {
+		r.ko.Status.EarliestBacktrackTime = &metav1.Time{*resp.DBCluster.EarliestBacktrackTime}
+	} else {
+		r.ko.Status.EarliestBacktrackTime = nil
+	}
+	if resp.DBCluster.EarliestRestorableTime != nil {
+		r.ko.Status.EarliestRestorableTime = &metav1.Time{*resp.DBCluster.EarliestRestorableTime}
+	} else {
+		r.ko.Status.EarliestRestorableTime = nil
+	}
+	if resp.DBCluster.EnabledCloudwatchLogsExports != nil {
+		f32 := []*string{}
+		for _, f32iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
+			var f32elem string
+			f32elem = *f32iter
+			f32 = append(f32, &f32elem)
+		}
+		r.ko.Status.EnabledCloudwatchLogsExports = f32
+	} else {
+		r.ko.Status.EnabledCloudwatchLogsExports = nil
+	}
+	if resp.DBCluster.Endpoint != nil {
+		r.ko.Status.Endpoint = resp.DBCluster.Endpoint
+	} else {
+		r.ko.Status.Endpoint = nil
+	}
+	if resp.DBCluster.Engine != nil {
+		r.ko.Spec.Engine = resp.DBCluster.Engine
+	} else {
+		r.ko.Spec.Engine = nil
+	}
+	if resp.DBCluster.EngineMode != nil {
+		r.ko.Spec.EngineMode = resp.DBCluster.EngineMode
+	} else {
+		r.ko.Spec.EngineMode = nil
+	}
+	if resp.DBCluster.EngineVersion != nil {
+		r.ko.Spec.EngineVersion = resp.DBCluster.EngineVersion
+	} else {
+		r.ko.Spec.EngineVersion = nil
+	}
+	if resp.DBCluster.GlobalWriteForwardingRequested != nil {
+		r.ko.Status.GlobalWriteForwardingRequested = resp.DBCluster.GlobalWriteForwardingRequested
+	} else {
+		r.ko.Status.GlobalWriteForwardingRequested = nil
+	}
+	if resp.DBCluster.GlobalWriteForwardingStatus != nil {
+		r.ko.Status.GlobalWriteForwardingStatus = resp.DBCluster.GlobalWriteForwardingStatus
+	} else {
+		r.ko.Status.GlobalWriteForwardingStatus = nil
+	}
+	if resp.DBCluster.HostedZoneId != nil {
+		r.ko.Status.HostedZoneID = resp.DBCluster.HostedZoneId
+	} else {
+		r.ko.Status.HostedZoneID = nil
+	}
+	if resp.DBCluster.HttpEndpointEnabled != nil {
+		r.ko.Status.HTTPEndpointEnabled = resp.DBCluster.HttpEndpointEnabled
+	} else {
+		r.ko.Status.HTTPEndpointEnabled = nil
+	}
+	if resp.DBCluster.IAMDatabaseAuthenticationEnabled != nil {
+		r.ko.Status.IAMDatabaseAuthenticationEnabled = resp.DBCluster.IAMDatabaseAuthenticationEnabled
+	} else {
+		r.ko.Status.IAMDatabaseAuthenticationEnabled = nil
+	}
+	if resp.DBCluster.Iops != nil {
+		r.ko.Spec.IOPS = resp.DBCluster.Iops
+	} else {
+		r.ko.Spec.IOPS = nil
+	}
+	if resp.DBCluster.KmsKeyId != nil {
+		r.ko.Spec.KMSKeyID = resp.DBCluster.KmsKeyId
+	} else {
+		r.ko.Spec.KMSKeyID = nil
+	}
+	if resp.DBCluster.LatestRestorableTime != nil {
+		r.ko.Status.LatestRestorableTime = &metav1.Time{*resp.DBCluster.LatestRestorableTime}
+	} else {
+		r.ko.Status.LatestRestorableTime = nil
+	}
+	if resp.DBCluster.MasterUsername != nil {
+		r.ko.Spec.MasterUsername = resp.DBCluster.MasterUsername
+	} else {
+		r.ko.Spec.MasterUsername = nil
+	}
+	if resp.DBCluster.MonitoringInterval != nil {
+		r.ko.Spec.MonitoringInterval = resp.DBCluster.MonitoringInterval
+	} else {
+		r.ko.Spec.MonitoringInterval = nil
+	}
+	if resp.DBCluster.MonitoringRoleArn != nil {
+		r.ko.Spec.MonitoringRoleARN = resp.DBCluster.MonitoringRoleArn
+	} else {
+		r.ko.Spec.MonitoringRoleARN = nil
+	}
+	if resp.DBCluster.MultiAZ != nil {
+		r.ko.Status.MultiAZ = resp.DBCluster.MultiAZ
+	} else {
+		r.ko.Status.MultiAZ = nil
+	}
+	if resp.DBCluster.PendingModifiedValues != nil {
+		f49 := &svcapitypes.ClusterPendingModifiedValues{}
+		if resp.DBCluster.PendingModifiedValues.DBClusterIdentifier != nil {
+			f49.DBClusterIdentifier = resp.DBCluster.PendingModifiedValues.DBClusterIdentifier
+		}
+		if resp.DBCluster.PendingModifiedValues.EngineVersion != nil {
+			f49.EngineVersion = resp.DBCluster.PendingModifiedValues.EngineVersion
+		}
+		if resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled != nil {
+			f49.IAMDatabaseAuthenticationEnabled = resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
+		}
+		if resp.DBCluster.PendingModifiedValues.MasterUserPassword != nil {
+			f49.MasterUserPassword = resp.DBCluster.PendingModifiedValues.MasterUserPassword
+		}
+		if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
+			f49f4 := &svcapitypes.PendingCloudwatchLogsExports{}
+			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
+				f49f4f0 := []*string{}
+				for _, f49f4f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
+					var f49f4f0elem string
+					f49f4f0elem = *f49f4f0iter
+					f49f4f0 = append(f49f4f0, &f49f4f0elem)
+				}
+				f49f4.LogTypesToDisable = f49f4f0
+			}
+			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
+				f49f4f1 := []*string{}
+				for _, f49f4f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
+					var f49f4f1elem string
+					f49f4f1elem = *f49f4f1iter
+					f49f4f1 = append(f49f4f1, &f49f4f1elem)
+				}
+				f49f4.LogTypesToEnable = f49f4f1
+			}
+			f49.PendingCloudwatchLogsExports = f49f4
+		}
+		r.ko.Status.PendingModifiedValues = f49
+	} else {
+		r.ko.Status.PendingModifiedValues = nil
+	}
+	if resp.DBCluster.PercentProgress != nil {
+		r.ko.Status.PercentProgress = resp.DBCluster.PercentProgress
+	} else {
+		r.ko.Status.PercentProgress = nil
+	}
+	if resp.DBCluster.PerformanceInsightsEnabled != nil {
+		r.ko.Status.PerformanceInsightsEnabled = resp.DBCluster.PerformanceInsightsEnabled
+	} else {
+		r.ko.Status.PerformanceInsightsEnabled = nil
+	}
+	if resp.DBCluster.PerformanceInsightsKMSKeyId != nil {
+		r.ko.Spec.PerformanceInsightsKMSKeyID = resp.DBCluster.PerformanceInsightsKMSKeyId
+	} else {
+		r.ko.Spec.PerformanceInsightsKMSKeyID = nil
+	}
+	if resp.DBCluster.PerformanceInsightsRetentionPeriod != nil {
+		r.ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBCluster.PerformanceInsightsRetentionPeriod
+	} else {
+		r.ko.Spec.PerformanceInsightsRetentionPeriod = nil
+	}
+	if resp.DBCluster.Port != nil {
+		r.ko.Spec.Port = resp.DBCluster.Port
+	} else {
+		r.ko.Spec.Port = nil
+	}
+	if resp.DBCluster.PreferredBackupWindow != nil {
+		r.ko.Spec.PreferredBackupWindow = resp.DBCluster.PreferredBackupWindow
+	} else {
+		r.ko.Spec.PreferredBackupWindow = nil
+	}
+	if resp.DBCluster.PreferredMaintenanceWindow != nil {
+		r.ko.Spec.PreferredMaintenanceWindow = resp.DBCluster.PreferredMaintenanceWindow
+	} else {
+		r.ko.Spec.PreferredMaintenanceWindow = nil
+	}
+	if resp.DBCluster.PubliclyAccessible != nil {
+		r.ko.Spec.PubliclyAccessible = resp.DBCluster.PubliclyAccessible
+	} else {
+		r.ko.Spec.PubliclyAccessible = nil
+	}
+	if resp.DBCluster.ReadReplicaIdentifiers != nil {
+		f58 := []*string{}
+		for _, f58iter := range resp.DBCluster.ReadReplicaIdentifiers {
+			var f58elem string
+			f58elem = *f58iter
+			f58 = append(f58, &f58elem)
+		}
+		r.ko.Status.ReadReplicaIdentifiers = f58
+	} else {
+		r.ko.Status.ReadReplicaIdentifiers = nil
+	}
+	if resp.DBCluster.ReaderEndpoint != nil {
+		r.ko.Status.ReaderEndpoint = resp.DBCluster.ReaderEndpoint
+	} else {
+		r.ko.Status.ReaderEndpoint = nil
+	}
+	if resp.DBCluster.ReplicationSourceIdentifier != nil {
+		r.ko.Spec.ReplicationSourceIdentifier = resp.DBCluster.ReplicationSourceIdentifier
+	} else {
+		r.ko.Spec.ReplicationSourceIdentifier = nil
+	}
+	if resp.DBCluster.ScalingConfigurationInfo != nil {
+		f61 := &svcapitypes.ScalingConfiguration{}
+		if resp.DBCluster.ScalingConfigurationInfo.AutoPause != nil {
+			f61.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
+		}
+		if resp.DBCluster.ScalingConfigurationInfo.MaxCapacity != nil {
+			f61.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
+		}
+		if resp.DBCluster.ScalingConfigurationInfo.MinCapacity != nil {
+			f61.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
+		}
+		if resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
+			f61.SecondsBeforeTimeout = resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout
+		}
+		if resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
+			f61.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
+		}
+		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
+			f61.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
+		}
+		r.ko.Spec.ScalingConfiguration = f61
+	} else {
+		r.ko.Spec.ScalingConfiguration = nil
+	}
+	if resp.DBCluster.ServerlessV2ScalingConfiguration != nil {
+		f62 := &svcapitypes.ServerlessV2ScalingConfiguration{}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+			f62.MaxCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MaxCapacity
+		}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity != nil {
+			f62.MinCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity
+		}
+		r.ko.Spec.ServerlessV2ScalingConfiguration = f62
+	} else {
+		r.ko.Spec.ServerlessV2ScalingConfiguration = nil
+	}
+	if resp.DBCluster.Status != nil {
+		r.ko.Status.Status = resp.DBCluster.Status
+	} else {
+		r.ko.Status.Status = nil
+	}
+	if resp.DBCluster.StorageEncrypted != nil {
+		r.ko.Spec.StorageEncrypted = resp.DBCluster.StorageEncrypted
+	} else {
+		r.ko.Spec.StorageEncrypted = nil
+	}
+	if resp.DBCluster.StorageType != nil {
+		r.ko.Spec.StorageType = resp.DBCluster.StorageType
+	} else {
+		r.ko.Spec.StorageType = nil
+	}
+	if resp.DBCluster.TagList != nil {
+		f66 := []*svcapitypes.Tag{}
+		for _, f66iter := range resp.DBCluster.TagList {
+			f66elem := &svcapitypes.Tag{}
+			if f66iter.Key != nil {
+				f66elem.Key = f66iter.Key
+			}
+			if f66iter.Value != nil {
+				f66elem.Value = f66iter.Value
+			}
+			f66 = append(f66, f66elem)
+		}
+		r.ko.Status.TagList = f66
+	} else {
+		r.ko.Status.TagList = nil
+	}
+	if resp.DBCluster.VpcSecurityGroups != nil {
+		f67 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f67iter := range resp.DBCluster.VpcSecurityGroups {
+			f67elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f67iter.Status != nil {
+				f67elem.Status = f67iter.Status
+			}
+			if f67iter.VpcSecurityGroupId != nil {
+				f67elem.VPCSecurityGroupID = f67iter.VpcSecurityGroupId
+			}
+			f67 = append(f67, f67elem)
+		}
+		r.ko.Status.VPCSecurityGroups = f67
+	} else {
+		r.ko.Status.VPCSecurityGroups = nil
+	}
+
 }

@@ -1159,6 +1159,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(ServerlessV2ScalingConfiguration)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.SnapshotIdentifier != nil {
+		in, out := &in.SnapshotIdentifier, &out.SnapshotIdentifier
+		*out = new(string)
+		**out = **in
+	}
 	if in.SourceRegion != nil {
 		in, out := &in.SourceRegion, &out.SourceRegion
 		*out = new(string)
