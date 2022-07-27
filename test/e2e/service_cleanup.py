@@ -14,73 +14,17 @@
 """Cleans up the resources created by the bootstrapping process.
 """
 
-import boto3
 import logging
 
-from acktest import resources
-from acktest.aws.identity import get_region
+from acktest.bootstrapping import Resources
 
 from e2e import bootstrap_directory
-from e2e.bootstrap_resources import TestBootstrapResources
 
-
-def delete_subnet(subnet_id: str):
-    region = get_region()
-    ec2 = boto3.client("ec2", region_name=region)
-
-    ec2.delete_subnet(SubnetId=subnet_id)
-
-    logging.info(f"Deleted VPC Subnet {subnet_id}")
-
-
-def delete_vpc(vpc_id: str):
-    region = get_region()
-    ec2 = boto3.client("ec2", region_name=region)
-
-    ec2.delete_vpc(VpcId=vpc_id)
-
-    logging.info(f"Deleted VPC {vpc_id}")
-
-
-def delete_db_subnet_group(db_subnet_group_name: str):
-    region = get_region()
-    rds = boto3.client("rds", region_name=region)
-
-    rds.delete_db_subnet_group(
-        DBSubnetGroupName=db_subnet_group_name,
-    )
-
-    logging.info(f"Deleted DBSubnetGroup {db_subnet_group_name}")
-
-
-def service_cleanup(config: dict):
+def service_cleanup():
     logging.getLogger().setLevel(logging.INFO)
 
-    resources = TestBootstrapResources(
-        **config
-    )
+    resources = Resources.deserialize(bootstrap_directory)
+    resources.cleanup()
 
-    try:
-        delete_db_subnet_group(resources.DBSubnetGroupName)
-    except:
-        logging.exception(f"Unable to delete DBSubnetGroup {resources.DBSubnetGroupName}")
-
-    try:
-        delete_subnet(resources.SubnetAZ1)
-    except:
-        logging.exception(f"Unable to delete VPC subnet {resources.SubnetAZ1}")
-
-    try:
-        delete_subnet(resources.SubnetAZ2)
-    except:
-        logging.exception(f"Unable to delete VPC subnet {resources.SubnetAZ2}")
-
-    try:
-        delete_vpc(resources.VPCID)
-    except:
-        logging.exception(f"Unable to delete VPC {resources.VPCID}")
-
-
-if __name__ == "__main__":   
-    bootstrap_config = resources.read_bootstrap_config(bootstrap_directory)
-    service_cleanup(bootstrap_config) 
+if __name__ == "__main__":
+    service_cleanup()

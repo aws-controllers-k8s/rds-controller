@@ -6,8 +6,8 @@ spec:
   name: $DB_SUBNET_GROUP_NAME
   description: $DB_SUBNET_GROUP_DESC
   subnetIDs:
-    - $SUBNET_AZ1
-    - $SUBNET_AZ2
+    - $PUBLIC_SUBNET_1
+    - $PUBLIC_SUBNET_2
   tags:
     - key: environment
       value: dev
