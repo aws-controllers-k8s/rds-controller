@@ -24,6 +24,7 @@ from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import db_cluster_parameter_group
 from e2e import tag
+from e2e import condition
 
 RESOURCE_PLURAL = 'dbclusterparametergroups'
 
