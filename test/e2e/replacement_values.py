@@ -13,6 +13,9 @@
 """Stores the values used by each of the integration tests for replacing the
 RDS-specific test variables.
 """
+from e2e.bootstrap_resources import get_bootstrap_resources
 
 REPLACEMENT_VALUES = {
+    "PUBLIC_SUBNET_1": get_bootstrap_resources().ClusterVPC.public_subnets.subnet_ids[0],
+    "PUBLIC_SUBNET_2": get_bootstrap_resources().ClusterVPC.public_subnets.subnet_ids[1]
 }

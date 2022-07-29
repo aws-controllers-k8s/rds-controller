@@ -21,7 +21,6 @@ import pytest
 from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
-from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e import condition
 from e2e import db_cluster
 from e2e.fixtures import k8s_secret

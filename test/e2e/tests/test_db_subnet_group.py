@@ -21,7 +21,6 @@ import pytest
 
 from acktest.k8s import resource as k8s
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
-from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
 from e2e import db_subnet_group
@@ -42,13 +41,9 @@ class TestDBSubnetGroup:
         resource_name = "my-db-subnet-group"
         resource_desc = "my-db-subnet-group description"
 
-        br_resources = get_bootstrap_resources()
-
         replacements = REPLACEMENT_VALUES.copy()
         replacements["DB_SUBNET_GROUP_NAME"] = resource_name
         replacements["DB_SUBNET_GROUP_DESC"] = resource_desc
-        replacements["SUBNET_AZ1"] = br_resources.SubnetAZ1
-        replacements["SUBNET_AZ2"] = br_resources.SubnetAZ2
 
         resource_data = load_rds_resource(
             "db_subnet_group_2az",

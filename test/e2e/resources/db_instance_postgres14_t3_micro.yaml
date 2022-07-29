@@ -7,7 +7,6 @@ spec:
   copyTagsToSnapshot: $COPY_TAGS_TO_SNAPSHOT
   dbInstanceClass: db.t3.micro
   dbInstanceIdentifier: $DB_INSTANCE_ID
-  dbSubnetGroupName: $DB_SUBNET_GROUP_NAME
   engine: postgres
   engineVersion: "14.1"
   masterUsername: root
