@@ -77,18 +77,18 @@ const (
 	DBProxyEndpointTargetRole_READ_ONLY  DBProxyEndpointTargetRole = "READ_ONLY"
 )
 
-type DBProxyStatus string
+type DBProxyStatus_SDK string
 
 const (
-	DBProxyStatus_available                    DBProxyStatus = "available"
-	DBProxyStatus_modifying                    DBProxyStatus = "modifying"
-	DBProxyStatus_incompatible_network         DBProxyStatus = "incompatible-network"
-	DBProxyStatus_insufficient_resource_limits DBProxyStatus = "insufficient-resource-limits"
-	DBProxyStatus_creating                     DBProxyStatus = "creating"
-	DBProxyStatus_deleting                     DBProxyStatus = "deleting"
-	DBProxyStatus_suspended                    DBProxyStatus = "suspended"
-	DBProxyStatus_suspending                   DBProxyStatus = "suspending"
-	DBProxyStatus_reactivating                 DBProxyStatus = "reactivating"
+	DBProxyStatus_SDK_available                    DBProxyStatus_SDK = "available"
+	DBProxyStatus_SDK_modifying                    DBProxyStatus_SDK = "modifying"
+	DBProxyStatus_SDK_incompatible_network         DBProxyStatus_SDK = "incompatible-network"
+	DBProxyStatus_SDK_insufficient_resource_limits DBProxyStatus_SDK = "insufficient-resource-limits"
+	DBProxyStatus_SDK_creating                     DBProxyStatus_SDK = "creating"
+	DBProxyStatus_SDK_deleting                     DBProxyStatus_SDK = "deleting"
+	DBProxyStatus_SDK_suspended                    DBProxyStatus_SDK = "suspended"
+	DBProxyStatus_SDK_suspending                   DBProxyStatus_SDK = "suspending"
+	DBProxyStatus_SDK_reactivating                 DBProxyStatus_SDK = "reactivating"
 )
 
 type EngineFamily string

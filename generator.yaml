@@ -9,7 +9,7 @@ ignore:
     #- DBInstance
     - DBInstanceReadReplica
     #- DBParameterGroup
-    - DBProxy
+    #- DBProxy
     - DBProxyEndpoint
     - DBSecurityGroup
     - DBSnapshot
@@ -345,4 +345,13 @@ resources:
         template_path: hooks/db_subnet_group/delta_pre_compare.go.tpl
     fields:
       Name:
+        is_primary_key: true
+  DBProxy:
+    exceptions:
+      terminal_codes:
+        - DBProxyAlreadyExistsFault
+        - DBProxyQuotaExceededFault
+        - InvalidSubnet
+    fields:
+      DBProxyName:
         is_primary_key: true

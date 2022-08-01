@@ -149,6 +149,26 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbproxies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbproxies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
   - dbsubnetgroups
   verbs:
   - create

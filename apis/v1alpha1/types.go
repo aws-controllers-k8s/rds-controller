@@ -643,25 +643,6 @@ type DBParameterGroup_SDK struct {
 	Description            *string `json:"description,omitempty"`
 }
 
-// The data structure representing a proxy managed by the RDS Proxy.
-//
-// This data type is used as a response element in the DescribeDBProxies action.
-type DBProxy struct {
-	CreatedDate         *metav1.Time `json:"createdDate,omitempty"`
-	DBProxyARN          *string      `json:"dbProxyARN,omitempty"`
-	DBProxyName         *string      `json:"dbProxyName,omitempty"`
-	DebugLogging        *bool        `json:"debugLogging,omitempty"`
-	Endpoint            *string      `json:"endpoint,omitempty"`
-	EngineFamily        *string      `json:"engineFamily,omitempty"`
-	IdleClientTimeout   *int64       `json:"idleClientTimeout,omitempty"`
-	RequireTLS          *bool        `json:"requireTLS,omitempty"`
-	RoleARN             *string      `json:"roleARN,omitempty"`
-	UpdatedDate         *metav1.Time `json:"updatedDate,omitempty"`
-	VPCID               *string      `json:"vpcID,omitempty"`
-	VPCSecurityGroupIDs []*string    `json:"vpcSecurityGroupIDs,omitempty"`
-	VPCSubnetIDs        []*string    `json:"vpcSubnetIDs,omitempty"`
-}
-
 // The data structure representing an endpoint associated with a DB proxy. RDS
 // automatically creates one endpoint for each DB proxy. For Aurora DB clusters,
 // you can associate additional endpoints with the same DB proxy. These endpoints
@@ -710,6 +691,27 @@ type DBProxyTargetGroup struct {
 	TargetGroupARN  *string      `json:"targetGroupARN,omitempty"`
 	TargetGroupName *string      `json:"targetGroupName,omitempty"`
 	UpdatedDate     *metav1.Time `json:"updatedDate,omitempty"`
+}
+
+// The data structure representing a proxy managed by the RDS Proxy.
+//
+// This data type is used as a response element in the DescribeDBProxies action.
+type DBProxy_SDK struct {
+	Auth                []*UserAuthConfigInfo `json:"auth,omitempty"`
+	CreatedDate         *metav1.Time          `json:"createdDate,omitempty"`
+	DBProxyARN          *string               `json:"dbProxyARN,omitempty"`
+	DBProxyName         *string               `json:"dbProxyName,omitempty"`
+	DebugLogging        *bool                 `json:"debugLogging,omitempty"`
+	Endpoint            *string               `json:"endpoint,omitempty"`
+	EngineFamily        *string               `json:"engineFamily,omitempty"`
+	IdleClientTimeout   *int64                `json:"idleClientTimeout,omitempty"`
+	RequireTLS          *bool                 `json:"requireTLS,omitempty"`
+	RoleARN             *string               `json:"roleARN,omitempty"`
+	Status              *string               `json:"status,omitempty"`
+	UpdatedDate         *metav1.Time          `json:"updatedDate,omitempty"`
+	VPCID               *string               `json:"vpcID,omitempty"`
+	VPCSecurityGroupIDs []*string             `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSubnetIDs        []*string             `json:"vpcSubnetIDs,omitempty"`
 }
 
 // Contains the details for an Amazon RDS DB security group.
@@ -1387,7 +1389,9 @@ type UpgradeTarget struct {
 // Specifies the details of authentication used by a proxy to log in as a specific
 // database user.
 type UserAuthConfig struct {
+	AuthScheme  *string `json:"authScheme,omitempty"`
 	Description *string `json:"description,omitempty"`
+	IAMAuth     *string `json:"iamAuth,omitempty"`
 	SecretARN   *string `json:"secretARN,omitempty"`
 	UserName    *string `json:"userName,omitempty"`
 }
@@ -1395,7 +1399,9 @@ type UserAuthConfig struct {
 // Returns the details of authentication used by a proxy to log in as a specific
 // database user.
 type UserAuthConfigInfo struct {
+	AuthScheme  *string `json:"authScheme,omitempty"`
 	Description *string `json:"description,omitempty"`
+	IAMAuth     *string `json:"iamAuth,omitempty"`
 	SecretARN   *string `json:"secretARN,omitempty"`
 	UserName    *string `json:"userName,omitempty"`
 }
