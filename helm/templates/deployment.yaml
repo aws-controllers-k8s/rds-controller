@@ -106,7 +106,7 @@ spec:
       affinity: {{ toYaml .Values.deployment.affinity | nindent 8 }}
       {{ end -}}
       {{ if .Values.deployment.priorityClassName -}}
-      priorityClassName: {{ .Values.deployment.priorityClassName -}}
+      priorityClassName: {{ .Values.deployment.priorityClassName }}
       {{ end -}}
       hostIPC: false
       hostNetwork: false
