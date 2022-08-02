@@ -17,6 +17,8 @@ rules:
 
   - dbparametergroups
 
+  - dbproxies
+
   - dbsubnetgroups
 
   - globalclusters
@@ -36,6 +38,7 @@ rules:
   - dbclusterparametergroups
   - dbinstances
   - dbparametergroups
+  - dbproxies
   - dbsubnetgroups
   - globalclusters
   verbs:

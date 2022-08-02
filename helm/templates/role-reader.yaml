@@ -13,6 +13,7 @@ rules:
   - dbclusterparametergroups
   - dbinstances
   - dbparametergroups
+  - dbproxies
   - dbsubnetgroups
   - globalclusters
   verbs:

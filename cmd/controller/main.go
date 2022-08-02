@@ -40,6 +40,7 @@ import (
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_cluster_parameter_group"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_instance"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_parameter_group"
+	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_proxy"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_subnet_group"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/global_cluster"
 
