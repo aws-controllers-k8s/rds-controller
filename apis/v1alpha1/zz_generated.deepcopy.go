@@ -3742,11 +3742,6 @@ func (in *DBProxySpec) DeepCopyInto(out *DBProxySpec) {
 			}
 		}
 	}
-	if in.DBProxyName != nil {
-		in, out := &in.DBProxyName, &out.DBProxyName
-		*out = new(string)
-		**out = **in
-	}
 	if in.DebugLogging != nil {
 		in, out := &in.DebugLogging, &out.DebugLogging
 		*out = new(bool)
@@ -3760,6 +3755,11 @@ func (in *DBProxySpec) DeepCopyInto(out *DBProxySpec) {
 	if in.IdleClientTimeout != nil {
 		in, out := &in.IdleClientTimeout, &out.IdleClientTimeout
 		*out = new(int64)
+		**out = **in
+	}
+	if in.Name != nil {
+		in, out := &in.Name, &out.Name
+		*out = new(string)
 		**out = **in
 	}
 	if in.RequireTLS != nil {

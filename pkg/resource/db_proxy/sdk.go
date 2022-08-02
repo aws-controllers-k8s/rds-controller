@@ -126,9 +126,9 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.ACKResourceMetadata.ARN = &tmpARN
 		}
 		if elem.DBProxyName != nil {
-			ko.Spec.DBProxyName = elem.DBProxyName
+			ko.Spec.Name = elem.DBProxyName
 		} else {
-			ko.Spec.DBProxyName = nil
+			ko.Spec.Name = nil
 		}
 		if elem.DebugLogging != nil {
 			ko.Spec.DebugLogging = elem.DebugLogging
@@ -214,7 +214,7 @@ func (rm *resourceManager) sdkFind(
 func (rm *resourceManager) requiredFieldsMissingFromReadManyInput(
 	r *resource,
 ) bool {
-	return r.ko.Spec.DBProxyName == nil
+	return r.ko.Spec.Name == nil
 
 }
 
@@ -225,8 +225,8 @@ func (rm *resourceManager) newListRequestPayload(
 ) (*svcsdk.DescribeDBProxiesInput, error) {
 	res := &svcsdk.DescribeDBProxiesInput{}
 
-	if r.ko.Spec.DBProxyName != nil {
-		res.SetDBProxyName(*r.ko.Spec.DBProxyName)
+	if r.ko.Spec.Name != nil {
+		res.SetDBProxyName(*r.ko.Spec.Name)
 	}
 
 	return res, nil
@@ -298,9 +298,9 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.DBProxy.DBProxyName != nil {
-		ko.Spec.DBProxyName = resp.DBProxy.DBProxyName
+		ko.Spec.Name = resp.DBProxy.DBProxyName
 	} else {
-		ko.Spec.DBProxyName = nil
+		ko.Spec.Name = nil
 	}
 	if resp.DBProxy.DebugLogging != nil {
 		ko.Spec.DebugLogging = resp.DBProxy.DebugLogging
@@ -405,8 +405,8 @@ func (rm *resourceManager) newCreateRequestPayload(
 		}
 		res.SetAuth(f0)
 	}
-	if r.ko.Spec.DBProxyName != nil {
-		res.SetDBProxyName(*r.ko.Spec.DBProxyName)
+	if r.ko.Spec.Name != nil {
+		res.SetDBProxyName(*r.ko.Spec.Name)
 	}
 	if r.ko.Spec.DebugLogging != nil {
 		res.SetDebugLogging(*r.ko.Spec.DebugLogging)
@@ -526,9 +526,9 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.DBProxy.DBProxyName != nil {
-		ko.Spec.DBProxyName = resp.DBProxy.DBProxyName
+		ko.Spec.Name = resp.DBProxy.DBProxyName
 	} else {
-		ko.Spec.DBProxyName = nil
+		ko.Spec.Name = nil
 	}
 	if resp.DBProxy.DebugLogging != nil {
 		ko.Spec.DebugLogging = resp.DBProxy.DebugLogging
@@ -633,8 +633,8 @@ func (rm *resourceManager) newUpdateRequestPayload(
 		}
 		res.SetAuth(f0)
 	}
-	if r.ko.Spec.DBProxyName != nil {
-		res.SetDBProxyName(*r.ko.Spec.DBProxyName)
+	if r.ko.Spec.Name != nil {
+		res.SetDBProxyName(*r.ko.Spec.Name)
 	}
 	if r.ko.Spec.DebugLogging != nil {
 		res.SetDebugLogging(*r.ko.Spec.DebugLogging)
@@ -680,8 +680,8 @@ func (rm *resourceManager) newDeleteRequestPayload(
 ) (*svcsdk.DeleteDBProxyInput, error) {
 	res := &svcsdk.DeleteDBProxyInput{}
 
-	if r.ko.Spec.DBProxyName != nil {
-		res.SetDBProxyName(*r.ko.Spec.DBProxyName)
+	if r.ko.Spec.Name != nil {
+		res.SetDBProxyName(*r.ko.Spec.Name)
 	}
 
 	return res, nil

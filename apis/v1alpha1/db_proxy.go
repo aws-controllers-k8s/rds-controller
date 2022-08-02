@@ -29,13 +29,6 @@ type DBProxySpec struct {
 	// The authorization mechanism that the proxy uses.
 	// +kubebuilder:validation:Required
 	Auth []*UserAuthConfig `json:"auth"`
-	// The identifier for the proxy. This name must be unique for all proxies owned
-	// by your Amazon Web Services account in the specified Amazon Web Services
-	// Region. An identifier must begin with a letter and must contain only ASCII
-	// letters, digits, and hyphens; it can't end with a hyphen or contain two consecutive
-	// hyphens.
-	// +kubebuilder:validation:Required
-	DBProxyName *string `json:"dbProxyName"`
 	// Whether the proxy includes detailed information about SQL statements in its
 	// logs. This information helps you to debug issues involving SQL behavior or
 	// the performance and scalability of the proxy connections. The debug information
@@ -54,6 +47,13 @@ type DBProxySpec struct {
 	// the proxy disconnects it. You can set this value higher or lower than the
 	// connection timeout limit for the associated database.
 	IdleClientTimeout *int64 `json:"idleClientTimeout,omitempty"`
+	// The identifier for the proxy. This name must be unique for all proxies owned
+	// by your Amazon Web Services account in the specified Amazon Web Services
+	// Region. An identifier must begin with a letter and must contain only ASCII
+	// letters, digits, and hyphens; it can't end with a hyphen or contain two consecutive
+	// hyphens.
+	// +kubebuilder:validation:Required
+	Name *string `json:"name"`
 	// A Boolean parameter that specifies whether Transport Layer Security (TLS)
 	// encryption is required for connections to the proxy. By enabling this setting,
 	// you can enforce encrypted TLS connections to the proxy.

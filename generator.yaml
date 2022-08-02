@@ -351,5 +351,19 @@ resources:
       terminal_codes:
         - InvalidSubnet
     fields:
-      DBProxyName:
+      Name:
         is_primary_key: true
+    renames:
+      operations:
+        CreateDBProxy:
+          input_fields:
+            DBProxyName: Name
+        DeleteDBProxy:
+          input_fields:
+            DBProxyName: Name
+        DescribeDBProxies:
+          input_fields:
+            DBProxyName: Name
+        ModifyDBProxy:
+          input_fields:
+            DBProxyName: Name

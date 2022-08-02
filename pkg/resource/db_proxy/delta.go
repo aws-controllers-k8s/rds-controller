@@ -44,13 +44,6 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.Auth, b.ko.Spec.Auth) {
 		delta.Add("Spec.Auth", a.ko.Spec.Auth, b.ko.Spec.Auth)
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.DBProxyName, b.ko.Spec.DBProxyName) {
-		delta.Add("Spec.DBProxyName", a.ko.Spec.DBProxyName, b.ko.Spec.DBProxyName)
-	} else if a.ko.Spec.DBProxyName != nil && b.ko.Spec.DBProxyName != nil {
-		if *a.ko.Spec.DBProxyName != *b.ko.Spec.DBProxyName {
-			delta.Add("Spec.DBProxyName", a.ko.Spec.DBProxyName, b.ko.Spec.DBProxyName)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DebugLogging, b.ko.Spec.DebugLogging) {
 		delta.Add("Spec.DebugLogging", a.ko.Spec.DebugLogging, b.ko.Spec.DebugLogging)
 	} else if a.ko.Spec.DebugLogging != nil && b.ko.Spec.DebugLogging != nil {
@@ -70,6 +63,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.IdleClientTimeout != nil && b.ko.Spec.IdleClientTimeout != nil {
 		if *a.ko.Spec.IdleClientTimeout != *b.ko.Spec.IdleClientTimeout {
 			delta.Add("Spec.IdleClientTimeout", a.ko.Spec.IdleClientTimeout, b.ko.Spec.IdleClientTimeout)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.Name, b.ko.Spec.Name) {
+		delta.Add("Spec.Name", a.ko.Spec.Name, b.ko.Spec.Name)
+	} else if a.ko.Spec.Name != nil && b.ko.Spec.Name != nil {
+		if *a.ko.Spec.Name != *b.ko.Spec.Name {
+			delta.Add("Spec.Name", a.ko.Spec.Name, b.ko.Spec.Name)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.RequireTLS, b.ko.Spec.RequireTLS) {
