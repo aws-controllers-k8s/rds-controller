@@ -794,9 +794,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch awsErr.Code() {
-	case "DBProxyAlreadyExistsFault",
-		"DBProxyQuotaExceededFault",
-		"InvalidSubnet":
+	case "InvalidSubnet":
 		return true
 	default:
 		return false

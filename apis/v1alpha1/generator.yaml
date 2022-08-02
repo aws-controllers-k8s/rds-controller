@@ -349,8 +349,6 @@ resources:
   DBProxy:
     exceptions:
       terminal_codes:
-        - DBProxyAlreadyExistsFault
-        - DBProxyQuotaExceededFault
         - InvalidSubnet
     fields:
       DBProxyName:
