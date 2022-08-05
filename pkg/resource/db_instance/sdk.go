@@ -705,22 +705,6 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.StorageType = nil
 		}
-		if elem.TagList != nil {
-			f70 := []*svcapitypes.Tag{}
-			for _, f70iter := range elem.TagList {
-				f70elem := &svcapitypes.Tag{}
-				if f70iter.Key != nil {
-					f70elem.Key = f70iter.Key
-				}
-				if f70iter.Value != nil {
-					f70elem.Value = f70iter.Value
-				}
-				f70 = append(f70, f70elem)
-			}
-			ko.Status.TagList = f70
-		} else {
-			ko.Status.TagList = nil
-		}
 		if elem.TdeCredentialArn != nil {
 			ko.Spec.TDECredentialARN = elem.TdeCredentialArn
 		} else {
@@ -732,18 +716,18 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.Timezone = nil
 		}
 		if elem.VpcSecurityGroups != nil {
-			f73 := []*svcapitypes.VPCSecurityGroupMembership{}
-			for _, f73iter := range elem.VpcSecurityGroups {
-				f73elem := &svcapitypes.VPCSecurityGroupMembership{}
-				if f73iter.Status != nil {
-					f73elem.Status = f73iter.Status
+			f72 := []*svcapitypes.VPCSecurityGroupMembership{}
+			for _, f72iter := range elem.VpcSecurityGroups {
+				f72elem := &svcapitypes.VPCSecurityGroupMembership{}
+				if f72iter.Status != nil {
+					f72elem.Status = f72iter.Status
 				}
-				if f73iter.VpcSecurityGroupId != nil {
-					f73elem.VPCSecurityGroupID = f73iter.VpcSecurityGroupId
+				if f72iter.VpcSecurityGroupId != nil {
+					f72elem.VPCSecurityGroupID = f72iter.VpcSecurityGroupId
 				}
-				f73 = append(f73, f73elem)
+				f72 = append(f72, f72elem)
 			}
-			ko.Status.VPCSecurityGroups = f73
+			ko.Status.VPCSecurityGroups = f72
 		} else {
 			ko.Status.VPCSecurityGroups = nil
 		}
@@ -755,6 +739,14 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
+		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+		tags, err := rm.getTags(ctx, *resourceARN)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.Tags = tags
+	}
 	if !instanceAvailable(&resource{ko}) {
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource. No need to return a requeue error here.
@@ -1443,22 +1435,6 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.StorageType = nil
 	}
-	if resp.DBInstance.TagList != nil {
-		f70 := []*svcapitypes.Tag{}
-		for _, f70iter := range resp.DBInstance.TagList {
-			f70elem := &svcapitypes.Tag{}
-			if f70iter.Key != nil {
-				f70elem.Key = f70iter.Key
-			}
-			if f70iter.Value != nil {
-				f70elem.Value = f70iter.Value
-			}
-			f70 = append(f70, f70elem)
-		}
-		ko.Status.TagList = f70
-	} else {
-		ko.Status.TagList = nil
-	}
 	if resp.DBInstance.TdeCredentialArn != nil {
 		ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
 	} else {
@@ -1470,18 +1446,18 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.Timezone = nil
 	}
 	if resp.DBInstance.VpcSecurityGroups != nil {
-		f73 := []*svcapitypes.VPCSecurityGroupMembership{}
-		for _, f73iter := range resp.DBInstance.VpcSecurityGroups {
-			f73elem := &svcapitypes.VPCSecurityGroupMembership{}
-			if f73iter.Status != nil {
-				f73elem.Status = f73iter.Status
+		f72 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f72iter := range resp.DBInstance.VpcSecurityGroups {
+			f72elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f72iter.Status != nil {
+				f72elem.Status = f72iter.Status
 			}
-			if f73iter.VpcSecurityGroupId != nil {
-				f73elem.VPCSecurityGroupID = f73iter.VpcSecurityGroupId
+			if f72iter.VpcSecurityGroupId != nil {
+				f72elem.VPCSecurityGroupID = f72iter.VpcSecurityGroupId
 			}
-			f73 = append(f73, f73elem)
+			f72 = append(f72, f72elem)
 		}
-		ko.Status.VPCSecurityGroups = f73
+		ko.Status.VPCSecurityGroups = f72
 	} else {
 		ko.Status.VPCSecurityGroups = nil
 	}
@@ -1739,6 +1715,18 @@ func (rm *resourceManager) sdkUpdate(
 		msg := "DB instance cannot be modifed while in '" + *latest.ko.Status.DBInstanceStatus + "' status"
 		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
 		return desired, requeueWaitUntilCanModify(latest)
+	}
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+	if !delta.DifferentExcept("Spec.Tags") {
+		// Don't call ModifyDBInstance if none of the non-tag fields have
+		// changed, since calling ModifyDBInstance will cause a multi-minute
+		// resetting-master-credentials -> configuring-advance-monitoring
+		// status change...
+		return desired, nil
 	}
 
 	input, err := rm.newUpdateRequestPayload(ctx, desired)
@@ -2412,22 +2400,6 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.StorageType = nil
 	}
-	if resp.DBInstance.TagList != nil {
-		f70 := []*svcapitypes.Tag{}
-		for _, f70iter := range resp.DBInstance.TagList {
-			f70elem := &svcapitypes.Tag{}
-			if f70iter.Key != nil {
-				f70elem.Key = f70iter.Key
-			}
-			if f70iter.Value != nil {
-				f70elem.Value = f70iter.Value
-			}
-			f70 = append(f70, f70elem)
-		}
-		ko.Status.TagList = f70
-	} else {
-		ko.Status.TagList = nil
-	}
 	if resp.DBInstance.TdeCredentialArn != nil {
 		ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
 	} else {
@@ -2439,18 +2411,18 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.Timezone = nil
 	}
 	if resp.DBInstance.VpcSecurityGroups != nil {
-		f73 := []*svcapitypes.VPCSecurityGroupMembership{}
-		for _, f73iter := range resp.DBInstance.VpcSecurityGroups {
-			f73elem := &svcapitypes.VPCSecurityGroupMembership{}
-			if f73iter.Status != nil {
-				f73elem.Status = f73iter.Status
+		f72 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f72iter := range resp.DBInstance.VpcSecurityGroups {
+			f72elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f72iter.Status != nil {
+				f72elem.Status = f72iter.Status
 			}
-			if f73iter.VpcSecurityGroupId != nil {
-				f73elem.VPCSecurityGroupID = f73iter.VpcSecurityGroupId
+			if f72iter.VpcSecurityGroupId != nil {
+				f72elem.VPCSecurityGroupID = f72iter.VpcSecurityGroupId
 			}
-			f73 = append(f73, f73elem)
+			f72 = append(f72, f72elem)
 		}
-		ko.Status.VPCSecurityGroups = f73
+		ko.Status.VPCSecurityGroups = f72
 	} else {
 		ko.Status.VPCSecurityGroups = nil
 	}
@@ -3557,22 +3529,6 @@ func (rm *resourceManager) setResourceFromRestoreDBInstanceFromDBSnapshotOutput(
 	} else {
 		r.ko.Spec.StorageType = nil
 	}
-	if resp.DBInstance.TagList != nil {
-		f70 := []*svcapitypes.Tag{}
-		for _, f70iter := range resp.DBInstance.TagList {
-			f70elem := &svcapitypes.Tag{}
-			if f70iter.Key != nil {
-				f70elem.Key = f70iter.Key
-			}
-			if f70iter.Value != nil {
-				f70elem.Value = f70iter.Value
-			}
-			f70 = append(f70, f70elem)
-		}
-		r.ko.Status.TagList = f70
-	} else {
-		r.ko.Status.TagList = nil
-	}
 	if resp.DBInstance.TdeCredentialArn != nil {
 		r.ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
 	} else {
@@ -3584,18 +3540,18 @@ func (rm *resourceManager) setResourceFromRestoreDBInstanceFromDBSnapshotOutput(
 		r.ko.Spec.Timezone = nil
 	}
 	if resp.DBInstance.VpcSecurityGroups != nil {
-		f73 := []*svcapitypes.VPCSecurityGroupMembership{}
-		for _, f73iter := range resp.DBInstance.VpcSecurityGroups {
-			f73elem := &svcapitypes.VPCSecurityGroupMembership{}
-			if f73iter.Status != nil {
-				f73elem.Status = f73iter.Status
+		f72 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f72iter := range resp.DBInstance.VpcSecurityGroups {
+			f72elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f72iter.Status != nil {
+				f72elem.Status = f72iter.Status
 			}
-			if f73iter.VpcSecurityGroupId != nil {
-				f73elem.VPCSecurityGroupID = f73iter.VpcSecurityGroupId
+			if f72iter.VpcSecurityGroupId != nil {
+				f72elem.VPCSecurityGroupID = f72iter.VpcSecurityGroupId
 			}
-			f73 = append(f73, f73elem)
+			f72 = append(f72, f72elem)
 		}
-		r.ko.Status.VPCSecurityGroups = f73
+		r.ko.Status.VPCSecurityGroups = f72
 	} else {
 		r.ko.Status.VPCSecurityGroups = nil
 	}
@@ -4226,22 +4182,6 @@ func (rm *resourceManager) setResourceFromCreateDBInstanceReadReplicaOutput(
 	} else {
 		r.ko.Spec.StorageType = nil
 	}
-	if resp.DBInstance.TagList != nil {
-		f70 := []*svcapitypes.Tag{}
-		for _, f70iter := range resp.DBInstance.TagList {
-			f70elem := &svcapitypes.Tag{}
-			if f70iter.Key != nil {
-				f70elem.Key = f70iter.Key
-			}
-			if f70iter.Value != nil {
-				f70elem.Value = f70iter.Value
-			}
-			f70 = append(f70, f70elem)
-		}
-		r.ko.Status.TagList = f70
-	} else {
-		r.ko.Status.TagList = nil
-	}
 	if resp.DBInstance.TdeCredentialArn != nil {
 		r.ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
 	} else {
@@ -4253,18 +4193,18 @@ func (rm *resourceManager) setResourceFromCreateDBInstanceReadReplicaOutput(
 		r.ko.Spec.Timezone = nil
 	}
 	if resp.DBInstance.VpcSecurityGroups != nil {
-		f73 := []*svcapitypes.VPCSecurityGroupMembership{}
-		for _, f73iter := range resp.DBInstance.VpcSecurityGroups {
-			f73elem := &svcapitypes.VPCSecurityGroupMembership{}
-			if f73iter.Status != nil {
-				f73elem.Status = f73iter.Status
+		f72 := []*svcapitypes.VPCSecurityGroupMembership{}
+		for _, f72iter := range resp.DBInstance.VpcSecurityGroups {
+			f72elem := &svcapitypes.VPCSecurityGroupMembership{}
+			if f72iter.Status != nil {
+				f72elem.Status = f72iter.Status
 			}
-			if f73iter.VpcSecurityGroupId != nil {
-				f73elem.VPCSecurityGroupID = f73iter.VpcSecurityGroupId
+			if f72iter.VpcSecurityGroupId != nil {
+				f72elem.VPCSecurityGroupID = f72iter.VpcSecurityGroupId
 			}
-			f73 = append(f73, f73elem)
+			f72 = append(f72, f72elem)
 		}
-		r.ko.Status.VPCSecurityGroups = f73
+		r.ko.Status.VPCSecurityGroups = f72
 	} else {
 		r.ko.Status.VPCSecurityGroups = nil
 	}

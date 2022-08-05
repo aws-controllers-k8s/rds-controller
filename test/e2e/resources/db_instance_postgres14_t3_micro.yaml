@@ -4,6 +4,9 @@ metadata:
   name: $DB_INSTANCE_ID
 spec:
   allocatedStorage: 5
+  # Disable automated backups since it adds time to the provisioning
+  # workflow...
+  backupRetentionPeriod: 0
   copyTagsToSnapshot: $COPY_TAGS_TO_SNAPSHOT
   dbInstanceClass: db.t3.micro
   dbInstanceIdentifier: $DB_INSTANCE_ID
@@ -14,4 +17,7 @@ spec:
     namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
     name: $MASTER_USER_PASS_SECRET_NAME
     key: $MASTER_USER_PASS_SECRET_KEY
-  multiAZ: False
+  multiAZ: false
+  tags:
+    - key: environment
+      value: dev

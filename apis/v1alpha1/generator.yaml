@@ -20,6 +20,8 @@ ignore:
   field_paths:
     - CreateDBInstanceInput.DBSecurityGroups
     - DBInstance.DBSecurityGroups
+    # We handle Spec.Tags separately...
+    - "DescribeDBInstancesOutput.DBInstances.DBInstance.TagList"
 operations:
   ModifyDBCluster:
     override_values:
@@ -128,6 +130,10 @@ resources:
         from:
           operation: RestoreDBClusterFromSnapshot
           path: SnapshotIdentifier
+      Tags:
+        compare:
+          # We have a custom comparison function...
+          is_ignored: true
     renames:
       operations:
         CreateDBCluster:
@@ -171,6 +177,10 @@ resources:
         from:
           operation: ModifyDBClusterParameterGroup
           path: Parameters
+      Tags:
+        compare:
+          # We have a custom comparison function...
+          is_ignored: true
   DBInstance:
     hooks:
       sdk_create_pre_build_request:
@@ -259,6 +269,10 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
+      Tags:
+        compare:
+          # We have a custom comparison function...
+          is_ignored: true
     renames:
       operations:
         CreateDBInstance:
@@ -312,6 +326,10 @@ resources:
         from:
           operation: ModifyDBParameterGroup
           path: Parameters
+      Tags:
+        compare:
+          # We have a custom comparison function...
+          is_ignored: true
   DBSubnetGroup:
     renames:
       operations:
@@ -346,6 +364,10 @@ resources:
     fields:
       Name:
         is_primary_key: true
+      Tags:
+        compare:
+          # We have a custom comparison function...
+          is_ignored: true
   DBProxy:
     exceptions:
       terminal_codes:

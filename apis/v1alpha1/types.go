@@ -586,30 +586,27 @@ type DBInstance_SDK struct {
 	OptionGroupMemberships []*OptionGroupMembership `json:"optionGroupMemberships,omitempty"`
 	// This data type is used as a response element in the ModifyDBInstance operation
 	// and contains changes that will be applied during the next maintenance window.
-	PendingModifiedValues                 *PendingModifiedValues  `json:"pendingModifiedValues,omitempty"`
-	PerformanceInsightsEnabled            *bool                   `json:"performanceInsightsEnabled,omitempty"`
-	PerformanceInsightsKMSKeyID           *string                 `json:"performanceInsightsKMSKeyID,omitempty"`
-	PerformanceInsightsRetentionPeriod    *int64                  `json:"performanceInsightsRetentionPeriod,omitempty"`
-	PreferredBackupWindow                 *string                 `json:"preferredBackupWindow,omitempty"`
-	PreferredMaintenanceWindow            *string                 `json:"preferredMaintenanceWindow,omitempty"`
-	ProcessorFeatures                     []*ProcessorFeature     `json:"processorFeatures,omitempty"`
-	PromotionTier                         *int64                  `json:"promotionTier,omitempty"`
-	PubliclyAccessible                    *bool                   `json:"publiclyAccessible,omitempty"`
-	ReadReplicaDBClusterIdentifiers       []*string               `json:"readReplicaDBClusterIdentifiers,omitempty"`
-	ReadReplicaDBInstanceIdentifiers      []*string               `json:"readReplicaDBInstanceIdentifiers,omitempty"`
-	ReadReplicaSourceDBInstanceIdentifier *string                 `json:"readReplicaSourceDBInstanceIdentifier,omitempty"`
-	ReplicaMode                           *string                 `json:"replicaMode,omitempty"`
-	ResumeFullAutomationModeTime          *metav1.Time            `json:"resumeFullAutomationModeTime,omitempty"`
-	SecondaryAvailabilityZone             *string                 `json:"secondaryAvailabilityZone,omitempty"`
-	StatusInfos                           []*DBInstanceStatusInfo `json:"statusInfos,omitempty"`
-	StorageEncrypted                      *bool                   `json:"storageEncrypted,omitempty"`
-	StorageType                           *string                 `json:"storageType,omitempty"`
-	// A list of tags. For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
-	// in the Amazon RDS User Guide.
-	TagList           []*Tag                        `json:"tagList,omitempty"`
-	TDECredentialARN  *string                       `json:"tdeCredentialARN,omitempty"`
-	Timezone          *string                       `json:"timezone,omitempty"`
-	VPCSecurityGroups []*VPCSecurityGroupMembership `json:"vpcSecurityGroups,omitempty"`
+	PendingModifiedValues                 *PendingModifiedValues        `json:"pendingModifiedValues,omitempty"`
+	PerformanceInsightsEnabled            *bool                         `json:"performanceInsightsEnabled,omitempty"`
+	PerformanceInsightsKMSKeyID           *string                       `json:"performanceInsightsKMSKeyID,omitempty"`
+	PerformanceInsightsRetentionPeriod    *int64                        `json:"performanceInsightsRetentionPeriod,omitempty"`
+	PreferredBackupWindow                 *string                       `json:"preferredBackupWindow,omitempty"`
+	PreferredMaintenanceWindow            *string                       `json:"preferredMaintenanceWindow,omitempty"`
+	ProcessorFeatures                     []*ProcessorFeature           `json:"processorFeatures,omitempty"`
+	PromotionTier                         *int64                        `json:"promotionTier,omitempty"`
+	PubliclyAccessible                    *bool                         `json:"publiclyAccessible,omitempty"`
+	ReadReplicaDBClusterIdentifiers       []*string                     `json:"readReplicaDBClusterIdentifiers,omitempty"`
+	ReadReplicaDBInstanceIdentifiers      []*string                     `json:"readReplicaDBInstanceIdentifiers,omitempty"`
+	ReadReplicaSourceDBInstanceIdentifier *string                       `json:"readReplicaSourceDBInstanceIdentifier,omitempty"`
+	ReplicaMode                           *string                       `json:"replicaMode,omitempty"`
+	ResumeFullAutomationModeTime          *metav1.Time                  `json:"resumeFullAutomationModeTime,omitempty"`
+	SecondaryAvailabilityZone             *string                       `json:"secondaryAvailabilityZone,omitempty"`
+	StatusInfos                           []*DBInstanceStatusInfo       `json:"statusInfos,omitempty"`
+	StorageEncrypted                      *bool                         `json:"storageEncrypted,omitempty"`
+	StorageType                           *string                       `json:"storageType,omitempty"`
+	TDECredentialARN                      *string                       `json:"tdeCredentialARN,omitempty"`
+	Timezone                              *string                       `json:"timezone,omitempty"`
+	VPCSecurityGroups                     []*VPCSecurityGroupMembership `json:"vpcSecurityGroups,omitempty"`
 }
 
 // The status of the DB parameter group.
