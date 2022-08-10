@@ -322,14 +322,27 @@ resources:
     fields:
       Name:
         is_primary_key: true
-      Parameters:
-        from:
-          operation: ModifyDBParameterGroup
-          path: Parameters
+      # These are ONLY user-defined parameter overrides for the DB parameter
+      # group. This does not contain default or system parameters.
+      ParameterOverrides:
+        custom_field:
+          # The type is a map[string]string where the map keys are the
+          # parameter name and the values are the parameter value. We
+          # automatically determine the "apply method" for parameters so all
+          # the user needs to do is specify the parameter name and value they
+          # want to override...
+          map_of: String
       Tags:
         compare:
           # We have a custom comparison function...
           is_ignored: true
+      # These are the "statuses" for the user-defined parameter overrides in
+      # Spec.ParameterOverrides
+      ParameterOverrideStatuses:
+        from:
+          operation: DescribeDBParameters
+          path: Parameters
+        is_read_only: true
   DBSubnetGroup:
     renames:
       operations:

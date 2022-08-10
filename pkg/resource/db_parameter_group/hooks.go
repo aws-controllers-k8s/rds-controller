@@ -20,9 +20,15 @@ import (
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
+)
+
+const (
+	sourceUser             = "user"
+	maxResetParametersSize = 20
 )
 
 // customUpdate is required to fix
@@ -43,6 +49,11 @@ func (rm *resourceManager) customUpdate(
 	}()
 	if delta.DifferentAt("Spec.Tags") {
 		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+	if delta.DifferentAt("Spec.ParameterOverrides") {
+		if err = rm.syncParameters(ctx, desired, latest); err != nil {
 			return nil, err
 		}
 	}
@@ -172,4 +183,251 @@ func sdkTagsFromResourceTags(
 		}
 	}
 	return tags
+}
+
+func equalStrings(a, b *string) bool {
+	if a == nil {
+		return b == nil || *b == ""
+	}
+	return (*a == "" && b == nil) || *a == *b
+}
+
+// syncParameters keeps the resource's parameters in sync
+//
+// RDS does not have a DeleteParameter or DeleteParameterFromParameterGroup API
+// call. Instead, you need to call ResetDBParameterGroup with a list of DB
+// Parameters that you want RDS to reset to a default value.
+func (rm *resourceManager) syncParameters(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.syncParameters")
+	defer func() { exit(err) }()
+
+	groupName := (*string)(latest.ko.Spec.Name)
+
+	toModify, toDelete := computeParametersDelta(
+		desired.ko.Spec.ParameterOverrides, latest.ko.Spec.ParameterOverrides,
+	)
+
+	// NOTE(jaypipes): ResetDBParameterGroup and ModifyDBParameterGroup only
+	// accept 20 parameters at a time, which is why we "chunk" both the deleted
+	// and modified parameter sets.
+
+	if len(toDelete) > 0 {
+		chunks := sliceStringChunks(toDelete, maxResetParametersSize)
+		for _, chunk := range chunks {
+			if err = rm.resetParameters(ctx, groupName, chunk); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(toModify) > 0 {
+		chunks := mapStringChunks(toModify, maxResetParametersSize)
+		for _, chunk := range chunks {
+			if err = rm.modifyParameters(ctx, groupName, chunk); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// getParameters retrieves the parameter group's user-defined parameters
+// (overrides) and the "statuses" of those parameter overrides.
+func (rm *resourceManager) getParameters(
+	ctx context.Context,
+	groupName *string,
+) (
+	params map[string]*string,
+	paramStatuses []*svcapitypes.Parameter,
+	err error,
+) {
+	var marker *string
+
+	for {
+		resp, err := rm.sdkapi.DescribeDBParametersWithContext(
+			ctx,
+			&svcsdk.DescribeDBParametersInput{
+				DBParameterGroupName: groupName,
+				Source:               aws.String(sourceUser),
+				Marker:               marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeDBParameters", err)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, param := range resp.Parameters {
+			params[*param.ParameterName] = param.ParameterValue
+			p := svcapitypes.Parameter{
+				ParameterName:  param.ParameterName,
+				ParameterValue: param.ParameterValue,
+				ApplyMethod:    param.ApplyMethod,
+				ApplyType:      param.ApplyType,
+			}
+			paramStatuses = append(paramStatuses, &p)
+		}
+		marker = resp.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return params, paramStatuses, nil
+}
+
+// resetParameters calls the RDS ResetDBParameterGroup API call with a set of
+// no more than 20 parameters to reset.
+func (rm *resourceManager) resetParameters(
+	ctx context.Context,
+	groupName *string,
+	toDelete []string,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.resetParameters")
+	defer func() { exit(err) }()
+
+	inputParams := []*svcsdk.Parameter{}
+	for _, paramName := range toDelete {
+		p := &svcsdk.Parameter{
+			ParameterName: aws.String(paramName),
+			// TODO(jaypipes): Look up appropriate apply method for this
+			// parameter...
+			ApplyMethod: aws.String(svcsdk.ApplyMethodImmediate),
+		}
+		inputParams = append(inputParams, p)
+	}
+
+	rlog.Debug(
+		"resetting parameters from parameter group",
+		"parameters", toDelete,
+	)
+	_, err = rm.sdkapi.ResetDBParameterGroupWithContext(
+		ctx,
+		&svcsdk.ResetDBParameterGroupInput{
+			DBParameterGroupName: groupName,
+			Parameters:           inputParams,
+		},
+	)
+	rm.metrics.RecordAPICall("UPDATE", "ResetDBParameterGroup", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// modifyParameters calls the RDS ModifyDBParameterGroup API call with a set of
+// no more than 20 parameters to modify.
+func (rm *resourceManager) modifyParameters(
+	ctx context.Context,
+	groupName *string,
+	toModify map[string]*string,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.resetParameters")
+	defer func() { exit(err) }()
+
+	inputParams := []*svcsdk.Parameter{}
+	for paramName, paramValue := range toModify {
+		p := &svcsdk.Parameter{
+			ParameterName:  aws.String(paramName),
+			ParameterValue: paramValue,
+			// TODO(jaypipes): Look up appropriate apply method for this
+			// parameter...
+			ApplyMethod: aws.String(svcsdk.ApplyMethodImmediate),
+		}
+		inputParams = append(inputParams, p)
+	}
+
+	rlog.Debug(
+		"modifying parameters from parameter group",
+		"parameters", toModify,
+	)
+	_, err = rm.sdkapi.ModifyDBParameterGroupWithContext(
+		ctx,
+		&svcsdk.ModifyDBParameterGroupInput{
+			DBParameterGroupName: groupName,
+			Parameters:           inputParams,
+		},
+	)
+	rm.metrics.RecordAPICall("UPDATE", "ModifyDBParameterGroup", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// computeParametersDelta compares two Parameter arrays and returns the new
+// parameters to add, to update and the parameter identifiers to delete
+func computeParametersDelta(
+	desired map[string]*string,
+	latest map[string]*string,
+) (map[string]*string, []string) {
+	toReset := []string{}
+	toModify := map[string]*string{}
+
+	for k, v := range desired {
+		if lv, found := latest[k]; !found {
+			toModify[k] = v
+		} else if !equalStrings(v, lv) {
+			toModify[k] = v
+		}
+	}
+	for k := range latest {
+		if _, found := desired[k]; !found {
+			toReset = append(toReset, k)
+		}
+	}
+	return toModify, toReset
+}
+
+// sliceStringChunks splits a supplied slice of string pointers into multiple
+// slices of string pointers of a given size.
+func sliceStringChunks(
+	input []string,
+	chunkSize int,
+) [][]string {
+	var chunks [][]string
+	for {
+		if len(input) == 0 {
+			break
+		}
+
+		if len(input) < chunkSize {
+			chunkSize = len(input)
+		}
+
+		chunks = append(chunks, input[0:chunkSize])
+		input = input[chunkSize:]
+	}
+
+	return chunks
+}
+
+// mapStringChunks splits a supplied map of string pointers into multiple
+// slices of maps of string pointers of a given size.
+func mapStringChunks(
+	input map[string]*string,
+	chunkSize int,
+) []map[string]*string {
+	var chunks []map[string]*string
+	chunk := map[string]*string{}
+	idx := 0
+	for k, v := range input {
+		if idx < chunkSize {
+			chunk[k] = v
+			idx++
+		} else {
+			// reset the chunker
+			chunks = append(chunks, chunk)
+			chunk = map[string]*string{}
+			idx = 0
+		}
+	}
+	chunks = append(chunks, chunk)
+
+	return chunks
 }
