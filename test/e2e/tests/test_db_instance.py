@@ -25,6 +25,7 @@ from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
 from e2e import db_instance
 from e2e.fixtures import k8s_secret
+from e2e import tag
 
 RESOURCE_PLURAL = 'dbinstances'
 
@@ -181,7 +182,7 @@ class TestDBInstance:
         expect_tags = [
             {"Key": "environment", "Value": "dev"}
         ]
-        latest_tags = db_instance.get_tags(arn)
+        latest_tags = tag.clean(db_instance.get_tags(arn))
         assert expect_tags == latest_tags
 
         # OK, now let's update the tag set and check that the tags are
@@ -198,7 +199,7 @@ class TestDBInstance:
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        latest_tags = db_instance.get_tags(arn)
+        latest_tags = tag.clean(db_instance.get_tags(arn))
         after_update_expected_tags = [
             {
                 "Key": "environment",
