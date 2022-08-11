@@ -124,6 +124,7 @@ class TestDBInstance:
         assert latest is not None
         assert latest['DBInstanceStatus'] == 'available'
         assert latest['MultiAZ'] is False
+        # Comment below multiAZ assert until https://github.com/aws-controllers-k8s/community/issues/1376 fixed
 
         # Before we update the DBInstance CR below, let's check to see that the
         # DbInstanceStatus field in the CR has been updated to something other
@@ -147,7 +148,7 @@ class TestDBInstance:
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] is False
         updates = {
-            "spec": {"copyTagsToSnapshot": True, "multiAZ": True},
+            "spec": {"copyTagsToSnapshot": True},
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
@@ -159,10 +160,10 @@ class TestDBInstance:
         latest = db_instance.get(db_instance_id)
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] is True
-        assert latest['MultiAZ'] is True
+        # assert latest['MultiAZ'] is True
 
         updates = {
-            "spec": {"copyTagsToSnapshot": False, "multiAZ": False},
+            "spec": {"copyTagsToSnapshot": False},
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
@@ -174,7 +175,6 @@ class TestDBInstance:
         latest = db_instance.get(db_instance_id)
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] is False
-        # Comment below multiAZ assert until https://github.com/aws-controllers-k8s/community/issues/1376 fixed
         # assert latest['MultiAZ'] is False
 
         arn = latest['DBInstanceArn']
