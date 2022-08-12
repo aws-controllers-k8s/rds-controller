@@ -15,8 +15,11 @@ package db_parameter_group
 
 import (
 	"context"
+	"fmt"
+	"sync"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -27,9 +30,33 @@ import (
 )
 
 const (
+	applyTypeStatic        = "static"
 	sourceUser             = "user"
 	maxResetParametersSize = 20
 )
+
+var (
+	errUnknownParameter      = fmt.Errorf("unknown parameter")
+	errUnmodifiableParameter = fmt.Errorf("parameter is not modifiable")
+)
+
+func newErrUnknownParameter(name string) error {
+	// This is a terminal error because unless the user removes this parameter
+	// from their list of parameter overrides, we will not be able to get the
+	// resource into a synced state.
+	return ackerr.NewTerminalError(
+		fmt.Errorf("%w: %s", errUnknownParameter, name),
+	)
+}
+
+func newErrUnmodifiableParameter(name string) error {
+	// This is a terminal error because unless the user removes this parameter
+	// from their list of parameter overrides, we will not be able to get the
+	// resource into a synced state.
+	return ackerr.NewTerminalError(
+		fmt.Errorf("%w: %s", errUnmodifiableParameter, name),
+	)
+}
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/869.
@@ -206,7 +233,8 @@ func (rm *resourceManager) syncParameters(
 	exit := rlog.Trace("rm.syncParameters")
 	defer func() { exit(err) }()
 
-	groupName := (*string)(latest.ko.Spec.Name)
+	groupName := latest.ko.Spec.Name
+	family := latest.ko.Spec.Family
 
 	toModify, toDelete := computeParametersDelta(
 		desired.ko.Spec.ParameterOverrides, latest.ko.Spec.ParameterOverrides,
@@ -219,7 +247,8 @@ func (rm *resourceManager) syncParameters(
 	if len(toDelete) > 0 {
 		chunks := sliceStringChunks(toDelete, maxResetParametersSize)
 		for _, chunk := range chunks {
-			if err = rm.resetParameters(ctx, groupName, chunk); err != nil {
+			err = rm.resetParameters(ctx, family, groupName, chunk)
+			if err != nil {
 				return err
 			}
 		}
@@ -228,7 +257,8 @@ func (rm *resourceManager) syncParameters(
 	if len(toModify) > 0 {
 		chunks := mapStringChunks(toModify, maxResetParametersSize)
 		for _, chunk := range chunks {
-			if err = rm.modifyParameters(ctx, groupName, chunk); err != nil {
+			err = rm.modifyParameters(ctx, family, groupName, chunk)
+			if err != nil {
 				return err
 			}
 		}
@@ -283,6 +313,7 @@ func (rm *resourceManager) getParameters(
 // no more than 20 parameters to reset.
 func (rm *resourceManager) resetParameters(
 	ctx context.Context,
+	family *string,
 	groupName *string,
 	toDelete []string,
 ) (err error) {
@@ -290,13 +321,29 @@ func (rm *resourceManager) resetParameters(
 	exit := rlog.Trace("rm.resetParameters")
 	defer func() { exit(err) }()
 
+	var pMeta *paramMeta
 	inputParams := []*svcsdk.Parameter{}
 	for _, paramName := range toDelete {
+		// default to this if something goes wrong looking up parameter
+		// defaults
+		applyMethod := svcsdk.ApplyMethodImmediate
+		pMeta, err = cachedParamMeta.get(
+			ctx, *family, paramName, rm.getFamilyParameters,
+		)
+		if err != nil {
+			return err
+		}
+		if !pMeta.isModifiable {
+			return newErrUnmodifiableParameter(paramName)
+		}
+		if !pMeta.isDynamic {
+			applyMethod = svcsdk.ApplyMethodPendingReboot
+		}
 		p := &svcsdk.Parameter{
 			ParameterName: aws.String(paramName),
 			// TODO(jaypipes): Look up appropriate apply method for this
 			// parameter...
-			ApplyMethod: aws.String(svcsdk.ApplyMethodImmediate),
+			ApplyMethod: aws.String(applyMethod),
 		}
 		inputParams = append(inputParams, p)
 	}
@@ -323,6 +370,7 @@ func (rm *resourceManager) resetParameters(
 // no more than 20 parameters to modify.
 func (rm *resourceManager) modifyParameters(
 	ctx context.Context,
+	family *string,
 	groupName *string,
 	toModify map[string]*string,
 ) (err error) {
@@ -330,14 +378,30 @@ func (rm *resourceManager) modifyParameters(
 	exit := rlog.Trace("rm.resetParameters")
 	defer func() { exit(err) }()
 
+	var pMeta *paramMeta
 	inputParams := []*svcsdk.Parameter{}
 	for paramName, paramValue := range toModify {
+		// default to this if something goes wrong looking up parameter
+		// defaults
+		applyMethod := svcsdk.ApplyMethodImmediate
+		pMeta, err = cachedParamMeta.get(
+			ctx, *family, paramName, rm.getFamilyParameters,
+		)
+		if err != nil {
+			return err
+		}
+		if !pMeta.isModifiable {
+			return newErrUnmodifiableParameter(paramName)
+		}
+		if !pMeta.isDynamic {
+			applyMethod = svcsdk.ApplyMethodPendingReboot
+		}
 		p := &svcsdk.Parameter{
 			ParameterName:  aws.String(paramName),
 			ParameterValue: paramValue,
 			// TODO(jaypipes): Look up appropriate apply method for this
 			// parameter...
-			ApplyMethod: aws.String(svcsdk.ApplyMethodImmediate),
+			ApplyMethod: aws.String(applyMethod),
 		}
 		inputParams = append(inputParams, p)
 	}
@@ -358,6 +422,42 @@ func (rm *resourceManager) modifyParameters(
 		return err
 	}
 	return nil
+}
+
+// getFamilyParameters calls the RDS DescribeEngineDefaultParameters API to
+// retrieve the set of parameter information for a DB parameter group family.
+func (rm *resourceManager) getFamilyParameters(
+	ctx context.Context,
+	family string,
+) (map[string]paramMeta, error) {
+	var marker *string
+	familyMeta := map[string]paramMeta{}
+
+	for {
+		resp, err := rm.sdkapi.DescribeEngineDefaultParametersWithContext(
+			ctx,
+			&svcsdk.DescribeEngineDefaultParametersInput{
+				DBParameterGroupFamily: aws.String(family),
+				Marker:                 marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeEngineDefaultParameters", err)
+		if err != nil {
+			return nil, err
+		}
+		for _, param := range resp.EngineDefaults.Parameters {
+			pName := *param.ParameterName
+			familyMeta[pName] = paramMeta{
+				isModifiable: *param.IsModifiable,
+				isDynamic:    *param.ApplyType != applyTypeStatic,
+			}
+		}
+		marker = resp.EngineDefaults.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return familyMeta, nil
 }
 
 // computeParametersDelta compares two Parameter arrays and returns the new
@@ -430,4 +530,80 @@ func mapStringChunks(
 	chunks = append(chunks, chunk)
 
 	return chunks
+}
+
+type paramMeta struct {
+	isModifiable bool
+	isDynamic    bool
+}
+
+// metaFetcher is the functor we pass to the paramMetaCache that allows it to
+// fetch engine default parameter information
+type metaFetcher func(ctx context.Context, family string) (map[string]paramMeta, error)
+
+// paramMetaCache stores information about a parameter for a DB parameter group
+// family. We use this cached information to determine whether a parameter is
+// statically or dynamically defined (whether changes can be applied
+// immediately or pending a reboot) and whether a parameter is modifiable.
+//
+// Keeping things super simple for now and not adding any TTL or expiration
+// behaviour to the cache. Engine defaults are pretty static information...
+type paramMetaCache struct {
+	sync.RWMutex
+	hits   uint64
+	misses uint64
+	cache  map[string]map[string]paramMeta
+}
+
+// get retrieves the metadata for a named parameter group family and parameter
+// name.
+func (c *paramMetaCache) get(
+	ctx context.Context,
+	family string,
+	name string,
+	fetcher metaFetcher,
+) (*paramMeta, error) {
+	c.RLock()
+	defer c.RUnlock()
+
+	var err error
+	var found bool
+	var metas map[string]paramMeta
+	var meta paramMeta
+
+	metas, found = c.cache[family]
+	if !found {
+		c.misses++
+		metas, err = c.loadFamily(ctx, family, fetcher)
+		if err != nil {
+			return nil, err
+		}
+	}
+	meta, found = metas[name]
+	if !found {
+		return nil, newErrUnknownParameter(name)
+	}
+	c.hits++
+	return &meta, nil
+}
+
+// loadFamily fetches parameter information from the AWS RDS
+// DescribeEngineDefaultParameters API and caches that information.
+func (c *paramMetaCache) loadFamily(
+	ctx context.Context,
+	family string,
+	fetcher metaFetcher,
+) (map[string]paramMeta, error) {
+	familyMeta, err := fetcher(ctx, family)
+	if err != nil {
+		return nil, err
+	}
+	c.Lock()
+	defer c.Unlock()
+	c.cache[family] = familyMeta
+	return familyMeta, nil
+}
+
+var cachedParamMeta = paramMetaCache{
+	cache: map[string]map[string]paramMeta{},
 }
