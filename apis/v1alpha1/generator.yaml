@@ -183,6 +183,8 @@ resources:
           is_ignored: true
   DBInstance:
     hooks:
+      delta_pre_compare:
+        template_path: hooks/db_instance/delta_pre_compare.go.tpl
       sdk_create_pre_build_request:
         template_path: hooks/db_instance/sdk_create_pre_build_request.go.tpl
       sdk_create_post_set_output:
@@ -199,8 +201,6 @@ resources:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
       sdk_file_end:
         template_path: hooks/db_instance/sdk_file_end.go.tpl
-      delta_pre_compare:
-        code: customPreCompare(a, b)
     exceptions:
       terminal_codes:
         - InvalidParameter
