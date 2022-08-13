@@ -1721,13 +1721,6 @@ func (rm *resourceManager) sdkUpdate(
 			return nil, err
 		}
 	}
-	if !delta.DifferentExcept("Spec.Tags") {
-		// Don't call ModifyDBInstance if none of the non-tag fields have
-		// changed, since calling ModifyDBInstance will cause a multi-minute
-		// resetting-master-credentials -> configuring-advance-monitoring
-		// status change...
-		return desired, nil
-	}
 
 	input, err := rm.newUpdateRequestPayload(ctx, desired)
 	if err != nil {
