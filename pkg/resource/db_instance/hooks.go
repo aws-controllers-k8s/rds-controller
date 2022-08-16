@@ -532,7 +532,7 @@ func computeTagsDelta(
 	}
 
 	latestTags := map[string]string{}
-	for _, tag := range desired {
+	for _, tag := range latest {
 		latestTags[*tag.Key] = *tag.Value
 	}
 
