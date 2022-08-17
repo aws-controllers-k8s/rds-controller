@@ -21,6 +21,8 @@ import (
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+
+	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
 
 // customUpdate is required to fix
@@ -76,7 +78,7 @@ func (rm *resourceManager) syncTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	toAdd, toDelete := computeTagsDelta(
+	toAdd, toDelete := util.ComputeTagsDelta(
 		desired.ko.Spec.Tags, latest.ko.Spec.Tags,
 	)
 
@@ -151,46 +153,10 @@ func compareTags(
 	if len(a.ko.Spec.Tags) != len(b.ko.Spec.Tags) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
 	} else if len(a.ko.Spec.Tags) > 0 {
-		if !equalTags(a.ko.Spec.Tags, b.ko.Spec.Tags) {
+		if !util.EqualTags(a.ko.Spec.Tags, b.ko.Spec.Tags) {
 			delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
 		}
 	}
-}
-
-// equalTags returns true if two Tag arrays are equal regardless of the order
-// of their elements.
-func equalTags(
-	a []*svcapitypes.Tag,
-	b []*svcapitypes.Tag,
-) bool {
-	added, removed := computeTagsDelta(a, b)
-	return len(added) == 0 && len(removed) == 0
-}
-
-// computeTagsDelta compares two Tag arrays and returns the tags to add and the
-// tag keys to delete
-func computeTagsDelta(
-	desired []*svcapitypes.Tag,
-	latest []*svcapitypes.Tag,
-) ([]*svcapitypes.Tag, []*string) {
-	toDelete := []*string{}
-	toAdd := []*svcapitypes.Tag{}
-
-	desiredTags := map[string]string{}
-	for _, tag := range desired {
-		desiredTags[*tag.Key] = *tag.Value
-	}
-
-	for _, tag := range desired {
-		toAdd = append(toAdd, tag)
-	}
-	for _, tag := range latest {
-		_, ok := desiredTags[*tag.Key]
-		if !ok {
-			toDelete = append(toDelete, tag.Key)
-		}
-	}
-	return toAdd, toDelete
 }
 
 // sdkTagsFromResourceTags transforms a *svcapitypes.Tag array to a *svcsdk.Tag
@@ -206,11 +172,4 @@ func sdkTagsFromResourceTags(
 		}
 	}
 	return tags
-}
-
-func equalStrings(a, b *string) bool {
-	if a == nil {
-		return b == nil || *b == ""
-	}
-	return (*a == "" && b == nil) || *a == *b
 }
