@@ -49,8 +49,8 @@ class TestDBProxy:
         # The IAM role and secrect below has a complext dependency chain and we can hard code it for now
         # It needs create one rds instance -> create aws secret based on it -> create IAM role based on this secret
         # I don't have a better way to fit this dependency chain in current rds controller yet
-        iam_role_arn = "arn:aws:iam::316992738638:role/service-role/rds-proxy-role-1660948750274"
-        secret_arn = "arn:aws:secretsmanager:us-west-2:316992738638:secret:prod/basepg-VCIT20"
+        iam_role_arn = "arn:aws:iam::274006911594:role/Admin"
+        secret_arn = "arn:aws:secretsmanager:us-west-2:274006911594:secret:prod/ack/persistent/secret-hGHdOK"
         description = "proxy created by ack"
 
         replacements = REPLACEMENT_VALUES.copy()
