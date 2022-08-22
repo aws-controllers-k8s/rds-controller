@@ -17,6 +17,7 @@ for them.
 
 from dataclasses import dataclass
 from acktest.bootstrapping.vpc import VPC
+from acktest.bootstrapping.iam import Role
 from acktest.bootstrapping import Resources
 from e2e import bootstrap_directory
 
@@ -24,6 +25,7 @@ from e2e import bootstrap_directory
 @dataclass
 class BootstrapResources(Resources):
     ClusterVPC: VPC
+    RDSProxyRole: Role
 
 _bootstrap_resources = None
 

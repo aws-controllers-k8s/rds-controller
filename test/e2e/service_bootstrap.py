@@ -18,6 +18,7 @@ import logging
 from e2e import bootstrap_directory
 from acktest.bootstrapping import Resources, BootstrapFailureException
 from acktest.bootstrapping.vpc import VPC
+from acktest.bootstrapping.iam import Role
 from e2e.bootstrap_resources import BootstrapResources
 
 
@@ -26,6 +27,7 @@ def service_bootstrap() -> Resources:
 
     resources = BootstrapResources(
         ClusterVPC=VPC(name_prefix="cluster-vpc", num_public_subnet=2, num_private_subnet=2),
+        RDSProxyRole=Role("rds-proxy-role", "rds.amazonaws.com", managed_policies=["arn:aws:iam::aws:policy/SecretsManagerReadWrite"])
     )
 
     try:

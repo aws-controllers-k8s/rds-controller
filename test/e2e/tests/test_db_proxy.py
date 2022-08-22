@@ -25,6 +25,7 @@ from e2e import condition
 from e2e import db_proxy
 from e2e.fixtures import k8s_secret
 from e2e import tag
+from e2e.bootstrap_resources import get_bootstrap_resources
 
 RESOURCE_PLURAL = 'dbproxies'
 
@@ -47,16 +48,15 @@ class TestDBProxy:
         db_proxy_id = "my-test-proxy"
         db_proxy_engine_family = "POSTGRESQL"
         # The IAM role and secrect below has a complext dependency chain and we can hard code it for now
-        # It needs create one rds instance -> create aws secret based on it -> create IAM role based on this secret
-        # I don't have a better way to fit this dependency chain in current rds controller yet
-        iam_role_arn = "arn:aws:iam::274006911594:role/Admin"
+        # It needs create one rds instance -> create aws secret manager service's secret based on it -> create IAM role based on this secret
+        # I don't have a better way to fit this dependency chain in current rds controller yet, hence hard code it for now
         secret_arn = "arn:aws:secretsmanager:us-west-2:274006911594:secret:prod/ack/persistent/secret-hGHdOK"
         description = "proxy created by ack"
 
         replacements = REPLACEMENT_VALUES.copy()
         replacements["DB_PROXY_NAME"] = db_proxy_id
         replacements["DB_PROXY_ENGINE_FAMILY"] = db_proxy_engine_family
-        replacements["IAM_ROLE_ARN"] = iam_role_arn
+        replacements["IAM_ROLE_ARN"] = get_bootstrap_resources().RDSProxyRole.arn
         replacements["SECRET_ARN"] = secret_arn
         replacements["DESCRIPTION"] = description
 
@@ -91,6 +91,10 @@ class TestDBProxy:
         assert 'status' in cr
         assert 'status' in cr['status']
         condition.assert_synced(ref)
+
+        # Start testing tag for proxy
+        latest = db_proxy.get(db_proxy_id)
+        arn = latest['DBProxyArn']
 
         # now start delete db proxy
         k8s.delete_custom_resource(ref)
