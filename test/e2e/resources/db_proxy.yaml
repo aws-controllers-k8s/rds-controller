@@ -1,0 +1,16 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBProxy
+metadata:
+  name: $DB_PROXY_NAME
+spec:
+  name: $DB_PROXY_NAME
+  engineFamily: $DB_PROXY_ENGINE_FAMILY
+  roleARN: $IAM_ROLE_ARN
+  auth:
+  - secretARN: $SECRET_ARN
+    authScheme: SECRETS
+    iamAuth: DISABLED
+    description: $DESCRIPTION
+  vpcSubnetIDs: 
+  - $PUBLIC_SUBNET_1
+  - $PUBLIC_SUBNET_2
