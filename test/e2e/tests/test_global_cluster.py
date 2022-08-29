@@ -27,7 +27,7 @@ from e2e.fixtures import k8s_secret
 from e2e import tag
 from e2e.bootstrap_resources import get_bootstrap_resources
 
-RESOURCE_PLURAL = 'globalcluster'
+RESOURCE_PLURAL = 'globalclusters'
 
 DELETE_WAIT_AFTER_SECONDS = 120
 
@@ -63,21 +63,15 @@ class TestGlobalCluster:
             CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
             global_cluster_id, namespace="default",
         )
-        # First try create db proxy 
+        # First try create global cluster 
         k8s.create_custom_resource(ref, resource_data)
         cr = k8s.wait_resource_consumed_by_controller(ref)
 
+        # global cluster is available immediately upon created
         assert cr is not None
         assert 'status' in cr
         assert 'status' in cr['status']
-        assert cr['status']['status'] == 'creating'
-
-        global_cluster.wait_until(
-            global_cluster_id,
-            global_cluster.status_matches('available'),
-        )
-
-        time.sleep(CHECK_STATUS_WAIT_SECONDS)
+        assert cr['status']['status'] == 'available'
 
         # assert global cluster is synced
         cr = k8s.get_resource(ref)
