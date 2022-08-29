@@ -1,0 +1,8 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: GlobalCluster
+metadata:
+  name: $GLOBAL_CLUSTER_NAME
+spec:
+  globalClusterIdentifier: $GLOBAL_CLUSTER_NAME
+  engine: $GLOBAL_CLUSTER_ENGINE
+  databaseName: $GLOBAL_CLUSTER_DB_NAME
