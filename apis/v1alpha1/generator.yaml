@@ -319,6 +319,8 @@ resources:
         template_path: hooks/db_parameter_group/sdk_read_many_post_set_output.go.tpl
       delta_pre_compare:
         template_path: hooks/db_parameter_group/delta_pre_compare.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/db_parameter_group/sdk_create_post_set_output.go.tpl
     fields:
       Name:
         is_primary_key: true

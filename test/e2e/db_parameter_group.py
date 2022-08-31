@@ -32,6 +32,19 @@ def get(db_parameter_group_name):
     except c.exceptions.DBParameterGroupNotFoundFault:
         return None
 
+def get_parameters(db_parameter_group_name):
+    """Returns a dict containing the paramters of a given parameter group
+
+    If no such DB parameter group exists, returns None.
+    """
+    c = boto3.client('rds')
+    try:
+        resp = c.describe_db_parameters(
+            DBParameterGroupName=db_parameter_group_name,
+        )
+        return resp['Parameters']
+    except c.exceptions.DBParameterGroupNotFoundFault:
+        return None
 
 def get_tags(db_parameter_group_arn):
     """Returns a dict containing the DB parameter group's tag records from the
