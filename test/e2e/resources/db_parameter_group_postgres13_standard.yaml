@@ -6,6 +6,9 @@ spec:
   name: $DB_PARAMETER_GROUP_NAME
   description: $DB_PARAMETER_GROUP_DESC
   family: postgres13
+  parameterOverrides:
+    array_nulls: "1"
+    authentication_timeout: "50"
   tags:
     - key: environment
       value: dev

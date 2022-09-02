@@ -15,15 +15,55 @@ package db_parameter_group
 
 import (
 	"context"
+	"fmt"
+	"sync"
+	"time"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-
-	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 
+	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
+
+const (
+	applyTypeStatic        = "static"
+	sourceUser             = "user"
+	maxResetParametersSize = 20
+)
+
+var (
+	errUnknownParameter         = fmt.Errorf("unknown parameter")
+	errUnmodifiableParameter    = fmt.Errorf("parameter is not modifiable")
+	errParamterGroupJustCreated = fmt.Errorf("parameter group just got created")
+
+	requeueWaitWhileCreating = ackrequeue.NeededAfter(
+		errParamterGroupJustCreated,
+		100*time.Millisecond,
+	)
+)
+
+func newErrUnknownParameter(name string) error {
+	// This is a terminal error because unless the user removes this parameter
+	// from their list of parameter overrides, we will not be able to get the
+	// resource into a synced state.
+	return ackerr.NewTerminalError(
+		fmt.Errorf("%w: %s", errUnknownParameter, name),
+	)
+}
+
+func newErrUnmodifiableParameter(name string) error {
+	// This is a terminal error because unless the user removes this parameter
+	// from their list of parameter overrides, we will not be able to get the
+	// resource into a synced state.
+	return ackerr.NewTerminalError(
+		fmt.Errorf("%w: %s", errUnmodifiableParameter, name),
+	)
+}
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/869.
@@ -43,6 +83,11 @@ func (rm *resourceManager) customUpdate(
 	}()
 	if delta.DifferentAt("Spec.Tags") {
 		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+	if delta.DifferentAt("Spec.ParameterOverrides") {
+		if err = rm.syncParameters(ctx, desired, latest); err != nil {
 			return nil, err
 		}
 	}
@@ -172,4 +217,402 @@ func sdkTagsFromResourceTags(
 		}
 	}
 	return tags
+}
+
+func equalStrings(a, b *string) bool {
+	if a == nil {
+		return b == nil || *b == ""
+	}
+	return (*a == "" && b == nil) || *a == *b
+}
+
+// syncParameters keeps the resource's parameters in sync
+//
+// RDS does not have a DeleteParameter or DeleteParameterFromParameterGroup API
+// call. Instead, you need to call ResetDBParameterGroup with a list of DB
+// Parameters that you want RDS to reset to a default value.
+func (rm *resourceManager) syncParameters(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.syncParameters")
+	defer func() { exit(err) }()
+
+	groupName := latest.ko.Spec.Name
+	family := latest.ko.Spec.Family
+
+	toModify, toDelete := computeParametersDelta(
+		desired.ko.Spec.ParameterOverrides, latest.ko.Spec.ParameterOverrides,
+	)
+
+	// NOTE(jaypipes): ResetDBParameterGroup and ModifyDBParameterGroup only
+	// accept 20 parameters at a time, which is why we "chunk" both the deleted
+	// and modified parameter sets.
+
+	if len(toDelete) > 0 {
+		chunks := sliceStringChunks(toDelete, maxResetParametersSize)
+		for _, chunk := range chunks {
+			err = rm.resetParameters(ctx, family, groupName, chunk)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(toModify) > 0 {
+		chunks := mapStringChunks(toModify, maxResetParametersSize)
+		for _, chunk := range chunks {
+			err = rm.modifyParameters(ctx, family, groupName, chunk)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// getParameters retrieves the parameter group's user-defined parameters
+// (overrides) and the "statuses" of those parameter overrides.
+func (rm *resourceManager) getParameters(
+	ctx context.Context,
+	groupName *string,
+) (
+	params map[string]*string,
+	paramStatuses []*svcapitypes.Parameter,
+	err error,
+) {
+	var marker *string
+	params = make(map[string]*string)
+	for {
+		resp, err := rm.sdkapi.DescribeDBParametersWithContext(
+			ctx,
+			&svcsdk.DescribeDBParametersInput{
+				DBParameterGroupName: groupName,
+				Source:               aws.String(sourceUser),
+				Marker:               marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeDBParameters", err)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, param := range resp.Parameters {
+			params[*param.ParameterName] = param.ParameterValue
+			p := svcapitypes.Parameter{
+				ParameterName:  param.ParameterName,
+				ParameterValue: param.ParameterValue,
+				ApplyMethod:    param.ApplyMethod,
+				ApplyType:      param.ApplyType,
+			}
+			paramStatuses = append(paramStatuses, &p)
+		}
+		marker = resp.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return params, paramStatuses, nil
+}
+
+// resetParameters calls the RDS ResetDBParameterGroup API call with a set of
+// no more than 20 parameters to reset.
+func (rm *resourceManager) resetParameters(
+	ctx context.Context,
+	family *string,
+	groupName *string,
+	toDelete []string,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.resetParameters")
+	defer func() { exit(err) }()
+
+	var pMeta *paramMeta
+	inputParams := []*svcsdk.Parameter{}
+	for _, paramName := range toDelete {
+		// default to this if something goes wrong looking up parameter
+		// defaults
+		applyMethod := svcsdk.ApplyMethodImmediate
+		pMeta, err = cachedParamMeta.get(
+			ctx, *family, paramName, rm.getFamilyParameters,
+		)
+		if err != nil {
+			return err
+		}
+		if !pMeta.isModifiable {
+			return newErrUnmodifiableParameter(paramName)
+		}
+		if !pMeta.isDynamic {
+			applyMethod = svcsdk.ApplyMethodPendingReboot
+		}
+		p := &svcsdk.Parameter{
+			ParameterName: aws.String(paramName),
+			// TODO(jaypipes): Look up appropriate apply method for this
+			// parameter...
+			ApplyMethod: aws.String(applyMethod),
+		}
+		inputParams = append(inputParams, p)
+	}
+
+	rlog.Debug(
+		"resetting parameters from parameter group",
+		"parameters", toDelete,
+	)
+	_, err = rm.sdkapi.ResetDBParameterGroupWithContext(
+		ctx,
+		&svcsdk.ResetDBParameterGroupInput{
+			DBParameterGroupName: groupName,
+			Parameters:           inputParams,
+		},
+	)
+	rm.metrics.RecordAPICall("UPDATE", "ResetDBParameterGroup", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// modifyParameters calls the RDS ModifyDBParameterGroup API call with a set of
+// no more than 20 parameters to modify.
+func (rm *resourceManager) modifyParameters(
+	ctx context.Context,
+	family *string,
+	groupName *string,
+	toModify map[string]*string,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.modifyParameters")
+	defer func() { exit(err) }()
+
+	var pMeta *paramMeta
+	inputParams := []*svcsdk.Parameter{}
+	for paramName, paramValue := range toModify {
+		// default to this if something goes wrong looking up parameter
+		// defaults
+		applyMethod := svcsdk.ApplyMethodImmediate
+		pMeta, err = cachedParamMeta.get(
+			ctx, *family, paramName, rm.getFamilyParameters,
+		)
+		if err != nil {
+			return err
+		}
+		if !pMeta.isModifiable {
+			return newErrUnmodifiableParameter(paramName)
+		}
+		if !pMeta.isDynamic {
+			applyMethod = svcsdk.ApplyMethodPendingReboot
+		}
+		p := &svcsdk.Parameter{
+			ParameterName:  aws.String(paramName),
+			ParameterValue: paramValue,
+			// TODO(jaypipes): Look up appropriate apply method for this
+			// parameter...
+			ApplyMethod: aws.String(applyMethod),
+		}
+		inputParams = append(inputParams, p)
+	}
+
+	rlog.Debug(
+		"modifying parameters from parameter group",
+		"parameters", toModify,
+	)
+	_, err = rm.sdkapi.ModifyDBParameterGroupWithContext(
+		ctx,
+		&svcsdk.ModifyDBParameterGroupInput{
+			DBParameterGroupName: groupName,
+			Parameters:           inputParams,
+		},
+	)
+	rm.metrics.RecordAPICall("UPDATE", "ModifyDBParameterGroup", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// getFamilyParameters calls the RDS DescribeEngineDefaultParameters API to
+// retrieve the set of parameter information for a DB parameter group family.
+func (rm *resourceManager) getFamilyParameters(
+	ctx context.Context,
+	family string,
+) (map[string]paramMeta, error) {
+	var marker *string
+	familyMeta := map[string]paramMeta{}
+
+	for {
+		resp, err := rm.sdkapi.DescribeEngineDefaultParametersWithContext(
+			ctx,
+			&svcsdk.DescribeEngineDefaultParametersInput{
+				DBParameterGroupFamily: aws.String(family),
+				Marker:                 marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeEngineDefaultParameters", err)
+		if err != nil {
+			return nil, err
+		}
+		for _, param := range resp.EngineDefaults.Parameters {
+			pName := *param.ParameterName
+			familyMeta[pName] = paramMeta{
+				isModifiable: *param.IsModifiable,
+				isDynamic:    *param.ApplyType != applyTypeStatic,
+			}
+		}
+		marker = resp.EngineDefaults.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return familyMeta, nil
+}
+
+// computeParametersDelta compares two Parameter arrays and returns the new
+// parameters to add, to update and the parameter identifiers to delete
+func computeParametersDelta(
+	desired map[string]*string,
+	latest map[string]*string,
+) (map[string]*string, []string) {
+	toReset := []string{}
+	toModify := map[string]*string{}
+
+	for k, v := range desired {
+		if lv, found := latest[k]; !found {
+			toModify[k] = v
+		} else if !equalStrings(v, lv) {
+			toModify[k] = v
+		}
+	}
+	for k := range latest {
+		if _, found := desired[k]; !found {
+			toReset = append(toReset, k)
+		}
+	}
+	return toModify, toReset
+}
+
+// sliceStringChunks splits a supplied slice of string pointers into multiple
+// slices of string pointers of a given size.
+func sliceStringChunks(
+	input []string,
+	chunkSize int,
+) [][]string {
+	var chunks [][]string
+	for {
+		if len(input) == 0 {
+			break
+		}
+
+		if len(input) < chunkSize {
+			chunkSize = len(input)
+		}
+
+		chunks = append(chunks, input[0:chunkSize])
+		input = input[chunkSize:]
+	}
+
+	return chunks
+}
+
+// mapStringChunks splits a supplied map of string pointers into multiple
+// slices of maps of string pointers of a given size.
+func mapStringChunks(
+	input map[string]*string,
+	chunkSize int,
+) []map[string]*string {
+	var chunks []map[string]*string
+	chunk := map[string]*string{}
+	idx := 0
+	for k, v := range input {
+		if idx < chunkSize {
+			chunk[k] = v
+			idx++
+		} else {
+			// reset the chunker
+			chunks = append(chunks, chunk)
+			chunk = map[string]*string{}
+			idx = 0
+		}
+	}
+	chunks = append(chunks, chunk)
+
+	return chunks
+}
+
+type paramMeta struct {
+	isModifiable bool
+	isDynamic    bool
+}
+
+// metaFetcher is the functor we pass to the paramMetaCache that allows it to
+// fetch engine default parameter information
+type metaFetcher func(ctx context.Context, family string) (map[string]paramMeta, error)
+
+// paramMetaCache stores information about a parameter for a DB parameter group
+// family. We use this cached information to determine whether a parameter is
+// statically or dynamically defined (whether changes can be applied
+// immediately or pending a reboot) and whether a parameter is modifiable.
+//
+// Keeping things super simple for now and not adding any TTL or expiration
+// behaviour to the cache. Engine defaults are pretty static information...
+type paramMetaCache struct {
+	sync.RWMutex
+	hits   uint64
+	misses uint64
+	cache  map[string]map[string]paramMeta
+}
+
+// get retrieves the metadata for a named parameter group family and parameter
+// name.
+func (c *paramMetaCache) get(
+	ctx context.Context,
+	family string,
+	name string,
+	fetcher metaFetcher,
+) (*paramMeta, error) {
+	var err error
+	var found bool
+	var metas map[string]paramMeta
+	var meta paramMeta
+
+	// We need to release the lock right after the read operation, because
+	// loadFamilly will might call a writeLock at L619
+	c.RLock()
+	metas, found = c.cache[family]
+	c.RUnlock()
+
+	if !found {
+		c.misses++
+		metas, err = c.loadFamily(ctx, family, fetcher)
+		if err != nil {
+			return nil, err
+		}
+	}
+	meta, found = metas[name]
+	if !found {
+		return nil, newErrUnknownParameter(name)
+	}
+	c.hits++
+	return &meta, nil
+}
+
+// loadFamily fetches parameter information from the AWS RDS
+// DescribeEngineDefaultParameters API and caches that information.
+func (c *paramMetaCache) loadFamily(
+	ctx context.Context,
+	family string,
+	fetcher metaFetcher,
+) (map[string]paramMeta, error) {
+	familyMeta, err := fetcher(ctx, family)
+	if err != nil {
+		return nil, err
+	}
+	c.Lock()
+	defer c.Unlock()
+	c.cache[family] = familyMeta
+	return familyMeta, nil
+}
+
+var cachedParamMeta = paramMetaCache{
+	cache: map[string]map[string]paramMeta{},
 }

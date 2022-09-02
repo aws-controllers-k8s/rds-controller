@@ -28,11 +28,9 @@ from e2e import tag
 
 RESOURCE_PLURAL = 'dbparametergroups'
 
+CREATE_WAIT_AFTER_SECONDS = 10
+MODIFY_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
-# NOTE(jaypipes): According to the RDS API documentation, updating tags can
-# take several minutes before the new tag values are available due to caching.
-MODIFY_WAIT_AFTER_SECONDS = 180
-
 
 @service_marker
 @pytest.mark.canary
@@ -57,16 +55,24 @@ class TestDBParameterGroup:
             resource_name, namespace="default",
         )
         k8s.create_custom_resource(ref, resource_data)
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
         cr = k8s.wait_resource_consumed_by_controller(ref)
 
         assert cr is not None
         assert k8s.get_resource_exists(ref)
-        condition.assert_synced(ref)
 
         # Let's check that the DB parameter group appears in RDS
         latest = db_parameter_group.get(resource_name)
         assert latest is not None
         assert latest['Description'] == resource_desc
+
+        params = db_parameter_group.get_parameters(resource_name)
+        test_params = list(filter(lambda x: x["ParameterName"] in ["array_nulls", "authentication_timeout"], params))
+        assert len(test_params) == 2
+        assert test_params[0]["ParameterName"] == "array_nulls"
+        assert test_params[0]["ParameterValue"] == "1"
+        assert test_params[1]["ParameterName"] == "authentication_timeout"
+        assert test_params[1]["ParameterValue"] == "50"
 
         arn = latest['DBParameterGroupArn']
         expect_tags = [
@@ -83,8 +89,16 @@ class TestDBParameterGroup:
                 "value": "prod",
             }
         ]
+        new_params = {
+            "array_nulls": "1",
+            "authentication_timeout": "60",
+        }
+        
         updates = {
-            "spec": {"tags": new_tags},
+            "spec": {
+                "tags": new_tags,
+                "parameterOverrides": new_params,
+            },
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
@@ -97,6 +111,11 @@ class TestDBParameterGroup:
             }
         ]
         assert latest_tags == after_update_expected_tags
+        params = db_parameter_group.get_parameters(resource_name)
+        test_params = list(filter(lambda x: x["ParameterName"] in ["array_nulls", "authentication_timeout"], params))
+        assert len(test_params) == 2
+        assert test_params[1]["ParameterName"] == "authentication_timeout"
+        assert test_params[1]["ParameterValue"] == "60"
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)

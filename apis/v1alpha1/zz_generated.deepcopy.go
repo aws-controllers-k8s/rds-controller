@@ -3451,15 +3451,19 @@ func (in *DBParameterGroupSpec) DeepCopyInto(out *DBParameterGroupSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Parameters != nil {
-		in, out := &in.Parameters, &out.Parameters
-		*out = make([]*Parameter, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(Parameter)
-				(*in).DeepCopyInto(*out)
+	if in.ParameterOverrides != nil {
+		in, out := &in.ParameterOverrides, &out.ParameterOverrides
+		*out = make(map[string]*string, len(*in))
+		for key, val := range *in {
+			var outVal *string
+			if val == nil {
+				(*out)[key] = nil
+			} else {
+				in, out := &val, &outVal
+				*out = new(string)
+				**out = **in
 			}
+			(*out)[key] = outVal
 		}
 	}
 	if in.Tags != nil {
@@ -3500,6 +3504,17 @@ func (in *DBParameterGroupStatus) DeepCopyInto(out *DBParameterGroupStatus) {
 			if (*in)[i] != nil {
 				in, out := &(*in)[i], &(*out)[i]
 				*out = new(corev1alpha1.Condition)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
+	if in.ParameterOverrideStatuses != nil {
+		in, out := &in.ParameterOverrideStatuses, &out.ParameterOverrideStatuses
+		*out = make([]*Parameter, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(Parameter)
 				(*in).DeepCopyInto(*out)
 			}
 		}
