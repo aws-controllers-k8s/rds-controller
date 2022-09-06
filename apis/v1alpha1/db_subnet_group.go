@@ -45,8 +45,8 @@ type DBSubnetGroupSpec struct {
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 	// The EC2 Subnet IDs for the DB subnet group.
-	// +kubebuilder:validation:Required
-	SubnetIDs []*string `json:"subnetIDs"`
+	SubnetIDs  []*string                                  `json:"subnetIDs,omitempty"`
+	SubnetRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"subnetRefs,omitempty"`
 	// Tags to assign to the DB subnet group.
 	Tags []*Tag `json:"tags,omitempty"`
 }

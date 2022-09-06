@@ -377,6 +377,11 @@ resources:
       delta_pre_compare:
         template_path: hooks/db_subnet_group/delta_pre_compare.go.tpl
     fields:
+      SubnetIDs:
+        references:
+          service_name: ec2
+          resource: Subnet
+          path: Status.SubnetID
       Name:
         is_primary_key: true
       Tags:
