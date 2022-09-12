@@ -22,6 +22,15 @@ const (
 	ActivityStreamMode_async ActivityStreamMode = "async"
 )
 
+type ActivityStreamPolicyStatus string
+
+const (
+	ActivityStreamPolicyStatus_locked           ActivityStreamPolicyStatus = "locked"
+	ActivityStreamPolicyStatus_unlocked         ActivityStreamPolicyStatus = "unlocked"
+	ActivityStreamPolicyStatus_locking_policy   ActivityStreamPolicyStatus = "locking-policy"
+	ActivityStreamPolicyStatus_unlocking_policy ActivityStreamPolicyStatus = "unlocking-policy"
+)
+
 type ActivityStreamStatus string
 
 const (
@@ -36,6 +45,13 @@ type ApplyMethod string
 const (
 	ApplyMethod_immediate      ApplyMethod = "immediate"
 	ApplyMethod_pending_reboot ApplyMethod = "pending-reboot"
+)
+
+type AuditPolicyState string
+
+const (
+	AuditPolicyState_locked   AuditPolicyState = "locked"
+	AuditPolicyState_unlocked AuditPolicyState = "unlocked"
 )
 
 type AuthScheme string

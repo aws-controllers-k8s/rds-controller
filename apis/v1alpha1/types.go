@@ -382,6 +382,7 @@ type DBCluster_SDK struct {
 	MonitoringInterval               *int64                        `json:"monitoringInterval,omitempty"`
 	MonitoringRoleARN                *string                       `json:"monitoringRoleARN,omitempty"`
 	MultiAZ                          *bool                         `json:"multiAZ,omitempty"`
+	NetworkType                      *string                       `json:"networkType,omitempty"`
 	// This data type is used as a response element in the ModifyDBCluster operation
 	// and contains changes that will be applied during the next maintenance window.
 	PendingModifiedValues              *ClusterPendingModifiedValues `json:"pendingModifiedValues,omitempty"`
@@ -508,6 +509,7 @@ type DBInstance_SDK struct {
 	ActivityStreamKinesisStreamName               *string                                  `json:"activityStreamKinesisStreamName,omitempty"`
 	ActivityStreamKMSKeyID                        *string                                  `json:"activityStreamKMSKeyID,omitempty"`
 	ActivityStreamMode                            *string                                  `json:"activityStreamMode,omitempty"`
+	ActivityStreamPolicyStatus                    *string                                  `json:"activityStreamPolicyStatus,omitempty"`
 	ActivityStreamStatus                          *string                                  `json:"activityStreamStatus,omitempty"`
 	AllocatedStorage                              *int64                                   `json:"allocatedStorage,omitempty"`
 	AssociatedRoles                               []*DBInstanceRole                        `json:"associatedRoles,omitempty"`
@@ -762,6 +764,7 @@ type DBSnapshot struct {
 	Port                             *int64              `json:"port,omitempty"`
 	ProcessorFeatures                []*ProcessorFeature `json:"processorFeatures,omitempty"`
 	SnapshotCreateTime               *metav1.Time        `json:"snapshotCreateTime,omitempty"`
+	SnapshotDatabaseTime             *metav1.Time        `json:"snapshotDatabaseTime,omitempty"`
 	SnapshotTarget                   *string             `json:"snapshotTarget,omitempty"`
 	SnapshotType                     *string             `json:"snapshotType,omitempty"`
 	SourceDBSnapshotIdentifier       *string             `json:"sourceDBSnapshotIdentifier,omitempty"`
@@ -863,7 +866,8 @@ type EngineDefaults struct {
 	Parameters             []*Parameter `json:"parameters,omitempty"`
 }
 
-// This data type is used as a response element in the DescribeEvents action.
+// This data type is used as a response element in the DescribeEvents (https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeEvents.html)
+// action.
 type Event struct {
 	Date             *metav1.Time `json:"date,omitempty"`
 	Message          *string      `json:"message,omitempty"`
@@ -872,6 +876,7 @@ type Event struct {
 }
 
 // Contains the results of a successful invocation of the DescribeEventCategories
+// (https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeEventCategories.html)
 // operation.
 type EventCategoriesMap struct {
 	SourceType *string `json:"sourceType,omitempty"`

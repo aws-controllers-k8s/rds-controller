@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
   name: dbclusters.rds.services.k8s.aws
 spec:
@@ -77,15 +76,14 @@ spec:
               backtrackWindow:
                 description: "The target backtrack window, in seconds. To disable
                   backtracking, set this value to 0. \n Default: 0 \n Constraints:
-                  \n    * If specified, this value must be set to a number from 0
-                  to 259,200 (72    hours). \n Valid for: Aurora MySQL DB clusters
-                  only"
+                  \n * If specified, this value must be set to a number from 0 to
+                  259,200 (72 hours). \n Valid for: Aurora MySQL DB clusters only"
                 format: int64
                 type: integer
               backupRetentionPeriod:
                 description: "The number of days for which automated backups are retained.
-                  \n Default: 1 \n Constraints: \n    * Must be a value from 1 to
-                  35 \n Valid for: Aurora DB clusters and Multi-AZ DB clusters"
+                  \n Default: 1 \n Constraints: \n * Must be a value from 1 to 35
+                  \n Valid for: Aurora DB clusters and Multi-AZ DB clusters"
                 format: int64
                 type: integer
               characterSetName:
@@ -106,9 +104,9 @@ spec:
                 type: string
               dbClusterIdentifier:
                 description: "The DB cluster identifier. This parameter is stored
-                  as a lowercase string. \n Constraints: \n    * Must contain from
-                  1 to 63 letters, numbers, or hyphens. \n    * First character must
-                  be a letter. \n    * Can't end with a hyphen or contain two consecutive
+                  as a lowercase string. \n Constraints: \n * Must contain from 1
+                  to 63 letters, numbers, or hyphens. \n * First character must be
+                  a letter. \n * Can't end with a hyphen or contain two consecutive
                   hyphens. \n Example: my-cluster1 \n Valid for: Aurora DB clusters
                   and Multi-AZ DB clusters"
                 type: string
@@ -126,15 +124,14 @@ spec:
                 description: "The name of the DB cluster parameter group to associate
                   with this DB cluster. If you do not specify a value, then the default
                   DB cluster parameter group for the specified DB engine and version
-                  is used. \n Constraints: \n    * If supplied, must match the name
-                  of an existing DB cluster parameter    group. \n Valid for: Aurora
-                  DB clusters and Multi-AZ DB clusters"
+                  is used. \n Constraints: \n * If supplied, must match the name of
+                  an existing DB cluster parameter group. \n Valid for: Aurora DB
+                  clusters and Multi-AZ DB clusters"
                 type: string
               dbClusterParameterGroupRef:
                 description: 'AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference type to provide more user friendly syntax
-                  for references using ''from'' field Ex: APIIDRef:   from:     name:
-                  my-api'
+                  for references using ''from'' field Ex: APIIDRef: from: name: my-api'
                 properties:
                   from:
                     description: AWSResourceReference provides all the values necessary
@@ -154,8 +151,7 @@ spec:
               dbSubnetGroupRef:
                 description: 'AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference type to provide more user friendly syntax
-                  for references using ''from'' field Ex: APIIDRef:   from:     name:
-                  my-api'
+                  for references using ''from'' field Ex: APIIDRef: from: name: my-api'
                 properties:
                   from:
                     description: AWSResourceReference provides all the values necessary
@@ -236,7 +232,7 @@ spec:
                   Amazon Web Services Identity and Access Management (IAM) accounts
                   to database accounts. By default, mapping isn't enabled. \n For
                   more information, see IAM Database Authentication (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.IAMDBAuth.html)
-                  in the Amazon Aurora User Guide.. \n Valid for: Aurora DB clusters
+                  in the Amazon Aurora User Guide. \n Valid for: Aurora DB clusters
                   only"
                 type: boolean
               enablePerformanceInsights:
@@ -248,11 +244,10 @@ spec:
                 type: boolean
               engine:
                 description: "The name of the database engine to be used for this
-                  DB cluster. \n Valid Values: \n    * aurora (for MySQL 5.6-compatible
-                  Aurora) \n    * aurora-mysql (for MySQL 5.7-compatible and MySQL
-                  8.0-compatible Aurora) \n    * aurora-postgresql \n    * mysql \n
-                  \   * postgres \n Valid for: Aurora DB clusters and Multi-AZ DB
-                  clusters"
+                  DB cluster. \n Valid Values: \n * aurora (for MySQL 5.6-compatible
+                  Aurora) \n * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible
+                  Aurora) \n * aurora-postgresql \n * mysql \n * postgres \n Valid
+                  for: Aurora DB clusters and Multi-AZ DB clusters"
                 type: string
               engineMode:
                 description: "The DB engine mode of the DB cluster, either provisioned,
@@ -262,15 +257,17 @@ spec:
                   engine mode isn't required for Aurora MySQL version 1.22 and higher
                   1.x versions, and global engine mode isn't required for any 2.x
                   versions. \n The multimaster engine mode only applies for DB clusters
-                  created with Aurora MySQL version 5.6.10a. \n For Aurora PostgreSQL,
-                  the global engine mode isn't required, and both the parallelquery
-                  and the multimaster engine modes currently aren't supported. \n
-                  Limitations and requirements apply to some DB engine modes. For
-                  more information, see the following sections in the Amazon Aurora
-                  User Guide: \n    * Limitations of Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
-                  \n    * Limitations of Parallel Query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
-                  \n    * Limitations of Aurora Global Databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
-                  \n    * Limitations of Multi-Master Clusters (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-multi-master.html#aurora-multi-master-limitations)
+                  created with Aurora MySQL version 5.6.10a. \n The serverless engine
+                  mode only applies for Aurora Serverless v1 DB clusters. \n For Aurora
+                  PostgreSQL, the global engine mode isn't required, and both the
+                  parallelquery and the multimaster engine modes currently aren't
+                  supported. \n Limitations and requirements apply to some DB engine
+                  modes. For more information, see the following sections in the Amazon
+                  Aurora User Guide: \n * Limitations of Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
+                  \n * Requirements for Aurora Serverless v2 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.requirements.html)
+                  \n * Limitations of Parallel Query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
+                  \n * Limitations of Aurora Global Databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
+                  \n * Limitations of Multi-Master Clusters (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-multi-master.html#aurora-multi-master-limitations)
                   \n Valid for: Aurora DB clusters only"
                 type: string
               engineVersion:
@@ -323,11 +320,11 @@ spec:
                   key ARN, key ID, alias ARN, or alias name for the KMS key. To use
                   a KMS key in a different Amazon Web Services account, specify the
                   key ARN or alias ARN. \n When a KMS key isn't specified in KmsKeyId:
-                  \n    * If ReplicationSourceIdentifier identifies an encrypted source,
-                  then    Amazon RDS will use the KMS key used to encrypt the source.
-                  Otherwise,    Amazon RDS will use your default KMS key. \n    *
-                  If the StorageEncrypted parameter is enabled and ReplicationSourceIdentifier
-                  \   isn't specified, then Amazon RDS will use your default KMS key.
+                  \n * If ReplicationSourceIdentifier identifies an encrypted source,
+                  then Amazon RDS will use the KMS key used to encrypt the source.
+                  Otherwise, Amazon RDS will use your default KMS key. \n * If the
+                  StorageEncrypted parameter is enabled and ReplicationSourceIdentifier
+                  isn't specified, then Amazon RDS will use your default KMS key.
                   \n There is a default KMS key for your Amazon Web Services account.
                   Your Amazon Web Services account has a different default KMS key
                   for each Amazon Web Services Region. \n If you create a read replica
@@ -340,8 +337,7 @@ spec:
               kmsKeyRef:
                 description: 'AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference type to provide more user friendly syntax
-                  for references using ''from'' field Ex: APIIDRef:   from:     name:
-                  my-api'
+                  for references using ''from'' field Ex: APIIDRef: from: name: my-api'
                 properties:
                   from:
                     description: AWSResourceReference provides all the values necessary
@@ -371,12 +367,12 @@ spec:
                 required:
                 - key
                 type: object
+                x-kubernetes-map-type: atomic
               masterUsername:
                 description: "The name of the master user for the DB cluster. \n Constraints:
-                  \n    * Must be 1 to 16 letters or numbers. \n    * First character
-                  must be a letter. \n    * Can't be a reserved word for the chosen
-                  database engine. \n Valid for: Aurora DB clusters and Multi-AZ DB
-                  clusters"
+                  \n * Must be 1 to 16 letters or numbers. \n * First character must
+                  be a letter. \n * Can't be a reserved word for the chosen database
+                  engine. \n Valid for: Aurora DB clusters and Multi-AZ DB clusters"
                 type: string
               monitoringInterval:
                 description: "The interval, in seconds, between points when Enhanced
@@ -397,6 +393,15 @@ spec:
                   a value other than 0, supply a MonitoringRoleArn value. \n Valid
                   for: Multi-AZ DB clusters only"
                 type: string
+              networkType:
+                description: "The network type of the DB cluster. \n Valid values:
+                  \n * IPV4 \n * DUAL \n The network type is determined by the DBSubnetGroup
+                  specified for the DB cluster. A DBSubnetGroup can support only the
+                  IPv4 protocol or the IPv4 and the IPv6 protocols (DUAL). \n For
+                  more information, see Working with a DB instance in a VPC (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html)
+                  in the Amazon Aurora User Guide. \n Valid for: Aurora DB clusters
+                  only"
+                type: string
               optionGroupName:
                 description: "A value that indicates that the DB cluster should be
                   associated with the specified option group. \n DB clusters are associated
@@ -413,9 +418,13 @@ spec:
                   Region. \n Valid for: Multi-AZ DB clusters only"
                 type: string
               performanceInsightsRetentionPeriod:
-                description: "The amount of time, in days, to retain Performance Insights
-                  data. Valid values are 7 or 731 (2 years). \n Valid for: Multi-AZ
-                  DB clusters only"
+                description: "The number of days to retain Performance Insights data.
+                  The default is 7 days. The following values are valid: \n * 7 \n
+                  * month * 31, where month is a number of months from 1-23 \n * 731
+                  \n For example, the following values are valid: \n * 93 (3 months
+                  * 31) \n * 341 (11 months * 31) \n * 589 (19 months * 31) \n * 731
+                  \n If you specify a retention period such as 94, which isn't a valid
+                  value, RDS issues an error. \n Valid for: Multi-AZ DB clusters only"
                 format: int64
                 type: integer
               port:
@@ -427,28 +436,28 @@ spec:
                 format: int64
                 type: integer
               preSignedURL:
-                description: "A URL that contains a Signature Version 4 signed request
-                  for the CreateDBCluster action to be called in the source Amazon
-                  Web Services Region where the DB cluster is replicated from. Specify
-                  PreSignedUrl only when you are performing cross-Region replication
-                  from an encrypted DB cluster. \n The pre-signed URL must be a valid
-                  request for the CreateDBCluster API action that can be executed
-                  in the source Amazon Web Services Region that contains the encrypted
-                  DB cluster to be copied. \n The pre-signed URL request must contain
-                  the following parameter values: \n    * KmsKeyId - The Amazon Web
-                  Services KMS key identifier for the KMS key    to use to encrypt
-                  the copy of the DB cluster in the destination Amazon    Web Services
-                  Region. This should refer to the same KMS key for both the    CreateDBCluster
-                  action that is called in the destination Amazon Web Services    Region,
-                  and the action contained in the pre-signed URL. \n    * DestinationRegion
-                  - The name of the Amazon Web Services Region that    Aurora read
-                  replica will be created in. \n    * ReplicationSourceIdentifier
-                  - The DB cluster identifier for the encrypted    DB cluster to be
-                  copied. This identifier must be in the Amazon Resource    Name (ARN)
-                  format for the source Amazon Web Services Region. For example,    if
-                  you are copying an encrypted DB cluster from the us-west-2 Amazon
-                  Web    Services Region, then your ReplicationSourceIdentifier would
-                  look like    Example: arn:aws:rds:us-west-2:123456789012:cluster:aurora-cluster1.
+                description: "When you are replicating a DB cluster from one Amazon
+                  Web Services GovCloud (US) Region to another, an URL that contains
+                  a Signature Version 4 signed request for the CreateDBCluster operation
+                  to be called in the source Amazon Web Services Region where the
+                  DB cluster is replicated from. Specify PreSignedUrl only when you
+                  are performing cross-Region replication from an encrypted DB cluster.
+                  \n The presigned URL must be a valid request for the CreateDBCluster
+                  API operation that can run in the source Amazon Web Services Region
+                  that contains the encrypted DB cluster to copy. \n The presigned
+                  URL request must contain the following parameter values: \n * KmsKeyId
+                  - The KMS key identifier for the KMS key to use to encrypt the copy
+                  of the DB cluster in the destination Amazon Web Services Region.
+                  This should refer to the same KMS key for both the CreateDBCluster
+                  operation that is called in the destination Amazon Web Services
+                  Region, and the operation contained in the presigned URL. \n * DestinationRegion
+                  - The name of the Amazon Web Services Region that Aurora read replica
+                  will be created in. \n * ReplicationSourceIdentifier - The DB cluster
+                  identifier for the encrypted DB cluster to be copied. This identifier
+                  must be in the Amazon Resource Name (ARN) format for the source
+                  Amazon Web Services Region. For example, if you are copying an encrypted
+                  DB cluster from the us-west-2 Amazon Web Services Region, then your
+                  ReplicationSourceIdentifier would look like Example: arn:aws:rds:us-west-2:123456789012:cluster:aurora-cluster1.
                   \n To learn how to generate a Signature Version 4 signed request,
                   see Authenticating Requests: Using Query Parameters (Amazon Web
                   Services Signature Version 4) (https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html)
@@ -456,9 +465,9 @@ spec:
                   \n If you are using an Amazon Web Services SDK tool or the CLI,
                   you can specify SourceRegion (or --source-region for the CLI) instead
                   of specifying PreSignedUrl manually. Specifying SourceRegion autogenerates
-                  a pre-signed URL that is a valid request for the operation that
-                  can be executed in the source Amazon Web Services Region. \n Valid
-                  for: Aurora DB clusters only"
+                  a presigned URL that is a valid request for the operation that can
+                  run in the source Amazon Web Services Region. \n Valid for: Aurora
+                  DB clusters only"
                 type: string
               preferredBackupWindow:
                 description: "The daily time range during which automated backups
@@ -466,11 +475,11 @@ spec:
                   parameter. \n The default is a 30-minute window selected at random
                   from an 8-hour block of time for each Amazon Web Services Region.
                   To view the time blocks available, see Backup window (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Managing.Backups.html#Aurora.Managing.Backups.BackupWindow)
-                  in the Amazon Aurora User Guide. \n Constraints: \n    * Must be
-                  in the format hh24:mi-hh24:mi. \n    * Must be in Universal Coordinated
-                  Time (UTC). \n    * Must not conflict with the preferred maintenance
-                  window. \n    * Must be at least 30 minutes. \n Valid for: Aurora
-                  DB clusters and Multi-AZ DB clusters"
+                  in the Amazon Aurora User Guide. \n Constraints: \n * Must be in
+                  the format hh24:mi-hh24:mi. \n * Must be in Universal Coordinated
+                  Time (UTC). \n * Must not conflict with the preferred maintenance
+                  window. \n * Must be at least 30 minutes. \n Valid for: Aurora DB
+                  clusters and Multi-AZ DB clusters"
                 type: string
               preferredMaintenanceWindow:
                 description: "The weekly time range during which system maintenance
@@ -496,16 +505,16 @@ spec:
                   name that resolves to a private IP address. \n Default: The default
                   behavior varies depending on whether DBSubnetGroupName is specified.
                   \n If DBSubnetGroupName isn't specified, and PubliclyAccessible
-                  isn't specified, the following applies: \n    * If the default VPC
-                  in the target Region doesn’t have an internet gateway    attached
-                  to it, the DB cluster is private. \n    * If the default VPC in
-                  the target Region has an internet gateway attached    to it, the
-                  DB cluster is public. \n If DBSubnetGroupName is specified, and
-                  PubliclyAccessible isn't specified, the following applies: \n    *
-                  If the subnets are part of a VPC that doesn’t have an internet gateway
-                  \   attached to it, the DB cluster is private. \n    * If the subnets
-                  are part of a VPC that has an internet gateway attached    to it,
-                  the DB cluster is public. \n Valid for: Multi-AZ DB clusters only"
+                  isn't specified, the following applies: \n * If the default VPC
+                  in the target Region doesn’t have an internet gateway attached to
+                  it, the DB cluster is private. \n * If the default VPC in the target
+                  Region has an internet gateway attached to it, the DB cluster is
+                  public. \n If DBSubnetGroupName is specified, and PubliclyAccessible
+                  isn't specified, the following applies: \n * If the subnets are
+                  part of a VPC that doesn’t have an internet gateway attached to
+                  it, the DB cluster is private. \n * If the subnets are part of a
+                  VPC that has an internet gateway attached to it, the DB cluster
+                  is public. \n Valid for: Multi-AZ DB clusters only"
                 type: boolean
               replicationSourceIdentifier:
                 description: "The Amazon Resource Name (ARN) of the source DB instance
@@ -548,7 +557,7 @@ spec:
                 description: "The identifier for the DB snapshot or DB cluster snapshot
                   to restore from. \n You can use either the name or the Amazon Resource
                   Name (ARN) to specify a DB cluster snapshot. However, you can use
-                  only the ARN to specify a DB snapshot. \n Constraints: \n    * Must
+                  only the ARN to specify a DB snapshot. \n Constraints: \n * Must
                   match the identifier of an existing Snapshot. \n Valid for: Aurora
                   DB clusters and Multi-AZ DB clusters"
                 type: string
@@ -592,7 +601,7 @@ spec:
                 items:
                   description: 'AWSResourceReferenceWrapper provides a wrapper around
                     *AWSResourceReference type to provide more user friendly syntax
-                    for references using ''from'' field Ex: APIIDRef:   from:     name:
+                    for references using ''from'' field Ex: APIIDRef: from: name:
                     my-api'
                   properties:
                     from:
@@ -954,9 +963,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

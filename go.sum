@@ -70,11 +70,11 @@ github.com/aws-controllers-k8s/kms-controller v0.0.15 h1:v9LLAE2Q517CvlP80EgXNq2
 github.com/aws-controllers-k8s/kms-controller v0.0.15/go.mod h1:EbxvdZDS2n3JCMmhfjhavSutzt/9J0jXSvGj2bufS68=
 github.com/aws-controllers-k8s/runtime v0.18.4/go.mod h1:oA8ML1/LL3chPn26P6SzBNu1CUI2nekB+PTqykNs0qU=
 github.com/aws-controllers-k8s/runtime v0.19.2/go.mod h1:oA8ML1/LL3chPn26P6SzBNu1CUI2nekB+PTqykNs0qU=
-github.com/aws-controllers-k8s/runtime v0.19.3 h1:difFG8eFrQuIZb+FGEKMLrGlhY/QwKq++W33oMg+c3Q=
-github.com/aws-controllers-k8s/runtime v0.19.3/go.mod h1:oA8ML1/LL3chPn26P6SzBNu1CUI2nekB+PTqykNs0qU=
+github.com/aws-controllers-k8s/runtime v0.20.1 h1:L/Huf1shRahx5BqJBCSS5u+vYg3f0Rotsq1jutORpdI=
+github.com/aws-controllers-k8s/runtime v0.20.1/go.mod h1:k7z4qlf6aK1Kzd4ff49wzcyhDKHjWaUpqxrwgl4uS1o=
 github.com/aws/aws-sdk-go v1.42.0/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
-github.com/aws/aws-sdk-go v1.44.27 h1:8CMspeZSrewnbvAwgl8qo5R7orDLwQnTGBf/OKPiHxI=
-github.com/aws/aws-sdk-go v1.44.27/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
+github.com/aws/aws-sdk-go v1.44.93 h1:hAgd9fuaptBatSft27/5eBMdcA8+cIMqo96/tZ6rKl8=
+github.com/aws/aws-sdk-go v1.44.93/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=

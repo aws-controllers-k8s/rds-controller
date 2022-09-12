@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
   name: globalclusters.rds.services.k8s.aws
 spec:
@@ -38,9 +37,9 @@ spec:
               \n A data type representing an Aurora global database."
             properties:
               databaseName:
-                description: The name for your database of up to 64 alpha-numeric
-                  characters. If you do not provide a name, Amazon Aurora will not
-                  create a database in the global database cluster you are creating.
+                description: The name for your database of up to 64 alphanumeric characters.
+                  If you do not provide a name, Amazon Aurora will not create a database
+                  in the global database cluster you are creating.
                 type: string
               deletionProtection:
                 description: The deletion protection setting for the new global database.
@@ -177,9 +176,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

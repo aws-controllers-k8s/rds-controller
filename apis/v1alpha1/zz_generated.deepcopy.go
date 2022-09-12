@@ -1104,6 +1104,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.NetworkType != nil {
+		in, out := &in.NetworkType, &out.NetworkType
+		*out = new(string)
+		**out = **in
+	}
 	if in.OptionGroupName != nil {
 		in, out := &in.OptionGroupName, &out.OptionGroupName
 		*out = new(string)
@@ -1772,6 +1777,11 @@ func (in *DBCluster_SDK) DeepCopyInto(out *DBCluster_SDK) {
 	if in.MultiAZ != nil {
 		in, out := &in.MultiAZ, &out.MultiAZ
 		*out = new(bool)
+		**out = **in
+	}
+	if in.NetworkType != nil {
+		in, out := &in.NetworkType, &out.NetworkType
+		*out = new(string)
 		**out = **in
 	}
 	if in.PendingModifiedValues != nil {
@@ -2679,6 +2689,11 @@ func (in *DBInstanceStatus) DeepCopyInto(out *DBInstanceStatus) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.ActivityStreamPolicyStatus != nil {
+		in, out := &in.ActivityStreamPolicyStatus, &out.ActivityStreamPolicyStatus
+		*out = new(string)
+		**out = **in
+	}
 	if in.ActivityStreamStatus != nil {
 		in, out := &in.ActivityStreamStatus, &out.ActivityStreamStatus
 		*out = new(string)
@@ -2952,6 +2967,11 @@ func (in *DBInstance_SDK) DeepCopyInto(out *DBInstance_SDK) {
 	}
 	if in.ActivityStreamMode != nil {
 		in, out := &in.ActivityStreamMode, &out.ActivityStreamMode
+		*out = new(string)
+		**out = **in
+	}
+	if in.ActivityStreamPolicyStatus != nil {
+		in, out := &in.ActivityStreamPolicyStatus, &out.ActivityStreamPolicyStatus
 		*out = new(string)
 		**out = **in
 	}
@@ -4232,6 +4252,10 @@ func (in *DBSnapshot) DeepCopyInto(out *DBSnapshot) {
 	}
 	if in.SnapshotCreateTime != nil {
 		in, out := &in.SnapshotCreateTime, &out.SnapshotCreateTime
+		*out = (*in).DeepCopy()
+	}
+	if in.SnapshotDatabaseTime != nil {
+		in, out := &in.SnapshotDatabaseTime, &out.SnapshotDatabaseTime
 		*out = (*in).DeepCopy()
 	}
 	if in.SnapshotTarget != nil {
