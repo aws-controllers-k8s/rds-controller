@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
   name: dbsubnetgroups.rds.services.k8s.aws
 spec:
@@ -43,9 +42,9 @@ spec:
                 type: string
               name:
                 description: "The name for the DB subnet group. This value is stored
-                  as a lowercase string. \n Constraints: \n    * Must contain no more
-                  than 255 letters, numbers, periods, underscores,    spaces, or hyphens.
-                  \n    * Must not be default. \n    * First character must be a letter.
+                  as a lowercase string. \n Constraints: \n * Must contain no more
+                  than 255 letters, numbers, periods, underscores, spaces, or hyphens.
+                  \n * Must not be default. \n * First character must be a letter.
                   \n Example: mydbsubnetgroup"
                 type: string
               subnetIDs:
@@ -57,7 +56,7 @@ spec:
                 items:
                   description: 'AWSResourceReferenceWrapper provides a wrapper around
                     *AWSResourceReference type to provide more user friendly syntax
-                    for references using ''from'' field Ex: APIIDRef:   from:     name:
+                    for references using ''from'' field Ex: APIIDRef: from: name:
                     my-api'
                   properties:
                     from:
@@ -183,9 +182,9 @@ spec:
                 type: array
               supportedNetworkTypes:
                 description: "The network type of the DB subnet group. \n Valid values:
-                  \n    * IPV4 \n    * DUAL \n A DBSubnetGroup can support only the
-                  IPv4 protocol or the IPv4 and the IPv6 protocols (DUAL). \n For
-                  more information, see Working with a DB instance in a VPC (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html)
+                  \n * IPV4 \n * DUAL \n A DBSubnetGroup can support only the IPv4
+                  protocol or the IPv4 and the IPv6 protocols (DUAL). \n For more
+                  information, see Working with a DB instance in a VPC (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html)
                   in the Amazon RDS User Guide."
                 items:
                   type: string
@@ -199,9 +198,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

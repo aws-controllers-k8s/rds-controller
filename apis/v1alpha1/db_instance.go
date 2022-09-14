@@ -148,7 +148,7 @@ type DBInstanceSpec struct {
 	//
 	//    * Can't be set to 0 if the DB instance is a source to read replicas
 	//
-	//    * Can't be set to 0 or 35 for an RDS Custom for Oracle DB instance
+	//    * Can't be set to 0 for an RDS Custom for Oracle DB instance
 	BackupRetentionPeriod *int64 `json:"backupRetentionPeriod,omitempty"`
 	// Specifies where automated backups and manual snapshots are stored.
 	//
@@ -199,11 +199,12 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
-	// The compute and memory capacity of the DB instance, for example db.m4.large.
+	// The compute and memory capacity of the DB instance, for example db.m5.large.
 	// Not all DB instance classes are available in all Amazon Web Services Regions,
 	// or for all database engines. For the full list of DB instance classes, and
-	// availability for your engine, see DB Instance Class (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html)
-	// in the Amazon RDS User Guide.
+	// availability for your engine, see DB instance classes (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html)
+	// in the Amazon RDS User Guide or Aurora DB instance classes (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.DBInstanceClass.html)
+	// in the Amazon Aurora User Guide.
 	// +kubebuilder:validation:Required
 	DBInstanceClass *string `json:"dbInstanceClass"`
 	// The DB instance identifier. This parameter is stored as a lowercase string.
@@ -382,11 +383,19 @@ type DBInstanceSpec struct {
 	// in the Amazon RDS User Guide.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. The domain is managed by the DB cluster.
 	Domain *string `json:"domain,omitempty"`
 	// Specify the name of the IAM role to be used when making API calls to the
 	// Directory Service.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. The domain is managed by the DB cluster.
 	DomainIAMRoleName *string `json:"domainIAMRoleName,omitempty"`
 	// The list of log types that need to be enabled for exporting to CloudWatch
 	// Logs. The values in the list depend on the DB engine. For more information,
@@ -440,13 +449,16 @@ type DBInstanceSpec struct {
 	// and Access Management (IAM) accounts to database accounts. By default, mapping
 	// isn't enabled.
 	//
-	// This setting doesn't apply to RDS Custom or Amazon Aurora. In Aurora, mapping
-	// Amazon Web Services IAM accounts to database accounts is managed by the DB
-	// cluster.
-	//
 	// For more information, see IAM Database Authentication for MySQL and PostgreSQL
 	// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
 	// in the Amazon RDS User Guide.
+	//
+	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. Mapping Amazon Web Services IAM accounts to database accounts
+	// is managed by the DB cluster.
 	EnableIAMDatabaseAuthentication *bool `json:"enableIAMDatabaseAuthentication,omitempty"`
 	// The name of the database engine to be used for this instance.
 	//
@@ -493,7 +505,7 @@ type DBInstanceSpec struct {
 	Engine *string `json:"engine"`
 	// The version number of the database engine to use.
 	//
-	// For a list of valid engine versions, use the DescribeDBEngineVersions action.
+	// For a list of valid engine versions, use the DescribeDBEngineVersions operation.
 	//
 	// The following are the database engines and links to information about the
 	// major and minor versions that are available with Amazon RDS. Not every database
@@ -551,6 +563,10 @@ type DBInstanceSpec struct {
 	// be a multiple between .5 and 50 of the storage amount for the DB instance.
 	// For SQL Server DB instances, must be a multiple between 1 and 50 of the storage
 	// amount for the DB instance.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. Storage is managed by the DB cluster.
 	IOPS *int64 `json:"iops,omitempty"`
 	// The Amazon Web Services KMS key identifier for an encrypted DB instance.
 	//
@@ -581,6 +597,10 @@ type DBInstanceSpec struct {
 	// Valid values: license-included | bring-your-own-license | general-public-license
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable.
 	LicenseModel *string `json:"licenseModel,omitempty"`
 	// The password for the master user. The password can include any printable
 	// ASCII character except "/", """, or "@".
@@ -636,6 +656,10 @@ type DBInstanceSpec struct {
 	// in the Amazon RDS User Guide.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. Storage is managed by the DB cluster.
 	MaxAllocatedStorage *int64 `json:"maxAllocatedStorage,omitempty"`
 	// The interval, in seconds, between points when Enhanced Monitoring metrics
 	// are collected for the DB instance. To disable collection of Enhanced Monitoring
@@ -664,6 +688,11 @@ type DBInstanceSpec struct {
 	// deployment.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. DB instance Availability Zones (AZs) are managed by the DB
+	// cluster.
 	MultiAZ *bool `json:"multiAZ,omitempty"`
 	// The name of the NCHAR character set for the Oracle DB instance.
 	//
@@ -692,6 +721,10 @@ type DBInstanceSpec struct {
 	// from a DB instance after it is associated with a DB instance.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable.
 	OptionGroupName *string `json:"optionGroupName,omitempty"`
 	// A value that indicates whether to enable Performance Insights for the DB
 	// instance. For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
@@ -712,8 +745,27 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	PerformanceInsightsKMSKeyID *string `json:"performanceInsightsKMSKeyID,omitempty"`
-	// The amount of time, in days, to retain Performance Insights data. Valid values
-	// are 7 or 731 (2 years).
+	// The number of days to retain Performance Insights data. The default is 7
+	// days. The following values are valid:
+	//
+	//    * 7
+	//
+	//    * month * 31, where month is a number of months from 1-23
+	//
+	//    * 731
+	//
+	// For example, the following values are valid:
+	//
+	//    * 93 (3 months * 31)
+	//
+	//    * 341 (11 months * 31)
+	//
+	//    * 589 (19 months * 31)
+	//
+	//    * 731
+	//
+	// If you specify a retention period such as 94, which isn't a valid value,
+	// RDS issues an error.
 	//
 	// This setting doesn't apply to RDS Custom.
 	PerformanceInsightsRetentionPeriod *int64 `json:"performanceInsightsRetentionPeriod,omitempty"`
@@ -764,9 +816,15 @@ type DBInstanceSpec struct {
 	//
 	// Type: Integer
 	Port *int64 `json:"port,omitempty"`
-	// The URL that contains a Signature Version 4 signed request for the CreateDBInstanceReadReplica
-	// API action in the source Amazon Web Services Region that contains the source
-	// DB instance.
+	// When you are creating a read replica from one Amazon Web Services GovCloud
+	// (US) Region to another or from one China Amazon Web Services Region to another,
+	// the URL that contains a Signature Version 4 signed request for the CreateDBInstanceReadReplica
+	// API operation in the source Amazon Web Services Region that contains the
+	// source DB instance.
+	//
+	// This setting applies only to Amazon Web Services GovCloud (US) Regions and
+	// China Amazon Web Services Regions. It's ignored in other Amazon Web Services
+	// Regions.
 	//
 	// You must specify this parameter when you create an encrypted read replica
 	// from another Amazon Web Services Region by using the Amazon RDS API. Don't
@@ -774,27 +832,27 @@ type DBInstanceSpec struct {
 	// same Amazon Web Services Region.
 	//
 	// The presigned URL must be a valid request for the CreateDBInstanceReadReplica
-	// API action that can be executed in the source Amazon Web Services Region
-	// that contains the encrypted source DB instance. The presigned URL request
-	// must contain the following parameter values:
+	// API operation that can run in the source Amazon Web Services Region that
+	// contains the encrypted source DB instance. The presigned URL request must
+	// contain the following parameter values:
 	//
 	//    * DestinationRegion - The Amazon Web Services Region that the encrypted
 	//    read replica is created in. This Amazon Web Services Region is the same
-	//    one where the CreateDBInstanceReadReplica action is called that contains
+	//    one where the CreateDBInstanceReadReplica operation is called that contains
 	//    this presigned URL. For example, if you create an encrypted DB instance
 	//    in the us-west-1 Amazon Web Services Region, from a source DB instance
 	//    in the us-east-2 Amazon Web Services Region, then you call the CreateDBInstanceReadReplica
-	//    action in the us-east-1 Amazon Web Services Region and provide a presigned
-	//    URL that contains a call to the CreateDBInstanceReadReplica action in
-	//    the us-west-2 Amazon Web Services Region. For this example, the DestinationRegion
+	//    operation in the us-east-1 Amazon Web Services Region and provide a presigned
+	//    URL that contains a call to the CreateDBInstanceReadReplica operation
+	//    in the us-west-2 Amazon Web Services Region. For this example, the DestinationRegion
 	//    in the presigned URL must be set to the us-east-1 Amazon Web Services
 	//    Region.
 	//
-	//    * KmsKeyId - The Amazon Web Services KMS key identifier for the key to
-	//    use to encrypt the read replica in the destination Amazon Web Services
-	//    Region. This is the same identifier for both the CreateDBInstanceReadReplica
-	//    action that is called in the destination Amazon Web Services Region, and
-	//    the action contained in the presigned URL.
+	//    * KmsKeyId - The KMS key identifier for the key to use to encrypt the
+	//    read replica in the destination Amazon Web Services Region. This is the
+	//    same identifier for both the CreateDBInstanceReadReplica operation that
+	//    is called in the destination Amazon Web Services Region, and the operation
+	//    contained in the presigned URL.
 	//
 	//    * SourceDBInstanceIdentifier - The DB instance identifier for the encrypted
 	//    DB instance to be replicated. This identifier must be in the Amazon Resource
@@ -811,11 +869,11 @@ type DBInstanceSpec struct {
 	// If you are using an Amazon Web Services SDK tool or the CLI, you can specify
 	// SourceRegion (or --source-region for the CLI) instead of specifying PreSignedUrl
 	// manually. Specifying SourceRegion autogenerates a presigned URL that is a
-	// valid request for the operation that can be executed in the source Amazon
-	// Web Services Region.
+	// valid request for the operation that can run in the source Amazon Web Services
+	// Region.
 	//
-	// SourceRegion isn't supported for SQL Server, because SQL Server on Amazon
-	// RDS doesn't support cross-Region read replicas.
+	// SourceRegion isn't supported for SQL Server, because Amazon RDS for SQL Server
+	// doesn't support cross-Region read replicas.
 	//
 	// This setting doesn't apply to RDS Custom.
 	PreSignedURL *string `json:"preSignedURL,omitempty"`
@@ -859,6 +917,10 @@ type DBInstanceSpec struct {
 	// class of the DB instance.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable.
 	ProcessorFeatures []*ProcessorFeature `json:"processorFeatures,omitempty"`
 	// A value that specifies the order in which an Aurora Replica is promoted to
 	// the primary instance after a failure of the existing primary instance. For
@@ -978,12 +1040,20 @@ type DBInstanceSpec struct {
 	// If you specify io1, you must also include a value for the Iops parameter.
 	//
 	// Default: io1 if the Iops parameter is specified, otherwise gp2
+	//
+	// Amazon Aurora
+	//
+	// Not applicable. Storage is managed by the DB cluster.
 	StorageType *string `json:"storageType,omitempty"`
 	// Tags to assign to the DB instance.
 	Tags []*Tag `json:"tags,omitempty"`
 	// The ARN from the key store with which to associate the instance for TDE encryption.
 	//
 	// This setting doesn't apply to RDS Custom.
+	//
+	// Amazon Aurora
+	//
+	// Not applicable.
 	TDECredentialARN *string `json:"tdeCredentialARN,omitempty"`
 	// The password for the given ARN from the key store in order to access the
 	// device.
@@ -1041,6 +1111,9 @@ type DBInstanceStatus struct {
 	// these events asynchronously.
 	// +kubebuilder:validation:Optional
 	ActivityStreamMode *string `json:"activityStreamMode,omitempty"`
+	// The status of the policy state of the activity stream.
+	// +kubebuilder:validation:Optional
+	ActivityStreamPolicyStatus *string `json:"activityStreamPolicyStatus,omitempty"`
 	// The status of the database activity stream.
 	// +kubebuilder:validation:Optional
 	ActivityStreamStatus *string `json:"activityStreamStatus,omitempty"`

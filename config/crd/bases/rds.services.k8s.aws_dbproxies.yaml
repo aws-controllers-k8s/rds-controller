@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
   name: dbproxies.rds.services.k8s.aws
 spec:
@@ -70,8 +69,9 @@ spec:
                 description: The kinds of databases that the proxy can connect to.
                   This value determines which database network protocol the proxy
                   recognizes when it interprets network traffic to and from the database.
-                  The engine family applies to MySQL and PostgreSQL for both RDS and
-                  Aurora.
+                  For Aurora MySQL, RDS for MariaDB, and RDS for MySQL databases,
+                  specify MYSQL. For Aurora PostgreSQL and RDS for PostgreSQL databases,
+                  specify POSTGRESQL.
                 type: string
               idleClientTimeout:
                 description: The number of seconds that a connection to the proxy
@@ -221,9 +221,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

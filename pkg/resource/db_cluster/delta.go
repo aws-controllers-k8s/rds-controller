@@ -260,6 +260,13 @@ func newResourceDelta(
 			delta.Add("Spec.MonitoringRoleARN", a.ko.Spec.MonitoringRoleARN, b.ko.Spec.MonitoringRoleARN)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.NetworkType, b.ko.Spec.NetworkType) {
+		delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
+	} else if a.ko.Spec.NetworkType != nil && b.ko.Spec.NetworkType != nil {
+		if *a.ko.Spec.NetworkType != *b.ko.Spec.NetworkType {
+			delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.OptionGroupName, b.ko.Spec.OptionGroupName) {
 		delta.Add("Spec.OptionGroupName", a.ko.Spec.OptionGroupName, b.ko.Spec.OptionGroupName)
 	} else if a.ko.Spec.OptionGroupName != nil && b.ko.Spec.OptionGroupName != nil {
