@@ -65,6 +65,14 @@
       ],
       "type": "object"
     },
+    "role": {
+      "description": "Role settings",
+      "properties": {
+        "labels": {
+	  "type": "object"
+	}
+      }
+    },
     "metrics": {
       "description": "Metrics settings",
       "properties": {
