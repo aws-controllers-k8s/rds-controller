@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/aws-controllers-k8s/ec2-controller v0.0.16
 	github.com/aws-controllers-k8s/kms-controller v0.0.15
-	github.com/aws-controllers-k8s/runtime v0.20.1
+	github.com/aws-controllers-k8s/runtime v0.21.0
 	github.com/aws/aws-sdk-go v1.44.93
 	github.com/go-logr/logr v1.2.0
 	github.com/spf13/pflag v1.0.5

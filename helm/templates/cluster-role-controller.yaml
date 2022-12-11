@@ -4,11 +4,19 @@ kind: ClusterRole
 metadata:
   creationTimestamp: null
   name: ack-rds-controller
+  labels:
+  {{- range $key, $value := .Values.role.labels }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
 {{ else }}
 kind: Role
 metadata:
   creationTimestamp: null
   name: ack-rds-controller
+  labels:
+  {{- range $key, $value := .Values.role.labels }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
 {{ end }}
 rules:
