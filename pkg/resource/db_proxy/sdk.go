@@ -95,6 +95,9 @@ func (rm *resourceManager) sdkFind(
 				if f0iter.AuthScheme != nil {
 					f0elem.AuthScheme = f0iter.AuthScheme
 				}
+				if f0iter.ClientPasswordAuthType != nil {
+					f0elem.ClientPasswordAuthType = f0iter.ClientPasswordAuthType
+				}
 				if f0iter.Description != nil {
 					f0elem.Description = f0iter.Description
 				}
@@ -267,6 +270,9 @@ func (rm *resourceManager) sdkCreate(
 			if f0iter.AuthScheme != nil {
 				f0elem.AuthScheme = f0iter.AuthScheme
 			}
+			if f0iter.ClientPasswordAuthType != nil {
+				f0elem.ClientPasswordAuthType = f0iter.ClientPasswordAuthType
+			}
 			if f0iter.Description != nil {
 				f0elem.Description = f0iter.Description
 			}
@@ -389,6 +395,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 			if f0iter.AuthScheme != nil {
 				f0elem.SetAuthScheme(*f0iter.AuthScheme)
 			}
+			if f0iter.ClientPasswordAuthType != nil {
+				f0elem.SetClientPasswordAuthType(*f0iter.ClientPasswordAuthType)
+			}
 			if f0iter.Description != nil {
 				f0elem.SetDescription(*f0iter.Description)
 			}
@@ -494,6 +503,9 @@ func (rm *resourceManager) sdkUpdate(
 			f0elem := &svcapitypes.UserAuthConfig{}
 			if f0iter.AuthScheme != nil {
 				f0elem.AuthScheme = f0iter.AuthScheme
+			}
+			if f0iter.ClientPasswordAuthType != nil {
+				f0elem.ClientPasswordAuthType = f0iter.ClientPasswordAuthType
 			}
 			if f0iter.Description != nil {
 				f0elem.Description = f0iter.Description
@@ -616,6 +628,9 @@ func (rm *resourceManager) newUpdateRequestPayload(
 			f0elem := &svcsdk.UserAuthConfig{}
 			if f0iter.AuthScheme != nil {
 				f0elem.SetAuthScheme(*f0iter.AuthScheme)
+			}
+			if f0iter.ClientPasswordAuthType != nil {
+				f0elem.SetClientPasswordAuthType(*f0iter.ClientPasswordAuthType)
 			}
 			if f0iter.Description != nil {
 				f0elem.SetDescription(*f0iter.Description)

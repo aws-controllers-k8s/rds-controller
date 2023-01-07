@@ -121,6 +121,13 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef) {
 		delta.Add("Spec.DBSubnetGroupRef", a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DBSystemID, b.ko.Spec.DBSystemID) {
+		delta.Add("Spec.DBSystemID", a.ko.Spec.DBSystemID, b.ko.Spec.DBSystemID)
+	} else if a.ko.Spec.DBSystemID != nil && b.ko.Spec.DBSystemID != nil {
+		if *a.ko.Spec.DBSystemID != *b.ko.Spec.DBSystemID {
+			delta.Add("Spec.DBSystemID", a.ko.Spec.DBSystemID, b.ko.Spec.DBSystemID)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DatabaseName, b.ko.Spec.DatabaseName) {
 		delta.Add("Spec.DatabaseName", a.ko.Spec.DatabaseName, b.ko.Spec.DatabaseName)
 	} else if a.ko.Spec.DatabaseName != nil && b.ko.Spec.DatabaseName != nil {
@@ -232,11 +239,25 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef) {
 		delta.Add("Spec.KMSKeyRef", a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.ManageMasterUserPassword, b.ko.Spec.ManageMasterUserPassword) {
+		delta.Add("Spec.ManageMasterUserPassword", a.ko.Spec.ManageMasterUserPassword, b.ko.Spec.ManageMasterUserPassword)
+	} else if a.ko.Spec.ManageMasterUserPassword != nil && b.ko.Spec.ManageMasterUserPassword != nil {
+		if *a.ko.Spec.ManageMasterUserPassword != *b.ko.Spec.ManageMasterUserPassword {
+			delta.Add("Spec.ManageMasterUserPassword", a.ko.Spec.ManageMasterUserPassword, b.ko.Spec.ManageMasterUserPassword)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MasterUserPassword, b.ko.Spec.MasterUserPassword) {
 		delta.Add("Spec.MasterUserPassword", a.ko.Spec.MasterUserPassword, b.ko.Spec.MasterUserPassword)
 	} else if a.ko.Spec.MasterUserPassword != nil && b.ko.Spec.MasterUserPassword != nil {
 		if *a.ko.Spec.MasterUserPassword != *b.ko.Spec.MasterUserPassword {
 			delta.Add("Spec.MasterUserPassword", a.ko.Spec.MasterUserPassword, b.ko.Spec.MasterUserPassword)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID) {
+		delta.Add("Spec.MasterUserSecretKMSKeyID", a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID)
+	} else if a.ko.Spec.MasterUserSecretKMSKeyID != nil && b.ko.Spec.MasterUserSecretKMSKeyID != nil {
+		if *a.ko.Spec.MasterUserSecretKMSKeyID != *b.ko.Spec.MasterUserSecretKMSKeyID {
+			delta.Add("Spec.MasterUserSecretKMSKeyID", a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername) {

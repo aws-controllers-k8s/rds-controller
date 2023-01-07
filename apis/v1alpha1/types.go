@@ -32,81 +32,81 @@ var (
 //
 // The following are account quotas:
 //
-//    * AllocatedStorage - The total allocated storage per account, in GiB.
-//    The used value is the total allocated storage in the account, in GiB.
+//   - AllocatedStorage - The total allocated storage per account, in GiB.
+//     The used value is the total allocated storage in the account, in GiB.
 //
-//    * AuthorizationsPerDBSecurityGroup - The number of ingress rules per DB
-//    security group. The used value is the highest number of ingress rules
-//    in a DB security group in the account. Other DB security groups in the
-//    account might have a lower number of ingress rules.
+//   - AuthorizationsPerDBSecurityGroup - The number of ingress rules per DB
+//     security group. The used value is the highest number of ingress rules
+//     in a DB security group in the account. Other DB security groups in the
+//     account might have a lower number of ingress rules.
 //
-//    * CustomEndpointsPerDBCluster - The number of custom endpoints per DB
-//    cluster. The used value is the highest number of custom endpoints in a
-//    DB clusters in the account. Other DB clusters in the account might have
-//    a lower number of custom endpoints.
+//   - CustomEndpointsPerDBCluster - The number of custom endpoints per DB
+//     cluster. The used value is the highest number of custom endpoints in a
+//     DB clusters in the account. Other DB clusters in the account might have
+//     a lower number of custom endpoints.
 //
-//    * DBClusterParameterGroups - The number of DB cluster parameter groups
-//    per account, excluding default parameter groups. The used value is the
-//    count of nondefault DB cluster parameter groups in the account.
+//   - DBClusterParameterGroups - The number of DB cluster parameter groups
+//     per account, excluding default parameter groups. The used value is the
+//     count of nondefault DB cluster parameter groups in the account.
 //
-//    * DBClusterRoles - The number of associated Amazon Web Services Identity
-//    and Access Management (IAM) roles per DB cluster. The used value is the
-//    highest number of associated IAM roles for a DB cluster in the account.
-//    Other DB clusters in the account might have a lower number of associated
-//    IAM roles.
+//   - DBClusterRoles - The number of associated Amazon Web Services Identity
+//     and Access Management (IAM) roles per DB cluster. The used value is the
+//     highest number of associated IAM roles for a DB cluster in the account.
+//     Other DB clusters in the account might have a lower number of associated
+//     IAM roles.
 //
-//    * DBClusters - The number of DB clusters per account. The used value is
-//    the count of DB clusters in the account.
+//   - DBClusters - The number of DB clusters per account. The used value is
+//     the count of DB clusters in the account.
 //
-//    * DBInstanceRoles - The number of associated IAM roles per DB instance.
-//    The used value is the highest number of associated IAM roles for a DB
-//    instance in the account. Other DB instances in the account might have
-//    a lower number of associated IAM roles.
+//   - DBInstanceRoles - The number of associated IAM roles per DB instance.
+//     The used value is the highest number of associated IAM roles for a DB
+//     instance in the account. Other DB instances in the account might have
+//     a lower number of associated IAM roles.
 //
-//    * DBInstances - The number of DB instances per account. The used value
-//    is the count of the DB instances in the account. Amazon RDS DB instances,
-//    Amazon Aurora DB instances, Amazon Neptune instances, and Amazon DocumentDB
-//    instances apply to this quota.
+//   - DBInstances - The number of DB instances per account. The used value
+//     is the count of the DB instances in the account. Amazon RDS DB instances,
+//     Amazon Aurora DB instances, Amazon Neptune instances, and Amazon DocumentDB
+//     instances apply to this quota.
 //
-//    * DBParameterGroups - The number of DB parameter groups per account, excluding
-//    default parameter groups. The used value is the count of nondefault DB
-//    parameter groups in the account.
+//   - DBParameterGroups - The number of DB parameter groups per account, excluding
+//     default parameter groups. The used value is the count of nondefault DB
+//     parameter groups in the account.
 //
-//    * DBSecurityGroups - The number of DB security groups (not VPC security
-//    groups) per account, excluding the default security group. The used value
-//    is the count of nondefault DB security groups in the account.
+//   - DBSecurityGroups - The number of DB security groups (not VPC security
+//     groups) per account, excluding the default security group. The used value
+//     is the count of nondefault DB security groups in the account.
 //
-//    * DBSubnetGroups - The number of DB subnet groups per account. The used
-//    value is the count of the DB subnet groups in the account.
+//   - DBSubnetGroups - The number of DB subnet groups per account. The used
+//     value is the count of the DB subnet groups in the account.
 //
-//    * EventSubscriptions - The number of event subscriptions per account.
-//    The used value is the count of the event subscriptions in the account.
+//   - EventSubscriptions - The number of event subscriptions per account.
+//     The used value is the count of the event subscriptions in the account.
 //
-//    * ManualClusterSnapshots - The number of manual DB cluster snapshots per
-//    account. The used value is the count of the manual DB cluster snapshots
-//    in the account.
+//   - ManualClusterSnapshots - The number of manual DB cluster snapshots per
+//     account. The used value is the count of the manual DB cluster snapshots
+//     in the account.
 //
-//    * ManualSnapshots - The number of manual DB instance snapshots per account.
-//    The used value is the count of the manual DB instance snapshots in the
-//    account.
+//   - ManualSnapshots - The number of manual DB instance snapshots per account.
+//     The used value is the count of the manual DB instance snapshots in the
+//     account.
 //
-//    * OptionGroups - The number of DB option groups per account, excluding
-//    default option groups. The used value is the count of nondefault DB option
-//    groups in the account.
+//   - OptionGroups - The number of DB option groups per account, excluding
+//     default option groups. The used value is the count of nondefault DB option
+//     groups in the account.
 //
-//    * ReadReplicasPerMaster - The number of read replicas per DB instance.
-//    The used value is the highest number of read replicas for a DB instance
-//    in the account. Other DB instances in the account might have a lower number
-//    of read replicas.
+//   - ReadReplicasPerMaster - The number of read replicas per DB instance.
+//     The used value is the highest number of read replicas for a DB instance
+//     in the account. Other DB instances in the account might have a lower number
+//     of read replicas.
 //
-//    * ReservedDBInstances - The number of reserved DB instances per account.
-//    The used value is the count of the active reserved DB instances in the
-//    account.
+//   - ReservedDBInstances - The number of reserved DB instances per account.
+//     The used value is the count of the active reserved DB instances in the
+//     account.
 //
-//    * SubnetsPerDBSubnetGroup - The number of subnets per DB subnet group.
-//    The used value is highest number of subnets for a DB subnet group in the
-//    account. Other DB subnet groups in the account might have a lower number
-//    of subnets.
+//   - SubnetsPerDBSubnetGroup - The number of subnets per DB subnet group.
+//     The used value is highest number of subnets for a DB subnet group in the
+//     account. Other DB subnet groups in the account might have a lower number
+//     of subnets.
 //
 // For more information, see Quotas for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html)
 // in the Amazon RDS User Guide and Quotas for Amazon Aurora (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_Limits.html)
@@ -135,7 +135,28 @@ type AvailableProcessorFeature struct {
 	Name          *string `json:"name,omitempty"`
 }
 
+// Contains the details about a blue/green deployment.
+//
+// For more information, see Using Amazon RDS Blue/Green Deployments for database
+// updates (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html)
+// in the Amazon RDS User Guide and Using Amazon RDS Blue/Green Deployments
+// for database updates (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html)
+// in the Amazon Aurora User Guide.
+type BlueGreenDeployment struct {
+	CreateTime *metav1.Time `json:"createTime,omitempty"`
+	DeleteTime *metav1.Time `json:"deleteTime,omitempty"`
+	// A list of tags. For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+	// in the Amazon RDS User Guide.
+	TagList []*Tag `json:"tagList,omitempty"`
+}
+
 // A CA certificate for an Amazon Web Services account.
+//
+// For more information, see Using SSL/TLS to encrypt a connection to a DB instance
+// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html)
+// in the Amazon RDS User Guide and Using SSL/TLS to encrypt a connection to
+// a DB cluster (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html)
+// in the Amazon Aurora User Guide.
 type Certificate struct {
 	CertificateARN            *string      `json:"certificateARN,omitempty"`
 	CertificateIdentifier     *string      `json:"certificateIdentifier,omitempty"`
@@ -145,6 +166,18 @@ type Certificate struct {
 	Thumbprint                *string      `json:"thumbprint,omitempty"`
 	ValidFrom                 *metav1.Time `json:"validFrom,omitempty"`
 	ValidTill                 *metav1.Time `json:"validTill,omitempty"`
+}
+
+// Returns the details of the DB instance’s server certificate.
+//
+// For more information, see Using SSL/TLS to encrypt a connection to a DB instance
+// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html)
+// in the Amazon RDS User Guide and Using SSL/TLS to encrypt a connection to
+// a DB cluster (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html)
+// in the Amazon Aurora User Guide.
+type CertificateDetails struct {
+	CAIdentifier *string      `json:"cAIdentifier,omitempty"`
+	ValidTill    *metav1.Time `json:"validTill,omitempty"`
 }
 
 // This data type is used as a response element in the action DescribeDBEngineVersions.
@@ -175,9 +208,12 @@ type CloudwatchLogsExportConfiguration struct {
 // This data type is used as a response element in the ModifyDBCluster operation
 // and contains changes that will be applied during the next maintenance window.
 type ClusterPendingModifiedValues struct {
+	AllocatedStorage                 *int64  `json:"allocatedStorage,omitempty"`
+	BackupRetentionPeriod            *int64  `json:"backupRetentionPeriod,omitempty"`
 	DBClusterIdentifier              *string `json:"dbClusterIdentifier,omitempty"`
 	EngineVersion                    *string `json:"engineVersion,omitempty"`
 	IAMDatabaseAuthenticationEnabled *bool   `json:"iamDatabaseAuthenticationEnabled,omitempty"`
+	IOPS                             *int64  `json:"iops,omitempty"`
 	MasterUserPassword               *string `json:"masterUserPassword,omitempty"`
 	// A list of the log types whose configuration is still pending. In other words,
 	// these log types are in the process of being activated or deactivated.
@@ -204,17 +240,23 @@ type ConnectionPoolConfigurationInfo struct {
 	SessionPinningFilters     []*string `json:"sessionPinningFilters,omitempty"`
 }
 
+// A value that indicates the AMI information.
+type CustomDBEngineVersionAMI struct {
+	ImageID *string `json:"imageID,omitempty"`
+	Status  *string `json:"status,omitempty"`
+}
+
 // This data type represents the information you need to connect to an Amazon
 // Aurora DB cluster. This data type is used as a response element in the following
 // actions:
 //
-//    * CreateDBClusterEndpoint
+//   - CreateDBClusterEndpoint
 //
-//    * DescribeDBClusterEndpoints
+//   - DescribeDBClusterEndpoints
 //
-//    * ModifyDBClusterEndpoint
+//   - ModifyDBClusterEndpoint
 //
-//    * DeleteDBClusterEndpoint
+//   - DeleteDBClusterEndpoint
 //
 // For the data structure that represents Amazon RDS DB instance endpoints,
 // see Endpoint.
@@ -275,6 +317,7 @@ type DBClusterSnapshot struct {
 	DBClusterIdentifier              *string      `json:"dbClusterIdentifier,omitempty"`
 	DBClusterSnapshotARN             *string      `json:"dbClusterSnapshotARN,omitempty"`
 	DBClusterSnapshotIdentifier      *string      `json:"dbClusterSnapshotIdentifier,omitempty"`
+	DBSystemID                       *string      `json:"dbSystemID,omitempty"`
 	Engine                           *string      `json:"engine,omitempty"`
 	EngineMode                       *string      `json:"engineMode,omitempty"`
 	EngineVersion                    *string      `json:"engineVersion,omitempty"`
@@ -359,6 +402,7 @@ type DBCluster_SDK struct {
 	DBClusterOptionGroupMemberships  []*DBClusterOptionGroupStatus `json:"dbClusterOptionGroupMemberships,omitempty"`
 	DBClusterParameterGroup          *string                       `json:"dbClusterParameterGroup,omitempty"`
 	DBSubnetGroup                    *string                       `json:"dbSubnetGroup,omitempty"`
+	DBSystemID                       *string                       `json:"dbSystemID,omitempty"`
 	DatabaseName                     *string                       `json:"databaseName,omitempty"`
 	DBClusterResourceID              *string                       `json:"dbClusterResourceID,omitempty"`
 	DeletionProtection               *bool                         `json:"deletionProtection,omitempty"`
@@ -378,11 +422,20 @@ type DBCluster_SDK struct {
 	IOPS                             *int64                        `json:"iops,omitempty"`
 	KMSKeyID                         *string                       `json:"kmsKeyID,omitempty"`
 	LatestRestorableTime             *metav1.Time                  `json:"latestRestorableTime,omitempty"`
-	MasterUsername                   *string                       `json:"masterUsername,omitempty"`
-	MonitoringInterval               *int64                        `json:"monitoringInterval,omitempty"`
-	MonitoringRoleARN                *string                       `json:"monitoringRoleARN,omitempty"`
-	MultiAZ                          *bool                         `json:"multiAZ,omitempty"`
-	NetworkType                      *string                       `json:"networkType,omitempty"`
+	// Contains the secret managed by RDS in Amazon Web Services Secrets Manager
+	// for the master user password.
+	//
+	// For more information, see Password management with Amazon Web Services Secrets
+	// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+	// in the Amazon RDS User Guide and Password management with Amazon Web Services
+	// Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+	// in the Amazon Aurora User Guide.
+	MasterUserSecret   *MasterUserSecret `json:"masterUserSecret,omitempty"`
+	MasterUsername     *string           `json:"masterUsername,omitempty"`
+	MonitoringInterval *int64            `json:"monitoringInterval,omitempty"`
+	MonitoringRoleARN  *string           `json:"monitoringRoleARN,omitempty"`
+	MultiAZ            *bool             `json:"multiAZ,omitempty"`
+	NetworkType        *string           `json:"networkType,omitempty"`
 	// This data type is used as a response element in the ModifyDBCluster operation
 	// and contains changes that will be applied during the next maintenance window.
 	PendingModifiedValues              *ClusterPendingModifiedValues `json:"pendingModifiedValues,omitempty"`
@@ -419,25 +472,27 @@ type DBCluster_SDK struct {
 
 // This data type is used as a response element in the action DescribeDBEngineVersions.
 type DBEngineVersion struct {
-	CreateTime                            *metav1.Time `json:"createTime,omitempty"`
-	DBEngineDescription                   *string      `json:"dbEngineDescription,omitempty"`
-	DBEngineVersionARN                    *string      `json:"dbEngineVersionARN,omitempty"`
-	DBEngineVersionDescription            *string      `json:"dbEngineVersionDescription,omitempty"`
-	DBParameterGroupFamily                *string      `json:"dbParameterGroupFamily,omitempty"`
-	DatabaseInstallationFilesS3BucketName *string      `json:"databaseInstallationFilesS3BucketName,omitempty"`
-	DatabaseInstallationFilesS3Prefix     *string      `json:"databaseInstallationFilesS3Prefix,omitempty"`
-	Engine                                *string      `json:"engine,omitempty"`
-	EngineVersion                         *string      `json:"engineVersion,omitempty"`
-	ExportableLogTypes                    []*string    `json:"exportableLogTypes,omitempty"`
-	KMSKeyID                              *string      `json:"kmsKeyID,omitempty"`
-	MajorEngineVersion                    *string      `json:"majorEngineVersion,omitempty"`
-	Status                                *string      `json:"status,omitempty"`
-	SupportedEngineModes                  []*string    `json:"supportedEngineModes,omitempty"`
-	SupportsBabelfish                     *bool        `json:"supportsBabelfish,omitempty"`
-	SupportsGlobalDatabases               *bool        `json:"supportsGlobalDatabases,omitempty"`
-	SupportsLogExportsToCloudwatchLogs    *bool        `json:"supportsLogExportsToCloudwatchLogs,omitempty"`
-	SupportsParallelQuery                 *bool        `json:"supportsParallelQuery,omitempty"`
-	SupportsReadReplica                   *bool        `json:"supportsReadReplica,omitempty"`
+	CreateTime                                *metav1.Time `json:"createTime,omitempty"`
+	DBEngineDescription                       *string      `json:"dbEngineDescription,omitempty"`
+	DBEngineMediaType                         *string      `json:"dbEngineMediaType,omitempty"`
+	DBEngineVersionARN                        *string      `json:"dbEngineVersionARN,omitempty"`
+	DBEngineVersionDescription                *string      `json:"dbEngineVersionDescription,omitempty"`
+	DBParameterGroupFamily                    *string      `json:"dbParameterGroupFamily,omitempty"`
+	DatabaseInstallationFilesS3BucketName     *string      `json:"databaseInstallationFilesS3BucketName,omitempty"`
+	DatabaseInstallationFilesS3Prefix         *string      `json:"databaseInstallationFilesS3Prefix,omitempty"`
+	Engine                                    *string      `json:"engine,omitempty"`
+	EngineVersion                             *string      `json:"engineVersion,omitempty"`
+	ExportableLogTypes                        []*string    `json:"exportableLogTypes,omitempty"`
+	KMSKeyID                                  *string      `json:"kmsKeyID,omitempty"`
+	MajorEngineVersion                        *string      `json:"majorEngineVersion,omitempty"`
+	Status                                    *string      `json:"status,omitempty"`
+	SupportedEngineModes                      []*string    `json:"supportedEngineModes,omitempty"`
+	SupportsBabelfish                         *bool        `json:"supportsBabelfish,omitempty"`
+	SupportsCertificateRotationWithoutRestart *bool        `json:"supportsCertificateRotationWithoutRestart,omitempty"`
+	SupportsGlobalDatabases                   *bool        `json:"supportsGlobalDatabases,omitempty"`
+	SupportsLogExportsToCloudwatchLogs        *bool        `json:"supportsLogExportsToCloudwatchLogs,omitempty"`
+	SupportsParallelQuery                     *bool        `json:"supportsParallelQuery,omitempty"`
+	SupportsReadReplica                       *bool        `json:"supportsReadReplica,omitempty"`
 	// A list of tags. For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
 	// in the Amazon RDS User Guide.
 	TagList []*Tag `json:"tagList,omitempty"`
@@ -469,6 +524,7 @@ type DBInstanceAutomatedBackup struct {
 	Port                                   *int64                                   `json:"port,omitempty"`
 	Region                                 *string                                  `json:"region,omitempty"`
 	Status                                 *string                                  `json:"status,omitempty"`
+	StorageThroughput                      *int64                                   `json:"storageThroughput,omitempty"`
 	StorageType                            *string                                  `json:"storageType,omitempty"`
 	TDECredentialARN                       *string                                  `json:"tdeCredentialARN,omitempty"`
 	Timezone                               *string                                  `json:"timezone,omitempty"`
@@ -505,39 +561,48 @@ type DBInstanceStatusInfo struct {
 // PromoteReadReplica, RebootDBInstance, RestoreDBInstanceFromDBSnapshot, RestoreDBInstanceFromS3,
 // RestoreDBInstanceToPointInTime, StartDBInstance, and StopDBInstance.
 type DBInstance_SDK struct {
-	ActivityStreamEngineNativeAuditFieldsIncluded *bool                                    `json:"activityStreamEngineNativeAuditFieldsIncluded,omitempty"`
-	ActivityStreamKinesisStreamName               *string                                  `json:"activityStreamKinesisStreamName,omitempty"`
-	ActivityStreamKMSKeyID                        *string                                  `json:"activityStreamKMSKeyID,omitempty"`
-	ActivityStreamMode                            *string                                  `json:"activityStreamMode,omitempty"`
-	ActivityStreamPolicyStatus                    *string                                  `json:"activityStreamPolicyStatus,omitempty"`
-	ActivityStreamStatus                          *string                                  `json:"activityStreamStatus,omitempty"`
-	AllocatedStorage                              *int64                                   `json:"allocatedStorage,omitempty"`
-	AssociatedRoles                               []*DBInstanceRole                        `json:"associatedRoles,omitempty"`
-	AutoMinorVersionUpgrade                       *bool                                    `json:"autoMinorVersionUpgrade,omitempty"`
-	AutomaticRestartTime                          *metav1.Time                             `json:"automaticRestartTime,omitempty"`
-	AutomationMode                                *string                                  `json:"automationMode,omitempty"`
-	AvailabilityZone                              *string                                  `json:"availabilityZone,omitempty"`
-	AWSBackupRecoveryPointARN                     *string                                  `json:"awsBackupRecoveryPointARN,omitempty"`
-	BackupRetentionPeriod                         *int64                                   `json:"backupRetentionPeriod,omitempty"`
-	BackupTarget                                  *string                                  `json:"backupTarget,omitempty"`
-	CACertificateIdentifier                       *string                                  `json:"caCertificateIdentifier,omitempty"`
-	CharacterSetName                              *string                                  `json:"characterSetName,omitempty"`
-	CopyTagsToSnapshot                            *bool                                    `json:"copyTagsToSnapshot,omitempty"`
-	CustomIAMInstanceProfile                      *string                                  `json:"customIAMInstanceProfile,omitempty"`
-	CustomerOwnedIPEnabled                        *bool                                    `json:"customerOwnedIPEnabled,omitempty"`
-	DBClusterIdentifier                           *string                                  `json:"dbClusterIdentifier,omitempty"`
-	DBInstanceARN                                 *string                                  `json:"dbInstanceARN,omitempty"`
-	DBInstanceAutomatedBackupsReplications        []*DBInstanceAutomatedBackupsReplication `json:"dbInstanceAutomatedBackupsReplications,omitempty"`
-	DBInstanceClass                               *string                                  `json:"dbInstanceClass,omitempty"`
-	DBInstanceIdentifier                          *string                                  `json:"dbInstanceIdentifier,omitempty"`
-	DBInstanceStatus                              *string                                  `json:"dbInstanceStatus,omitempty"`
-	DBName                                        *string                                  `json:"dbName,omitempty"`
-	DBParameterGroups                             []*DBParameterGroupStatus_SDK            `json:"dbParameterGroups,omitempty"`
+	ActivityStreamEngineNativeAuditFieldsIncluded *bool             `json:"activityStreamEngineNativeAuditFieldsIncluded,omitempty"`
+	ActivityStreamKinesisStreamName               *string           `json:"activityStreamKinesisStreamName,omitempty"`
+	ActivityStreamKMSKeyID                        *string           `json:"activityStreamKMSKeyID,omitempty"`
+	ActivityStreamMode                            *string           `json:"activityStreamMode,omitempty"`
+	ActivityStreamPolicyStatus                    *string           `json:"activityStreamPolicyStatus,omitempty"`
+	ActivityStreamStatus                          *string           `json:"activityStreamStatus,omitempty"`
+	AllocatedStorage                              *int64            `json:"allocatedStorage,omitempty"`
+	AssociatedRoles                               []*DBInstanceRole `json:"associatedRoles,omitempty"`
+	AutoMinorVersionUpgrade                       *bool             `json:"autoMinorVersionUpgrade,omitempty"`
+	AutomaticRestartTime                          *metav1.Time      `json:"automaticRestartTime,omitempty"`
+	AutomationMode                                *string           `json:"automationMode,omitempty"`
+	AvailabilityZone                              *string           `json:"availabilityZone,omitempty"`
+	AWSBackupRecoveryPointARN                     *string           `json:"awsBackupRecoveryPointARN,omitempty"`
+	BackupRetentionPeriod                         *int64            `json:"backupRetentionPeriod,omitempty"`
+	BackupTarget                                  *string           `json:"backupTarget,omitempty"`
+	CACertificateIdentifier                       *string           `json:"caCertificateIdentifier,omitempty"`
+	// Returns the details of the DB instance’s server certificate.
+	//
+	// For more information, see Using SSL/TLS to encrypt a connection to a DB instance
+	// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html)
+	// in the Amazon RDS User Guide and Using SSL/TLS to encrypt a connection to
+	// a DB cluster (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html)
+	// in the Amazon Aurora User Guide.
+	CertificateDetails                     *CertificateDetails                      `json:"certificateDetails,omitempty"`
+	CharacterSetName                       *string                                  `json:"characterSetName,omitempty"`
+	CopyTagsToSnapshot                     *bool                                    `json:"copyTagsToSnapshot,omitempty"`
+	CustomIAMInstanceProfile               *string                                  `json:"customIAMInstanceProfile,omitempty"`
+	CustomerOwnedIPEnabled                 *bool                                    `json:"customerOwnedIPEnabled,omitempty"`
+	DBClusterIdentifier                    *string                                  `json:"dbClusterIdentifier,omitempty"`
+	DBInstanceARN                          *string                                  `json:"dbInstanceARN,omitempty"`
+	DBInstanceAutomatedBackupsReplications []*DBInstanceAutomatedBackupsReplication `json:"dbInstanceAutomatedBackupsReplications,omitempty"`
+	DBInstanceClass                        *string                                  `json:"dbInstanceClass,omitempty"`
+	DBInstanceIdentifier                   *string                                  `json:"dbInstanceIdentifier,omitempty"`
+	DBInstanceStatus                       *string                                  `json:"dbInstanceStatus,omitempty"`
+	DBName                                 *string                                  `json:"dbName,omitempty"`
+	DBParameterGroups                      []*DBParameterGroupStatus_SDK            `json:"dbParameterGroups,omitempty"`
 	// Contains the details of an Amazon RDS DB subnet group.
 	//
 	// This data type is used as a response element in the DescribeDBSubnetGroups
 	// action.
 	DBSubnetGroup                *DBSubnetGroup_SDK  `json:"dbSubnetGroup,omitempty"`
+	DBSystemID                   *string             `json:"dbSystemID,omitempty"`
 	DBInstancePort               *int64              `json:"dbInstancePort,omitempty"`
 	DBIResourceID                *string             `json:"dbiResourceID,omitempty"`
 	DeletionProtection           *bool               `json:"deletionProtection,omitempty"`
@@ -577,7 +642,16 @@ type DBInstance_SDK struct {
 	//
 	// For the data structure that represents Amazon Aurora DB cluster endpoints,
 	// see DBClusterEndpoint.
-	ListenerEndpoint       *Endpoint                `json:"listenerEndpoint,omitempty"`
+	ListenerEndpoint *Endpoint `json:"listenerEndpoint,omitempty"`
+	// Contains the secret managed by RDS in Amazon Web Services Secrets Manager
+	// for the master user password.
+	//
+	// For more information, see Password management with Amazon Web Services Secrets
+	// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+	// in the Amazon RDS User Guide and Password management with Amazon Web Services
+	// Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+	// in the Amazon Aurora User Guide.
+	MasterUserSecret       *MasterUserSecret        `json:"masterUserSecret,omitempty"`
 	MasterUsername         *string                  `json:"masterUsername,omitempty"`
 	MaxAllocatedStorage    *int64                   `json:"maxAllocatedStorage,omitempty"`
 	MonitoringInterval     *int64                   `json:"monitoringInterval,omitempty"`
@@ -605,6 +679,7 @@ type DBInstance_SDK struct {
 	SecondaryAvailabilityZone             *string                       `json:"secondaryAvailabilityZone,omitempty"`
 	StatusInfos                           []*DBInstanceStatusInfo       `json:"statusInfos,omitempty"`
 	StorageEncrypted                      *bool                         `json:"storageEncrypted,omitempty"`
+	StorageThroughput                     *int64                        `json:"storageThroughput,omitempty"`
 	StorageType                           *string                       `json:"storageType,omitempty"`
 	TDECredentialARN                      *string                       `json:"tdeCredentialARN,omitempty"`
 	Timezone                              *string                       `json:"timezone,omitempty"`
@@ -615,17 +690,17 @@ type DBInstance_SDK struct {
 //
 // This data type is used as a response element in the following actions:
 //
-//    * CreateDBInstance
+//   - CreateDBInstance
 //
-//    * CreateDBInstanceReadReplica
+//   - CreateDBInstanceReadReplica
 //
-//    * DeleteDBInstance
+//   - DeleteDBInstance
 //
-//    * ModifyDBInstance
+//   - ModifyDBInstance
 //
-//    * RebootDBInstance
+//   - RebootDBInstance
 //
-//    * RestoreDBInstanceFromDBSnapshot
+//   - RestoreDBInstanceFromDBSnapshot
 type DBParameterGroupStatus_SDK struct {
 	DBParameterGroupName *string `json:"dbParameterGroupName,omitempty"`
 	ParameterApplyStatus *string `json:"parameterApplyStatus,omitempty"`
@@ -727,13 +802,13 @@ type DBSecurityGroup struct {
 
 // This data type is used as a response element in the following actions:
 //
-//    * ModifyDBInstance
+//   - ModifyDBInstance
 //
-//    * RebootDBInstance
+//   - RebootDBInstance
 //
-//    * RestoreDBInstanceFromDBSnapshot
+//   - RestoreDBInstanceFromDBSnapshot
 //
-//    * RestoreDBInstanceToPointInTime
+//   - RestoreDBInstanceToPointInTime
 type DBSecurityGroupMembership struct {
 	DBSecurityGroupName *string `json:"dbSecurityGroupName,omitempty"`
 	Status              *string `json:"status,omitempty"`
@@ -770,6 +845,7 @@ type DBSnapshot struct {
 	SourceDBSnapshotIdentifier       *string             `json:"sourceDBSnapshotIdentifier,omitempty"`
 	SourceRegion                     *string             `json:"sourceRegion,omitempty"`
 	Status                           *string             `json:"status,omitempty"`
+	StorageThroughput                *int64              `json:"storageThroughput,omitempty"`
 	StorageType                      *string             `json:"storageType,omitempty"`
 	// A list of tags. For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
 	// in the Amazon RDS User Guide.
@@ -828,11 +904,11 @@ type DomainMembership struct {
 
 // This data type is used as a response element in the following actions:
 //
-//    * AuthorizeDBSecurityGroupIngress
+//   - AuthorizeDBSecurityGroupIngress
 //
-//    * DescribeDBSecurityGroups
+//   - DescribeDBSecurityGroups
 //
-//    * RevokeDBSecurityGroupIngress
+//   - RevokeDBSecurityGroupIngress
 type EC2SecurityGroup struct {
 	EC2SecurityGroupID      *string `json:"ec2SecurityGroupID,omitempty"`
 	EC2SecurityGroupName    *string `json:"ec2SecurityGroupName,omitempty"`
@@ -844,11 +920,11 @@ type EC2SecurityGroup struct {
 // RDS DB instance. This data type is used as a response element in the following
 // actions:
 //
-//    * CreateDBInstance
+//   - CreateDBInstance
 //
-//    * DescribeDBInstances
+//   - DescribeDBInstances
 //
-//    * DeleteDBInstance
+//   - DeleteDBInstance
 //
 // For the data structure that represents Amazon Aurora DB cluster endpoints,
 // see DBClusterEndpoint.
@@ -934,15 +1010,15 @@ type FailoverState struct {
 //
 // The following actions can be filtered:
 //
-//    * DescribeDBClusterBacktracks
+//   - DescribeDBClusterBacktracks
 //
-//    * DescribeDBClusterEndpoints
+//   - DescribeDBClusterEndpoints
 //
-//    * DescribeDBClusters
+//   - DescribeDBClusters
 //
-//    * DescribeDBInstances
+//   - DescribeDBInstances
 //
-//    * DescribePendingMaintenanceActions
+//   - DescribePendingMaintenanceActions
 type Filter struct {
 	Name   *string   `json:"name,omitempty"`
 	Values []*string `json:"values,omitempty"`
@@ -982,6 +1058,20 @@ type IPRange struct {
 	Status *string `json:"status,omitempty"`
 }
 
+// Contains the secret managed by RDS in Amazon Web Services Secrets Manager
+// for the master user password.
+//
+// For more information, see Password management with Amazon Web Services Secrets
+// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+// in the Amazon RDS User Guide and Password management with Amazon Web Services
+// Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+// in the Amazon Aurora User Guide.
+type MasterUserSecret struct {
+	KMSKeyID     *string `json:"kmsKeyID,omitempty"`
+	SecretARN    *string `json:"secretARN,omitempty"`
+	SecretStatus *string `json:"secretStatus,omitempty"`
+}
+
 // The minimum DB engine version required for each corresponding allowed value
 // for an option setting.
 type MinimumEngineVersionPerAllowedValue struct {
@@ -1010,13 +1100,16 @@ type OptionConfiguration struct {
 }
 
 type OptionGroup struct {
-	AllowsVPCAndNonVPCInstanceMemberships *bool   `json:"allowsVPCAndNonVPCInstanceMemberships,omitempty"`
-	EngineName                            *string `json:"engineName,omitempty"`
-	MajorEngineVersion                    *string `json:"majorEngineVersion,omitempty"`
-	OptionGroupARN                        *string `json:"optionGroupARN,omitempty"`
-	OptionGroupDescription                *string `json:"optionGroupDescription,omitempty"`
-	OptionGroupName                       *string `json:"optionGroupName,omitempty"`
-	VPCID                                 *string `json:"vpcID,omitempty"`
+	AllowsVPCAndNonVPCInstanceMemberships *bool        `json:"allowsVPCAndNonVPCInstanceMemberships,omitempty"`
+	CopyTimestamp                         *metav1.Time `json:"copyTimestamp,omitempty"`
+	EngineName                            *string      `json:"engineName,omitempty"`
+	MajorEngineVersion                    *string      `json:"majorEngineVersion,omitempty"`
+	OptionGroupARN                        *string      `json:"optionGroupARN,omitempty"`
+	OptionGroupDescription                *string      `json:"optionGroupDescription,omitempty"`
+	OptionGroupName                       *string      `json:"optionGroupName,omitempty"`
+	SourceAccountID                       *string      `json:"sourceAccountID,omitempty"`
+	SourceOptionGroup                     *string      `json:"sourceOptionGroup,omitempty"`
+	VPCID                                 *string      `json:"vpcID,omitempty"`
 }
 
 // Provides information on the option groups the DB instance is a member of.
@@ -1027,6 +1120,7 @@ type OptionGroupMembership struct {
 
 // Available option.
 type OptionGroupOption struct {
+	CopyableCrossAccount                  *bool   `json:"copyableCrossAccount,omitempty"`
 	DefaultPort                           *int64  `json:"defaultPort,omitempty"`
 	Description                           *string `json:"description,omitempty"`
 	EngineName                            *string `json:"engineName,omitempty"`
@@ -1090,9 +1184,13 @@ type OrderableDBInstanceOption struct {
 	MaxIOPSPerDBInstance              *int64    `json:"maxIOPSPerDBInstance,omitempty"`
 	MaxIOPSPerGib                     *float64  `json:"maxIOPSPerGib,omitempty"`
 	MaxStorageSize                    *int64    `json:"maxStorageSize,omitempty"`
+	MaxStorageThroughputPerDBInstance *int64    `json:"maxStorageThroughputPerDBInstance,omitempty"`
+	MaxStorageThroughputPerIOPS       *float64  `json:"maxStorageThroughputPerIOPS,omitempty"`
 	MinIOPSPerDBInstance              *int64    `json:"minIOPSPerDBInstance,omitempty"`
 	MinIOPSPerGib                     *float64  `json:"minIOPSPerGib,omitempty"`
 	MinStorageSize                    *int64    `json:"minStorageSize,omitempty"`
+	MinStorageThroughputPerDBInstance *int64    `json:"minStorageThroughputPerDBInstance,omitempty"`
+	MinStorageThroughputPerIOPS       *float64  `json:"minStorageThroughputPerIOPS,omitempty"`
 	MultiAZCapable                    *bool     `json:"multiAZCapable,omitempty"`
 	OutpostCapable                    *bool     `json:"outpostCapable,omitempty"`
 	ReadReplicaCapable                *bool     `json:"readReplicaCapable,omitempty"`
@@ -1108,6 +1206,7 @@ type OrderableDBInstanceOption struct {
 	SupportsPerformanceInsights       *bool     `json:"supportsPerformanceInsights,omitempty"`
 	SupportsStorageAutoscaling        *bool     `json:"supportsStorageAutoscaling,omitempty"`
 	SupportsStorageEncryption         *bool     `json:"supportsStorageEncryption,omitempty"`
+	SupportsStorageThroughput         *bool     `json:"supportsStorageThroughput,omitempty"`
 	VPC                               *bool     `json:"vpc,omitempty"`
 }
 
@@ -1178,6 +1277,7 @@ type PendingModifiedValues struct {
 	Port                         *int64                        `json:"port,omitempty"`
 	ProcessorFeatures            []*ProcessorFeature           `json:"processorFeatures,omitempty"`
 	ResumeFullAutomationModeTime *metav1.Time                  `json:"resumeFullAutomationModeTime,omitempty"`
+	StorageThroughput            *int64                        `json:"storageThroughput,omitempty"`
 	StorageType                  *string                       `json:"storageType,omitempty"`
 }
 
@@ -1190,15 +1290,15 @@ type PendingModifiedValues struct {
 // You can set the processor features of the DB instance class for a DB instance
 // when you call one of the following actions:
 //
-//    * CreateDBInstance
+//   - CreateDBInstance
 //
-//    * ModifyDBInstance
+//   - ModifyDBInstance
 //
-//    * RestoreDBInstanceFromDBSnapshot
+//   - RestoreDBInstanceFromDBSnapshot
 //
-//    * RestoreDBInstanceFromS3
+//   - RestoreDBInstanceFromS3
 //
-//    * RestoreDBInstanceToPointInTime
+//   - RestoreDBInstanceToPointInTime
 //
 // You can view the valid processor values for a particular instance class by
 // calling the DescribeOrderableDBInstanceOptions action and specifying the
@@ -1207,21 +1307,21 @@ type PendingModifiedValues struct {
 // In addition, you can use the following actions for DB instance class processor
 // information:
 //
-//    * DescribeDBInstances
+//   - DescribeDBInstances
 //
-//    * DescribeDBSnapshots
+//   - DescribeDBSnapshots
 //
-//    * DescribeValidDBInstanceModifications
+//   - DescribeValidDBInstanceModifications
 //
 // If you call DescribeDBInstances, ProcessorFeature returns non-null values
 // only if the following conditions are met:
 //
-//    * You are accessing an Oracle DB instance.
+//   - You are accessing an Oracle DB instance.
 //
-//    * Your Oracle DB instance class supports configuring the number of CPU
-//    cores and threads per core.
+//   - Your Oracle DB instance class supports configuring the number of CPU
+//     cores and threads per core.
 //
-//    * The current number CPU cores and threads is set to a non-default value.
+//   - The current number CPU cores and threads is set to a non-default value.
 //
 // For more information, see Configuring the Processor of the DB Instance Class
 // (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html#USER_ConfigureProcessor)
@@ -1358,6 +1458,9 @@ type Subnet struct {
 }
 
 // Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
+//
+// For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+// in the Amazon RDS User Guide.
 type Tag struct {
 	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
@@ -1391,21 +1494,23 @@ type UpgradeTarget struct {
 // Specifies the details of authentication used by a proxy to log in as a specific
 // database user.
 type UserAuthConfig struct {
-	AuthScheme  *string `json:"authScheme,omitempty"`
-	Description *string `json:"description,omitempty"`
-	IAMAuth     *string `json:"iamAuth,omitempty"`
-	SecretARN   *string `json:"secretARN,omitempty"`
-	UserName    *string `json:"userName,omitempty"`
+	AuthScheme             *string `json:"authScheme,omitempty"`
+	ClientPasswordAuthType *string `json:"clientPasswordAuthType,omitempty"`
+	Description            *string `json:"description,omitempty"`
+	IAMAuth                *string `json:"iamAuth,omitempty"`
+	SecretARN              *string `json:"secretARN,omitempty"`
+	UserName               *string `json:"userName,omitempty"`
 }
 
 // Returns the details of authentication used by a proxy to log in as a specific
 // database user.
 type UserAuthConfigInfo struct {
-	AuthScheme  *string `json:"authScheme,omitempty"`
-	Description *string `json:"description,omitempty"`
-	IAMAuth     *string `json:"iamAuth,omitempty"`
-	SecretARN   *string `json:"secretARN,omitempty"`
-	UserName    *string `json:"userName,omitempty"`
+	AuthScheme             *string `json:"authScheme,omitempty"`
+	ClientPasswordAuthType *string `json:"clientPasswordAuthType,omitempty"`
+	Description            *string `json:"description,omitempty"`
+	IAMAuth                *string `json:"iamAuth,omitempty"`
+	SecretARN              *string `json:"secretARN,omitempty"`
+	UserName               *string `json:"userName,omitempty"`
 }
 
 // This data type is used as a response element for queries on VPC security

@@ -41,7 +41,8 @@ type DBProxySpec struct {
 	// which database network protocol the proxy recognizes when it interprets network
 	// traffic to and from the database. For Aurora MySQL, RDS for MariaDB, and
 	// RDS for MySQL databases, specify MYSQL. For Aurora PostgreSQL and RDS for
-	// PostgreSQL databases, specify POSTGRESQL.
+	// PostgreSQL databases, specify POSTGRESQL. For RDS for Microsoft SQL Server,
+	// specify SQLSERVER.
 	// +kubebuilder:validation:Required
 	EngineFamily *string `json:"engineFamily"`
 	// The number of seconds that a connection to the proxy can be inactive before
