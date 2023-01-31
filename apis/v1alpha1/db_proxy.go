@@ -26,6 +26,7 @@ import (
 //
 // This data type is used as a response element in the DescribeDBProxies action.
 type DBProxySpec struct {
+
 	// The authorization mechanism that the proxy uses.
 	// +kubebuilder:validation:Required
 	Auth []*UserAuthConfig `json:"auth"`

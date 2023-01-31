@@ -42,9 +42,9 @@ spec:
                 type: string
               name:
                 description: "The name for the DB subnet group. This value is stored
-                  as a lowercase string. \n Constraints: \n * Must contain no more
+                  as a lowercase string. \n Constraints: \n - Must contain no more
                   than 255 letters, numbers, periods, underscores, spaces, or hyphens.
-                  \n * Must not be default. \n * First character must be a letter.
+                  \n - Must not be default. \n - First character must be a letter.
                   \n Example: mydbsubnetgroup"
                 type: string
               subnetIDs:

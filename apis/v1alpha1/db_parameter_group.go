@@ -27,6 +27,7 @@ import (
 // This data type is used as a response element in the DescribeDBParameterGroups
 // action.
 type DBParameterGroupSpec struct {
+
 	// The description for the DB parameter group.
 	// +kubebuilder:validation:Required
 	Description *string `json:"description"`
@@ -51,49 +52,49 @@ type DBParameterGroupSpec struct {
 	//
 	// The following are the valid DB engine values:
 	//
-	//    * aurora (for MySQL 5.6-compatible Aurora)
+	//   - aurora (for MySQL 5.6-compatible Aurora)
 	//
-	//    * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
+	//   - aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
 	//
-	//    * aurora-postgresql
+	//   - aurora-postgresql
 	//
-	//    * mariadb
+	//   - mariadb
 	//
-	//    * mysql
+	//   - mysql
 	//
-	//    * oracle-ee
+	//   - oracle-ee
 	//
-	//    * oracle-ee-cdb
+	//   - oracle-ee-cdb
 	//
-	//    * oracle-se2
+	//   - oracle-se2
 	//
-	//    * oracle-se2-cdb
+	//   - oracle-se2-cdb
 	//
-	//    * postgres
+	//   - postgres
 	//
-	//    * sqlserver-ee
+	//   - sqlserver-ee
 	//
-	//    * sqlserver-se
+	//   - sqlserver-se
 	//
-	//    * sqlserver-ex
+	//   - sqlserver-ex
 	//
-	//    * sqlserver-web
+	//   - sqlserver-web
+	//
 	// +kubebuilder:validation:Required
 	Family *string `json:"family"`
 	// The name of the DB parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must be 1 to 255 letters, numbers, or hyphens.
+	//   - Must be 1 to 255 letters, numbers, or hyphens.
 	//
-	//    * First character must be a letter
+	//   - First character must be a letter
 	//
-	//    * Can't end with a hyphen or contain two consecutive hyphens
+	//   - Can't end with a hyphen or contain two consecutive hyphens
 	//
 	// This value is stored as a lowercase string.
 	// +kubebuilder:validation:Required
-	Name *string `json:"name"`
-
+	Name               *string            `json:"name"`
 	ParameterOverrides map[string]*string `json:"parameterOverrides,omitempty"`
 	// Tags to assign to the DB parameter group.
 	Tags []*Tag `json:"tags,omitempty"`

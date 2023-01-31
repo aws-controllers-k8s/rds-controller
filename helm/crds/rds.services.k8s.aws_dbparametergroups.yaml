@@ -53,16 +53,16 @@ spec:
                   for the MySQL DB engine, use the following command: \n aws rds describe-db-engine-versions
                   --query \"DBEngineVersions[].DBParameterGroupFamily\" --engine mysql
                   \n The output contains duplicates. \n The following are the valid
-                  DB engine values: \n * aurora (for MySQL 5.6-compatible Aurora)
-                  \n * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible
-                  Aurora) \n * aurora-postgresql \n * mariadb \n * mysql \n * oracle-ee
-                  \n * oracle-ee-cdb \n * oracle-se2 \n * oracle-se2-cdb \n * postgres
-                  \n * sqlserver-ee \n * sqlserver-se \n * sqlserver-ex \n * sqlserver-web"
+                  DB engine values: \n - aurora (for MySQL 5.6-compatible Aurora)
+                  \n - aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible
+                  Aurora) \n - aurora-postgresql \n - mariadb \n - mysql \n - oracle-ee
+                  \n - oracle-ee-cdb \n - oracle-se2 \n - oracle-se2-cdb \n - postgres
+                  \n - sqlserver-ee \n - sqlserver-se \n - sqlserver-ex \n - sqlserver-web"
                 type: string
               name:
                 description: "The name of the DB parameter group. \n Constraints:
-                  \n * Must be 1 to 255 letters, numbers, or hyphens. \n * First character
-                  must be a letter \n * Can't end with a hyphen or contain two consecutive
+                  \n - Must be 1 to 255 letters, numbers, or hyphens. \n - First character
+                  must be a letter \n - Can't end with a hyphen or contain two consecutive
                   hyphens \n This value is stored as a lowercase string."
                 type: string
               parameterOverrides:

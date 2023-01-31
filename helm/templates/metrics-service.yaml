@@ -11,7 +11,6 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
     k8s-app: {{ include "app.name" . }}
     helm.sh/chart: {{ include "chart.name-version" . }}
-    control-plane: controller
 spec:
   selector:
     app.kubernetes.io/name: {{ include "app.name" . }}

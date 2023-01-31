@@ -24,6 +24,7 @@ import (
 //
 // A data type representing an Aurora global database.
 type GlobalClusterSpec struct {
+
 	// The name for your database of up to 64 alphanumeric characters. If you do
 	// not provide a name, Amazon Aurora will not create a database in the global
 	// database cluster you are creating.
