@@ -27,6 +27,7 @@ import (
 // This data type is used as a response element in the DescribeDBSubnetGroups
 // action.
 type DBSubnetGroupSpec struct {
+
 	// The description for the DB subnet group.
 	// +kubebuilder:validation:Required
 	Description *string `json:"description"`
@@ -34,12 +35,12 @@ type DBSubnetGroupSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must contain no more than 255 letters, numbers, periods, underscores,
-	//    spaces, or hyphens.
+	//   - Must contain no more than 255 letters, numbers, periods, underscores,
+	//     spaces, or hyphens.
 	//
-	//    * Must not be default.
+	//   - Must not be default.
 	//
-	//    * First character must be a letter.
+	//   - First character must be a letter.
 	//
 	// Example: mydbsubnetgroup
 	// +kubebuilder:validation:Required

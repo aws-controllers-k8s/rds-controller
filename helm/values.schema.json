@@ -203,6 +203,10 @@
         "pattern": "(^$|^.*=.*$)"
       }
     },
+    "deletionPolicy": {
+      "type": "string",
+      "enum": ["delete", "retain"]
+    },
     "serviceAccount": {
       "description": "ServiceAccount settings",
       "properties": {

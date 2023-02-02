@@ -29,81 +29,82 @@ import (
 // PromoteReadReplica, RebootDBInstance, RestoreDBInstanceFromDBSnapshot, RestoreDBInstanceFromS3,
 // RestoreDBInstanceToPointInTime, StartDBInstance, and StopDBInstance.
 type DBInstanceSpec struct {
+
 	// The amount of storage in gibibytes (GiB) to allocate for the DB instance.
 	//
 	// Type: Integer
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. Aurora cluster volumes automatically grow as the amount of
 	// data in your database increases, though you are only charged for the space
 	// that you use in an Aurora cluster volume.
 	//
-	// Amazon RDS Custom
+	// # Amazon RDS Custom
 	//
 	// Constraints to the amount of storage for each storage type are the following:
 	//
-	//    * General Purpose (SSD) storage (gp2): Must be an integer from 40 to 65536
-	//    for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.
+	//   - General Purpose (SSD) storage (gp2): Must be an integer from 40 to 65536
+	//     for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.
 	//
-	//    * Provisioned IOPS storage (io1): Must be an integer from 40 to 65536
-	//    for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.
+	//   - Provisioned IOPS storage (io1): Must be an integer from 40 to 65536
+	//     for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.
 	//
-	// MySQL
-	//
-	// Constraints to the amount of storage for each storage type are the following:
-	//
-	//    * General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
-	//
-	//    * Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
-	//
-	//    * Magnetic storage (standard): Must be an integer from 5 to 3072.
-	//
-	// MariaDB
+	// # MySQL
 	//
 	// Constraints to the amount of storage for each storage type are the following:
 	//
-	//    * General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
+	//   - General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
 	//
-	//    * Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
+	//   - Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
 	//
-	//    * Magnetic storage (standard): Must be an integer from 5 to 3072.
+	//   - Magnetic storage (standard): Must be an integer from 5 to 3072.
 	//
-	// PostgreSQL
-	//
-	// Constraints to the amount of storage for each storage type are the following:
-	//
-	//    * General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
-	//
-	//    * Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
-	//
-	//    * Magnetic storage (standard): Must be an integer from 5 to 3072.
-	//
-	// Oracle
+	// # MariaDB
 	//
 	// Constraints to the amount of storage for each storage type are the following:
 	//
-	//    * General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
+	//   - General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
 	//
-	//    * Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
+	//   - Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
 	//
-	//    * Magnetic storage (standard): Must be an integer from 10 to 3072.
+	//   - Magnetic storage (standard): Must be an integer from 5 to 3072.
 	//
-	// SQL Server
+	// # PostgreSQL
 	//
 	// Constraints to the amount of storage for each storage type are the following:
 	//
-	//    * General Purpose (SSD) storage (gp2): Enterprise and Standard editions:
-	//    Must be an integer from 20 to 16384. Web and Express editions: Must be
-	//    an integer from 20 to 16384.
+	//   - General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
 	//
-	//    * Provisioned IOPS storage (io1): Enterprise and Standard editions: Must
-	//    be an integer from 100 to 16384. Web and Express editions: Must be an
-	//    integer from 100 to 16384.
+	//   - Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
 	//
-	//    * Magnetic storage (standard): Enterprise and Standard editions: Must
-	//    be an integer from 20 to 1024. Web and Express editions: Must be an integer
-	//    from 20 to 1024.
+	//   - Magnetic storage (standard): Must be an integer from 5 to 3072.
+	//
+	// # Oracle
+	//
+	// Constraints to the amount of storage for each storage type are the following:
+	//
+	//   - General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.
+	//
+	//   - Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.
+	//
+	//   - Magnetic storage (standard): Must be an integer from 10 to 3072.
+	//
+	// # SQL Server
+	//
+	// Constraints to the amount of storage for each storage type are the following:
+	//
+	//   - General Purpose (SSD) storage (gp2): Enterprise and Standard editions:
+	//     Must be an integer from 20 to 16384. Web and Express editions: Must be
+	//     an integer from 20 to 16384.
+	//
+	//   - Provisioned IOPS storage (io1): Enterprise and Standard editions: Must
+	//     be an integer from 100 to 16384. Web and Express editions: Must be an
+	//     integer from 100 to 16384.
+	//
+	//   - Magnetic storage (standard): Enterprise and Standard editions: Must
+	//     be an integer from 20 to 1024. Web and Express editions: Must be an integer
+	//     from 20 to 1024.
 	AllocatedStorage *int64 `json:"allocatedStorage,omitempty"`
 	// A value that indicates whether minor engine upgrades are applied automatically
 	// to the DB instance during the maintenance window. By default, minor engine
@@ -116,7 +117,7 @@ type DBInstanceSpec struct {
 	// on Amazon Web Services Regions and Availability Zones, see Regions and Availability
 	// Zones (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Each Aurora DB cluster hosts copies of its storage in three separate Availability
 	// Zones. Specify one of these Availability Zones. Aurora automatically chooses
@@ -135,7 +136,7 @@ type DBInstanceSpec struct {
 	// parameter to a positive number enables backups. Setting this parameter to
 	// 0 disables automated backups.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The retention period for automated backups is managed by
 	// the DB cluster.
@@ -144,11 +145,11 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must be a value from 0 to 35
+	//   - Must be a value from 0 to 35
 	//
-	//    * Can't be set to 0 if the DB instance is a source to read replicas
+	//   - Can't be set to 0 if the DB instance is a source to read replicas
 	//
-	//    * Can't be set to 0 for an RDS Custom for Oracle DB instance
+	//   - Can't be set to 0 for an RDS Custom for Oracle DB instance
 	BackupRetentionPeriod *int64 `json:"backupRetentionPeriod,omitempty"`
 	// Specifies where automated backups and manual snapshots are stored.
 	//
@@ -165,7 +166,7 @@ type DBInstanceSpec struct {
 	// This setting doesn't apply to RDS Custom. However, if you need to change
 	// the character set, you can change it on the database itself.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The character set is managed by the DB cluster. For more
 	// information, see CreateDBCluster.
@@ -173,7 +174,7 @@ type DBInstanceSpec struct {
 	// A value that indicates whether to copy tags from the DB instance to snapshots
 	// of the DB instance. By default, tags are not copied.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. Copying tags to snapshots is managed by the DB cluster. Setting
 	// this value for an Aurora DB instance has no effect on the DB cluster setting.
@@ -181,13 +182,13 @@ type DBInstanceSpec struct {
 	// The instance profile associated with the underlying Amazon EC2 instance of
 	// an RDS Custom DB instance. The instance profile must meet the following requirements:
 	//
-	//    * The profile must exist in your account.
+	//   - The profile must exist in your account.
 	//
-	//    * The profile must have an IAM role that Amazon EC2 has permissions to
-	//    assume.
+	//   - The profile must have an IAM role that Amazon EC2 has permissions to
+	//     assume.
 	//
-	//    * The instance profile name and the associated IAM role name must start
-	//    with the prefix AWSRDSCustom.
+	//   - The instance profile name and the associated IAM role name must start
+	//     with the prefix AWSRDSCustom.
 	//
 	// For the list of permissions required for the IAM role, see Configure IAM
 	// and your VPC (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-setup-orcl.html#custom-setup-orcl.iam-vpc)
@@ -211,11 +212,11 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must contain from 1 to 63 letters, numbers, or hyphens.
+	//   - Must contain from 1 to 63 letters, numbers, or hyphens.
 	//
-	//    * First character must be a letter.
+	//   - First character must be a letter.
 	//
-	//    * Can't end with a hyphen or contain two consecutive hyphens.
+	//   - Can't end with a hyphen or contain two consecutive hyphens.
 	//
 	// Example: mydbinstance
 	// +kubebuilder:validation:Required
@@ -223,35 +224,35 @@ type DBInstanceSpec struct {
 	// The meaning of this parameter differs according to the database engine you
 	// use.
 	//
-	// MySQL
+	// # MySQL
 	//
 	// The name of the database to create when the DB instance is created. If this
 	// parameter isn't specified, no database is created in the DB instance.
 	//
 	// Constraints:
 	//
-	//    * Must contain 1 to 64 letters or numbers.
+	//   - Must contain 1 to 64 letters or numbers.
 	//
-	//    * Must begin with a letter. Subsequent characters can be letters, underscores,
-	//    or digits (0-9).
+	//   - Must begin with a letter. Subsequent characters can be letters, underscores,
+	//     or digits (0-9).
 	//
-	//    * Can't be a word reserved by the specified database engine
+	//   - Can't be a word reserved by the specified database engine
 	//
-	// MariaDB
+	// # MariaDB
 	//
 	// The name of the database to create when the DB instance is created. If this
 	// parameter isn't specified, no database is created in the DB instance.
 	//
 	// Constraints:
 	//
-	//    * Must contain 1 to 64 letters or numbers.
+	//   - Must contain 1 to 64 letters or numbers.
 	//
-	//    * Must begin with a letter. Subsequent characters can be letters, underscores,
-	//    or digits (0-9).
+	//   - Must begin with a letter. Subsequent characters can be letters, underscores,
+	//     or digits (0-9).
 	//
-	//    * Can't be a word reserved by the specified database engine
+	//   - Can't be a word reserved by the specified database engine
 	//
-	// PostgreSQL
+	// # PostgreSQL
 	//
 	// The name of the database to create when the DB instance is created. If this
 	// parameter isn't specified, a database named postgres is created in the DB
@@ -259,14 +260,14 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must contain 1 to 63 letters, numbers, or underscores.
+	//   - Must contain 1 to 63 letters, numbers, or underscores.
 	//
-	//    * Must begin with a letter. Subsequent characters can be letters, underscores,
-	//    or digits (0-9).
+	//   - Must begin with a letter. Subsequent characters can be letters, underscores,
+	//     or digits (0-9).
 	//
-	//    * Can't be a word reserved by the specified database engine
+	//   - Can't be a word reserved by the specified database engine
 	//
-	// Oracle
+	// # Oracle
 	//
 	// The Oracle System ID (SID) of the created DB instance. If you specify null,
 	// the default value ORCL is used. You can't specify the string NULL, or any
@@ -276,9 +277,9 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Can't be longer than 8 characters
+	//   - Can't be longer than 8 characters
 	//
-	// Amazon RDS Custom for Oracle
+	// # Amazon RDS Custom for Oracle
 	//
 	// The Oracle System ID (SID) of the created RDS Custom DB instance. If you
 	// don't specify a value, the default value is ORCL.
@@ -287,21 +288,21 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * It must contain 1 to 8 alphanumeric characters.
+	//   - It must contain 1 to 8 alphanumeric characters.
 	//
-	//    * It must contain a letter.
+	//   - It must contain a letter.
 	//
-	//    * It can't be a word reserved by the database engine.
+	//   - It can't be a word reserved by the database engine.
 	//
-	// Amazon RDS Custom for SQL Server
-	//
-	// Not applicable. Must be null.
-	//
-	// SQL Server
+	// # Amazon RDS Custom for SQL Server
 	//
 	// Not applicable. Must be null.
 	//
-	// Amazon Aurora MySQL
+	// # SQL Server
+	//
+	// Not applicable. Must be null.
+	//
+	// # Amazon Aurora MySQL
 	//
 	// The name of the database to create when the primary DB instance of the Aurora
 	// MySQL DB cluster is created. If this parameter isn't specified for an Aurora
@@ -309,11 +310,11 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * It must contain 1 to 64 alphanumeric characters.
+	//   - It must contain 1 to 64 alphanumeric characters.
 	//
-	//    * It can't be a word reserved by the database engine.
+	//   - It can't be a word reserved by the database engine.
 	//
-	// Amazon Aurora PostgreSQL
+	// # Amazon Aurora PostgreSQL
 	//
 	// The name of the database to create when the primary DB instance of the Aurora
 	// PostgreSQL DB cluster is created. If this parameter isn't specified for an
@@ -322,12 +323,12 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * It must contain 1 to 63 alphanumeric characters.
+	//   - It must contain 1 to 63 alphanumeric characters.
 	//
-	//    * It must begin with a letter or an underscore. Subsequent characters
-	//    can be letters, underscores, or digits (0 to 9).
+	//   - It must begin with a letter or an underscore. Subsequent characters
+	//     can be letters, underscores, or digits (0 to 9).
 	//
-	//    * It can't be a word reserved by the database engine.
+	//   - It can't be a word reserved by the database engine.
 	DBName *string `json:"dbName,omitempty"`
 	// The name of the DB parameter group to associate with this DB instance. If
 	// you do not specify a value, then the default DB parameter group for the specified
@@ -337,21 +338,21 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must be 1 to 255 letters, numbers, or hyphens.
+	//   - Must be 1 to 255 letters, numbers, or hyphens.
 	//
-	//    * First character must be a letter
+	//   - First character must be a letter
 	//
-	//    * Can't end with a hyphen or contain two consecutive hyphens
+	//   - Can't end with a hyphen or contain two consecutive hyphens
 	DBParameterGroupName *string                                  `json:"dbParameterGroupName,omitempty"`
 	DBParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbParameterGroupRef,omitempty"`
 	// The identifier for the DB snapshot to restore from.
 	//
 	// Constraints:
 	//
-	//    * Must match the identifier of an existing DBSnapshot.
+	//   - Must match the identifier of an existing DBSnapshot.
 	//
-	//    * If you are restoring from a shared manual DB snapshot, the DBSnapshotIdentifier
-	//    must be the ARN of the shared DB snapshot.
+	//   - If you are restoring from a shared manual DB snapshot, the DBSnapshotIdentifier
+	//     must be the ARN of the shared DB snapshot.
 	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier,omitempty"`
 	// A DB subnet group to associate with this DB instance.
 	//
@@ -366,7 +367,7 @@ type DBInstanceSpec struct {
 	// deletion protection isn't enabled. For more information, see Deleting a DB
 	// Instance (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_DeleteInstance.html).
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. You can enable or disable deletion protection for the DB
 	// cluster. For more information, see CreateDBCluster. DB instances in a DB
@@ -384,7 +385,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The domain is managed by the DB cluster.
 	Domain *string `json:"domain,omitempty"`
@@ -393,7 +394,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The domain is managed by the DB cluster.
 	DomainIAMRoleName *string `json:"domainIAMRoleName,omitempty"`
@@ -402,31 +403,31 @@ type DBInstanceSpec struct {
 	// see Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
 	// in the Amazon RDS User Guide.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. CloudWatch Logs exports are managed by the DB cluster.
 	//
-	// RDS Custom
+	// # RDS Custom
 	//
 	// Not applicable.
 	//
-	// MariaDB
+	// # MariaDB
 	//
 	// Possible values are audit, error, general, and slowquery.
 	//
-	// Microsoft SQL Server
+	// # Microsoft SQL Server
 	//
 	// Possible values are agent and error.
 	//
-	// MySQL
+	// # MySQL
 	//
 	// Possible values are audit, error, general, and slowquery.
 	//
-	// Oracle
+	// # Oracle
 	//
 	// Possible values are alert, audit, listener, trace, and oemagent.
 	//
-	// PostgreSQL
+	// # PostgreSQL
 	//
 	// Possible values are postgresql and upgrade.
 	EnableCloudwatchLogsExports []*string `json:"enableCloudwatchLogsExports,omitempty"`
@@ -455,7 +456,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. Mapping Amazon Web Services IAM accounts to database accounts
 	// is managed by the DB cluster.
@@ -466,41 +467,42 @@ type DBInstanceSpec struct {
 	//
 	// Valid Values:
 	//
-	//    * aurora (for MySQL 5.6-compatible Aurora)
+	//   - aurora (for MySQL 5.6-compatible Aurora)
 	//
-	//    * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
+	//   - aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
 	//
-	//    * aurora-postgresql
+	//   - aurora-postgresql
 	//
-	//    * custom-oracle-ee (for RDS Custom for Oracle instances)
+	//   - custom-oracle-ee (for RDS Custom for Oracle instances)
 	//
-	//    * custom-sqlserver-ee (for RDS Custom for SQL Server instances)
+	//   - custom-sqlserver-ee (for RDS Custom for SQL Server instances)
 	//
-	//    * custom-sqlserver-se (for RDS Custom for SQL Server instances)
+	//   - custom-sqlserver-se (for RDS Custom for SQL Server instances)
 	//
-	//    * custom-sqlserver-web (for RDS Custom for SQL Server instances)
+	//   - custom-sqlserver-web (for RDS Custom for SQL Server instances)
 	//
-	//    * mariadb
+	//   - mariadb
 	//
-	//    * mysql
+	//   - mysql
 	//
-	//    * oracle-ee
+	//   - oracle-ee
 	//
-	//    * oracle-ee-cdb
+	//   - oracle-ee-cdb
 	//
-	//    * oracle-se2
+	//   - oracle-se2
 	//
-	//    * oracle-se2-cdb
+	//   - oracle-se2-cdb
 	//
-	//    * postgres
+	//   - postgres
 	//
-	//    * sqlserver-ee
+	//   - sqlserver-ee
 	//
-	//    * sqlserver-se
+	//   - sqlserver-se
 	//
-	//    * sqlserver-ex
+	//   - sqlserver-ex
 	//
-	//    * sqlserver-web
+	//   - sqlserver-web
+	//
 	// +kubebuilder:validation:Required
 	Engine *string `json:"engine"`
 	// The version number of the database engine to use.
@@ -511,12 +513,12 @@ type DBInstanceSpec struct {
 	// major and minor versions that are available with Amazon RDS. Not every database
 	// engine is available for every Amazon Web Services Region.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The version number of the database engine to be used by the
 	// DB instance is managed by the DB cluster.
 	//
-	// Amazon RDS Custom for Oracle
+	// # Amazon RDS Custom for Oracle
 	//
 	// A custom engine version (CEV) that you have previously created. This setting
 	// is required for RDS Custom for Oracle. The CEV name has the following format:
@@ -524,32 +526,32 @@ type DBInstanceSpec struct {
 	// see Creating an RDS Custom for Oracle DB instance (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-creating.html#custom-creating.create)
 	// in the Amazon RDS User Guide.
 	//
-	// Amazon RDS Custom for SQL Server
+	// # Amazon RDS Custom for SQL Server
 	//
 	// See RDS Custom for SQL Server general requirements (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-reqs-limits-MS.html)
 	// in the Amazon RDS User Guide.
 	//
-	// MariaDB
+	// # MariaDB
 	//
 	// For information, see MariaDB on Amazon RDS Versions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MariaDB.html#MariaDB.Concepts.VersionMgmt)
 	// in the Amazon RDS User Guide.
 	//
-	// Microsoft SQL Server
+	// # Microsoft SQL Server
 	//
 	// For information, see Microsoft SQL Server Versions on Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.VersionSupport)
 	// in the Amazon RDS User Guide.
 	//
-	// MySQL
+	// # MySQL
 	//
 	// For information, see MySQL on Amazon RDS Versions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
 	// in the Amazon RDS User Guide.
 	//
-	// Oracle
+	// # Oracle
 	//
 	// For information, see Oracle Database Engine Release Notes (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.Oracle.PatchComposition.html)
 	// in the Amazon RDS User Guide.
 	//
-	// PostgreSQL
+	// # PostgreSQL
 	//
 	// For information, see Amazon RDS for PostgreSQL versions and extensions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
 	// in the Amazon RDS User Guide.
@@ -564,7 +566,7 @@ type DBInstanceSpec struct {
 	// For SQL Server DB instances, must be a multiple between 1 and 50 of the storage
 	// amount for the DB instance.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. Storage is managed by the DB cluster.
 	IOPS *int64 `json:"iops,omitempty"`
@@ -574,7 +576,7 @@ type DBInstanceSpec struct {
 	// ARN, or alias name for the KMS key. To use a KMS key in a different Amazon
 	// Web Services account, specify the key ARN or alias ARN.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The Amazon Web Services KMS key identifier is managed by
 	// the DB cluster. For more information, see CreateDBCluster.
@@ -584,7 +586,7 @@ type DBInstanceSpec struct {
 	// KMS key for your Amazon Web Services account. Your Amazon Web Services account
 	// has a different default KMS key for each Amazon Web Services Region.
 	//
-	// Amazon RDS Custom
+	// # Amazon RDS Custom
 	//
 	// A KMS key is required for RDS Custom instances. For most RDS engines, if
 	// you leave this parameter empty while enabling StorageEncrypted, the engine
@@ -598,54 +600,54 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable.
 	LicenseModel *string `json:"licenseModel,omitempty"`
 	// The password for the master user. The password can include any printable
 	// ASCII character except "/", """, or "@".
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The password for the master user is managed by the DB cluster.
 	//
-	// MariaDB
+	// # MariaDB
 	//
 	// Constraints: Must contain from 8 to 41 characters.
 	//
-	// Microsoft SQL Server
+	// # Microsoft SQL Server
 	//
 	// Constraints: Must contain from 8 to 128 characters.
 	//
-	// MySQL
+	// # MySQL
 	//
 	// Constraints: Must contain from 8 to 41 characters.
 	//
-	// Oracle
+	// # Oracle
 	//
 	// Constraints: Must contain from 8 to 30 characters.
 	//
-	// PostgreSQL
+	// # PostgreSQL
 	//
 	// Constraints: Must contain from 8 to 128 characters.
 	MasterUserPassword *ackv1alpha1.SecretKeyReference `json:"masterUserPassword,omitempty"`
 	// The name for the master user.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The name for the master user is managed by the DB cluster.
 	//
-	// Amazon RDS
+	// # Amazon RDS
 	//
 	// Constraints:
 	//
-	//    * Required.
+	//   - Required.
 	//
-	//    * Must be 1 to 16 letters, numbers, or underscores.
+	//   - Must be 1 to 16 letters, numbers, or underscores.
 	//
-	//    * First character must be a letter.
+	//   - First character must be a letter.
 	//
-	//    * Can't be a reserved word for the chosen database engine.
+	//   - Can't be a reserved word for the chosen database engine.
 	MasterUsername *string `json:"masterUsername,omitempty"`
 	// The upper limit in gibibytes (GiB) to which Amazon RDS can automatically
 	// scale the storage of the DB instance.
@@ -657,7 +659,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. Storage is managed by the DB cluster.
 	MaxAllocatedStorage *int64 `json:"maxAllocatedStorage,omitempty"`
@@ -689,7 +691,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. DB instance Availability Zones (AZs) are managed by the DB
 	// cluster.
@@ -702,9 +704,9 @@ type DBInstanceSpec struct {
 	//
 	// Valid values:
 	//
-	//    * IPV4
+	//   - IPV4
 	//
-	//    * DUAL
+	//   - DUAL
 	//
 	// The network type is determined by the DBSubnetGroup specified for the DB
 	// instance. A DBSubnetGroup can support only the IPv4 protocol or the IPv4
@@ -722,7 +724,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable.
 	OptionGroupName *string `json:"optionGroupName,omitempty"`
@@ -748,21 +750,21 @@ type DBInstanceSpec struct {
 	// The number of days to retain Performance Insights data. The default is 7
 	// days. The following values are valid:
 	//
-	//    * 7
+	//   - 7
 	//
-	//    * month * 31, where month is a number of months from 1-23
+	//   - month * 31, where month is a number of months from 1-23
 	//
-	//    * 731
+	//   - 731
 	//
 	// For example, the following values are valid:
 	//
-	//    * 93 (3 months * 31)
+	//   - 93 (3 months * 31)
 	//
-	//    * 341 (11 months * 31)
+	//   - 341 (11 months * 31)
 	//
-	//    * 589 (19 months * 31)
+	//   - 589 (19 months * 31)
 	//
-	//    * 731
+	//   - 731
 	//
 	// If you specify a retention period such as 94, which isn't a valid value,
 	// RDS issues an error.
@@ -771,7 +773,7 @@ type DBInstanceSpec struct {
 	PerformanceInsightsRetentionPeriod *int64 `json:"performanceInsightsRetentionPeriod,omitempty"`
 	// The port number on which the database accepts connections.
 	//
-	// MySQL
+	// # MySQL
 	//
 	// Default: 3306
 	//
@@ -779,7 +781,7 @@ type DBInstanceSpec struct {
 	//
 	// Type: Integer
 	//
-	// MariaDB
+	// # MariaDB
 	//
 	// Default: 3306
 	//
@@ -787,7 +789,7 @@ type DBInstanceSpec struct {
 	//
 	// Type: Integer
 	//
-	// PostgreSQL
+	// # PostgreSQL
 	//
 	// Default: 5432
 	//
@@ -795,20 +797,20 @@ type DBInstanceSpec struct {
 	//
 	// Type: Integer
 	//
-	// Oracle
+	// # Oracle
 	//
 	// Default: 1521
 	//
 	// Valid values: 1150-65535
 	//
-	// SQL Server
+	// # SQL Server
 	//
 	// Default: 1433
 	//
 	// Valid values: 1150-65535 except 1234, 1434, 3260, 3343, 3389, 47001, and
 	// 49152-49156.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Default: 3306
 	//
@@ -836,30 +838,30 @@ type DBInstanceSpec struct {
 	// contains the encrypted source DB instance. The presigned URL request must
 	// contain the following parameter values:
 	//
-	//    * DestinationRegion - The Amazon Web Services Region that the encrypted
-	//    read replica is created in. This Amazon Web Services Region is the same
-	//    one where the CreateDBInstanceReadReplica operation is called that contains
-	//    this presigned URL. For example, if you create an encrypted DB instance
-	//    in the us-west-1 Amazon Web Services Region, from a source DB instance
-	//    in the us-east-2 Amazon Web Services Region, then you call the CreateDBInstanceReadReplica
-	//    operation in the us-east-1 Amazon Web Services Region and provide a presigned
-	//    URL that contains a call to the CreateDBInstanceReadReplica operation
-	//    in the us-west-2 Amazon Web Services Region. For this example, the DestinationRegion
-	//    in the presigned URL must be set to the us-east-1 Amazon Web Services
-	//    Region.
+	//   - DestinationRegion - The Amazon Web Services Region that the encrypted
+	//     read replica is created in. This Amazon Web Services Region is the same
+	//     one where the CreateDBInstanceReadReplica operation is called that contains
+	//     this presigned URL. For example, if you create an encrypted DB instance
+	//     in the us-west-1 Amazon Web Services Region, from a source DB instance
+	//     in the us-east-2 Amazon Web Services Region, then you call the CreateDBInstanceReadReplica
+	//     operation in the us-east-1 Amazon Web Services Region and provide a presigned
+	//     URL that contains a call to the CreateDBInstanceReadReplica operation
+	//     in the us-west-2 Amazon Web Services Region. For this example, the DestinationRegion
+	//     in the presigned URL must be set to the us-east-1 Amazon Web Services
+	//     Region.
 	//
-	//    * KmsKeyId - The KMS key identifier for the key to use to encrypt the
-	//    read replica in the destination Amazon Web Services Region. This is the
-	//    same identifier for both the CreateDBInstanceReadReplica operation that
-	//    is called in the destination Amazon Web Services Region, and the operation
-	//    contained in the presigned URL.
+	//   - KmsKeyId - The KMS key identifier for the key to use to encrypt the
+	//     read replica in the destination Amazon Web Services Region. This is the
+	//     same identifier for both the CreateDBInstanceReadReplica operation that
+	//     is called in the destination Amazon Web Services Region, and the operation
+	//     contained in the presigned URL.
 	//
-	//    * SourceDBInstanceIdentifier - The DB instance identifier for the encrypted
-	//    DB instance to be replicated. This identifier must be in the Amazon Resource
-	//    Name (ARN) format for the source Amazon Web Services Region. For example,
-	//    if you are creating an encrypted read replica from a DB instance in the
-	//    us-west-2 Amazon Web Services Region, then your SourceDBInstanceIdentifier
-	//    looks like the following example: arn:aws:rds:us-west-2:123456789012:instance:mysql-instance1-20161115.
+	//   - SourceDBInstanceIdentifier - The DB instance identifier for the encrypted
+	//     DB instance to be replicated. This identifier must be in the Amazon Resource
+	//     Name (ARN) format for the source Amazon Web Services Region. For example,
+	//     if you are creating an encrypted read replica from a DB instance in the
+	//     us-west-2 Amazon Web Services Region, then your SourceDBInstanceIdentifier
+	//     looks like the following example: arn:aws:rds:us-west-2:123456789012:instance:mysql-instance1-20161115.
 	//
 	// To learn how to generate a Signature Version 4 signed request, see Authenticating
 	// Requests: Using Query Parameters (Amazon Web Services Signature Version 4)
@@ -884,20 +886,20 @@ type DBInstanceSpec struct {
 	// (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupWindow)
 	// in the Amazon RDS User Guide.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The daily time range for creating automated backups is managed
 	// by the DB cluster.
 	//
 	// Constraints:
 	//
-	//    * Must be in the format hh24:mi-hh24:mi.
+	//   - Must be in the format hh24:mi-hh24:mi.
 	//
-	//    * Must be in Universal Coordinated Time (UTC).
+	//   - Must be in Universal Coordinated Time (UTC).
 	//
-	//    * Must not conflict with the preferred maintenance window.
+	//   - Must not conflict with the preferred maintenance window.
 	//
-	//    * Must be at least 30 minutes.
+	//   - Must be at least 30 minutes.
 	PreferredBackupWindow *string `json:"preferredBackupWindow,omitempty"`
 	// The time range each week during which system maintenance can occur, in Universal
 	// Coordinated Time (UTC). For more information, see Amazon RDS Maintenance
@@ -918,7 +920,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable.
 	ProcessorFeatures []*ProcessorFeature `json:"processorFeatures,omitempty"`
@@ -951,20 +953,20 @@ type DBInstanceSpec struct {
 	// If DBSubnetGroupName isn't specified, and PubliclyAccessible isn't specified,
 	// the following applies:
 	//
-	//    * If the default VPC in the target Region doesn’t have an internet gateway
-	//    attached to it, the DB instance is private.
+	//   - If the default VPC in the target Region doesn’t have an internet gateway
+	//     attached to it, the DB instance is private.
 	//
-	//    * If the default VPC in the target Region has an internet gateway attached
-	//    to it, the DB instance is public.
+	//   - If the default VPC in the target Region has an internet gateway attached
+	//     to it, the DB instance is public.
 	//
 	// If DBSubnetGroupName is specified, and PubliclyAccessible isn't specified,
 	// the following applies:
 	//
-	//    * If the subnets are part of a VPC that doesn’t have an internet gateway
-	//    attached to it, the DB instance is private.
+	//   - If the subnets are part of a VPC that doesn’t have an internet gateway
+	//     attached to it, the DB instance is private.
 	//
-	//    * If the subnets are part of a VPC that has an internet gateway attached
-	//    to it, the DB instance is public.
+	//   - If the subnets are part of a VPC that has an internet gateway attached
+	//     to it, the DB instance is public.
 	PubliclyAccessible *bool `json:"publiclyAccessible,omitempty"`
 	// The open mode of the replica database: mounted or read-only.
 	//
@@ -990,34 +992,34 @@ type DBInstanceSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must be the identifier of an existing MySQL, MariaDB, Oracle, PostgreSQL,
-	//    or SQL Server DB instance.
+	//   - Must be the identifier of an existing MySQL, MariaDB, Oracle, PostgreSQL,
+	//     or SQL Server DB instance.
 	//
-	//    * Can specify a DB instance that is a MySQL read replica only if the source
-	//    is running MySQL 5.6 or later.
+	//   - Can specify a DB instance that is a MySQL read replica only if the source
+	//     is running MySQL 5.6 or later.
 	//
-	//    * For the limitations of Oracle read replicas, see Read Replica Limitations
-	//    with Oracle (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html)
-	//    in the Amazon RDS User Guide.
+	//   - For the limitations of Oracle read replicas, see Read Replica Limitations
+	//     with Oracle (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-read-replicas.html)
+	//     in the Amazon RDS User Guide.
 	//
-	//    * For the limitations of SQL Server read replicas, see Read Replica Limitations
-	//    with Microsoft SQL Server (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.ReadReplicas.Limitations.html)
-	//    in the Amazon RDS User Guide.
+	//   - For the limitations of SQL Server read replicas, see Read Replica Limitations
+	//     with Microsoft SQL Server (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.ReadReplicas.Limitations.html)
+	//     in the Amazon RDS User Guide.
 	//
-	//    * Can specify a PostgreSQL DB instance only if the source is running PostgreSQL
-	//    9.3.5 or later (9.4.7 and higher for cross-Region replication).
+	//   - Can specify a PostgreSQL DB instance only if the source is running PostgreSQL
+	//     9.3.5 or later (9.4.7 and higher for cross-Region replication).
 	//
-	//    * The specified DB instance must have automatic backups enabled, that
-	//    is, its backup retention period must be greater than 0.
+	//   - The specified DB instance must have automatic backups enabled, that
+	//     is, its backup retention period must be greater than 0.
 	//
-	//    * If the source DB instance is in the same Amazon Web Services Region
-	//    as the read replica, specify a valid DB instance identifier.
+	//   - If the source DB instance is in the same Amazon Web Services Region
+	//     as the read replica, specify a valid DB instance identifier.
 	//
-	//    * If the source DB instance is in a different Amazon Web Services Region
-	//    from the read replica, specify a valid DB instance ARN. For more information,
-	//    see Constructing an ARN for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.ARN.html#USER_Tagging.ARN.Constructing)
-	//    in the Amazon RDS User Guide. This doesn't apply to SQL Server or RDS
-	//    Custom, which don't support cross-Region replicas.
+	//   - If the source DB instance is in a different Amazon Web Services Region
+	//     from the read replica, specify a valid DB instance ARN. For more information,
+	//     see Constructing an ARN for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.ARN.html#USER_Tagging.ARN.Constructing)
+	//     in the Amazon RDS User Guide. This doesn't apply to SQL Server or RDS
+	//     Custom, which don't support cross-Region replicas.
 	SourceDBInstanceIdentifier *string `json:"sourceDBInstanceIdentifier,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
 	// sent over the wire and is only used for presigning. This value should always
@@ -1029,7 +1031,7 @@ type DBInstanceSpec struct {
 	// For RDS Custom instances, either set this parameter to true or leave it unset.
 	// If you set this parameter to false, RDS reports an error.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The encryption for DB instances is managed by the DB cluster.
 	StorageEncrypted *bool `json:"storageEncrypted,omitempty"`
@@ -1041,7 +1043,7 @@ type DBInstanceSpec struct {
 	//
 	// Default: io1 if the Iops parameter is specified, otherwise gp2
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. Storage is managed by the DB cluster.
 	StorageType *string `json:"storageType,omitempty"`
@@ -1051,7 +1053,7 @@ type DBInstanceSpec struct {
 	//
 	// This setting doesn't apply to RDS Custom.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable.
 	TDECredentialARN *string `json:"tdeCredentialARN,omitempty"`
@@ -1070,7 +1072,7 @@ type DBInstanceSpec struct {
 	UseDefaultProcessorFeatures *bool `json:"useDefaultProcessorFeatures,omitempty"`
 	// A list of Amazon EC2 VPC security groups to associate with this DB instance.
 	//
-	// Amazon Aurora
+	// # Amazon Aurora
 	//
 	// Not applicable. The associated list of EC2 VPC security groups is managed
 	// by the DB cluster.
