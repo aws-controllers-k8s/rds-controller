@@ -30,19 +30,19 @@ import (
 // NOTE(jaypipes): RDS' Tagging APIs differ from other AWS APIs in the
 // following ways:
 //
-// 1. The names of the tagging API operations are different. Other APIs use the
-//    Tagris `ListTagsForResource`, `TagResource` and `UntagResource` API
-//    calls. RDS uses `ListTagsForResource`, `AddTagsToResource` and
-//    `RemoveTagsFromResource`.
+//  1. The names of the tagging API operations are different. Other APIs use the
+//     Tagris `ListTagsForResource`, `TagResource` and `UntagResource` API
+//     calls. RDS uses `ListTagsForResource`, `AddTagsToResource` and
+//     `RemoveTagsFromResource`.
 //
-// 2. Even though the name of the `ListTagsForResource` API call is the same,
-//    the structure of the input and the output are different from other APIs.
-//    For the input, instead of a `ResourceArn` field, RDS names the field
-//    `ResourceName`, but actually expects an ARN, not the subnet group
-//    name.  This is the same for the `AddTagsToResource` and
-//    `RemoveTagsFromResource` input shapes. For the output shape, the field is
-//    called `TagList` instead of `Tags` but is otherwise the same struct with
-//    a `Key` and `Value` member field.
+//  2. Even though the name of the `ListTagsForResource` API call is the same,
+//     the structure of the input and the output are different from other APIs.
+//     For the input, instead of a `ResourceArn` field, RDS names the field
+//     `ResourceName`, but actually expects an ARN, not the subnet group
+//     name.  This is the same for the `AddTagsToResource` and
+//     `RemoveTagsFromResource` input shapes. For the output shape, the field is
+//     called `TagList` instead of `Tags` but is otherwise the same struct with
+//     a `Key` and `Value` member field.
 func (rm *resourceManager) syncTags(
 	ctx context.Context,
 	desired *resource,

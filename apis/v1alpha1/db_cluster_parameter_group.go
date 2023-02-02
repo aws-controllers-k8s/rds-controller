@@ -27,6 +27,7 @@ import (
 // This data type is used as a response element in the DescribeDBClusterParameterGroups
 // action.
 type DBClusterParameterGroupSpec struct {
+
 	// The description for the DB cluster parameter group.
 	// +kubebuilder:validation:Required
 	Description *string `json:"description"`
@@ -35,19 +36,19 @@ type DBClusterParameterGroupSpec struct {
 	// and can be applied only to a DB cluster running a database engine and engine
 	// version compatible with that DB cluster parameter group family.
 	//
-	// Aurora MySQL
+	// # Aurora MySQL
 	//
 	// Example: aurora5.6, aurora-mysql5.7, aurora-mysql8.0
 	//
-	// Aurora PostgreSQL
+	// # Aurora PostgreSQL
 	//
 	// Example: aurora-postgresql9.6
 	//
-	// RDS for MySQL
+	// # RDS for MySQL
 	//
 	// Example: mysql8.0
 	//
-	// RDS for PostgreSQL
+	// # RDS for PostgreSQL
 	//
 	// Example: postgres12
 	//
@@ -67,22 +68,23 @@ type DBClusterParameterGroupSpec struct {
 	//
 	// The following are the valid DB engine values:
 	//
-	//    * aurora (for MySQL 5.6-compatible Aurora)
+	//   - aurora (for MySQL 5.6-compatible Aurora)
 	//
-	//    * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
+	//   - aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
 	//
-	//    * aurora-postgresql
+	//   - aurora-postgresql
 	//
-	//    * mysql
+	//   - mysql
 	//
-	//    * postgres
+	//   - postgres
+	//
 	// +kubebuilder:validation:Required
 	Family *string `json:"family"`
 	// The name of the DB cluster parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must not match the name of an existing DB cluster parameter group.
+	//   - Must not match the name of an existing DB cluster parameter group.
 	//
 	// This value is stored as a lowercase string.
 	// +kubebuilder:validation:Required

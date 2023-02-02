@@ -10,7 +10,6 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
     k8s-app: {{ include "app.name" . }}
     helm.sh/chart: {{ include "chart.name-version" . }}
-    control-plane: controller
 spec:
   replicas: 1
   selector:
@@ -55,6 +54,8 @@ spec:
         - "$(ACK_RESOURCE_TAGS)"
         - --watch-namespace
         - "$(ACK_WATCH_NAMESPACE)"
+        - --deletion-policy
+        - "$(DELETION_POLICY)"
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: controller
@@ -74,6 +75,8 @@ spec:
           value: {{ .Values.aws.endpoint_url | quote }}
         - name: ACK_WATCH_NAMESPACE
           value: {{ include "watch-namespace" . }}
+        - name: DELETION_POLICY
+          value: {{ .Values.deletionPolicy }}
         - name: ACK_ENABLE_DEVELOPMENT_LOGGING
           value: {{ .Values.log.enable_development_logging | quote }}
         - name: ACK_LOG_LEVEL
@@ -89,7 +92,7 @@ spec:
           - name: {{ .Values.aws.credentials.secretName }}
             mountPath: {{ include "aws.credentials.secret_mount_path" . }}
             readOnly: true
-        {{- end }}          
+        {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
