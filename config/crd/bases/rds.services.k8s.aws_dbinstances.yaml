@@ -229,9 +229,9 @@ spec:
                   hyphens"
                 type: string
               dbParameterGroupRef:
-                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference type to provide more user friendly syntax
-                  for references using ''from'' field Ex: APIIDRef: from: name: my-api'
+                  for references using 'from' field Ex: APIIDRef: \n from: name: my-api"
                 properties:
                   from:
                     description: AWSResourceReference provides all the values necessary
@@ -253,9 +253,9 @@ spec:
                   Must not be default. \n Example: mydbsubnetgroup"
                 type: string
               dbSubnetGroupRef:
-                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference type to provide more user friendly syntax
-                  for references using ''from'' field Ex: APIIDRef: from: name: my-api'
+                  for references using 'from' field Ex: APIIDRef: \n from: name: my-api"
                 properties:
                   from:
                     description: AWSResourceReference provides all the values necessary
@@ -406,9 +406,9 @@ spec:
                   is empty. You must explicitly specify a key."
                 type: string
               kmsKeyRef:
-                description: 'AWSResourceReferenceWrapper provides a wrapper around
+                description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference type to provide more user friendly syntax
-                  for references using ''from'' field Ex: APIIDRef: from: name: my-api'
+                  for references using 'from' field Ex: APIIDRef: \n from: name: my-api"
                 properties:
                   from:
                     description: AWSResourceReference provides all the values necessary
@@ -795,10 +795,10 @@ spec:
                 type: array
               vpcSecurityGroupRefs:
                 items:
-                  description: 'AWSResourceReferenceWrapper provides a wrapper around
+                  description: "AWSResourceReferenceWrapper provides a wrapper around
                     *AWSResourceReference type to provide more user friendly syntax
-                    for references using ''from'' field Ex: APIIDRef: from: name:
-                    my-api'
+                    for references using 'from' field Ex: APIIDRef: \n from: name:
+                    my-api"
                   properties:
                     from:
                       description: AWSResourceReference provides all the values necessary

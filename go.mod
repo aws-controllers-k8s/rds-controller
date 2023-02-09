@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/aws-controllers-k8s/ec2-controller v0.0.16
 	github.com/aws-controllers-k8s/kms-controller v0.0.15
-	github.com/aws-controllers-k8s/runtime v0.23.0
+	github.com/aws-controllers-k8s/runtime v0.24.0
 	github.com/aws/aws-sdk-go v1.44.93
 	github.com/go-logr/logr v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -44,9 +44,11 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.28.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/samber/lo v1.37.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
