@@ -8,5 +8,6 @@ aliases:
     - a-hilaly
     - RedbackThomson
     - vijtrip2
+    - jljaco
   # TODO: Add your team members to your team controller alias
   service-team: []
