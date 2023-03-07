@@ -88,20 +88,8 @@ type DBClusterParameterGroupSpec struct {
 	//
 	// This value is stored as a lowercase string.
 	// +kubebuilder:validation:Required
-	Name *string `json:"name"`
-	// A list of parameters in the DB cluster parameter group to modify.
-	//
-	// Valid Values (for the application method): immediate | pending-reboot
-	//
-	// You can use the immediate value with dynamic parameters only. You can use
-	// the pending-reboot value for both dynamic and static parameters.
-	//
-	// When the application method is immediate, changes to dynamic parameters are
-	// applied immediately to the DB clusters associated with the parameter group.
-	// When the application method is pending-reboot, changes to dynamic and static
-	// parameters are applied after a reboot without failover to the DB clusters
-	// associated with the parameter group.
-	Parameters []*Parameter `json:"parameters,omitempty"`
+	Name               *string            `json:"name"`
+	ParameterOverrides map[string]*string `json:"parameterOverrides,omitempty"`
 	// Tags to assign to the DB cluster parameter group.
 	Tags []*Tag `json:"tags,omitempty"`
 }
@@ -119,6 +107,9 @@ type DBClusterParameterGroupStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
+	// Provides a list of parameters for the DB cluster parameter group.
+	// +kubebuilder:validation:Optional
+	ParameterOverrideStatuses []*Parameter `json:"parameterOverrideStatuses,omitempty"`
 }
 
 // DBClusterParameterGroup is the Schema for the DBClusterParameterGroups API
