@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: v1.0.0
+  tag: v1.0.1
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -82,6 +82,13 @@ resourceTags:
 # have been deleted. By default, the ACK controller will delete the AWS resource
 # before the K8s resource is removed.
 deletionPolicy: delete
+
+# controller reconciliation configurations
+reconcile:
+  # The default duration, in seconds, to wait before resyncing desired state of custom resources.
+  defaultResyncPeriod: 0
+  # An object representing the reconcile resync configuration for each specific resource.
+  resourceResyncPeriods: {}
 
 serviceAccount:
   # Specifies whether a service account should be created
