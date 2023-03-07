@@ -15,13 +15,8 @@ package db_parameter_group
 
 import (
 	"context"
-	"fmt"
-	"sync"
-	"time"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
-	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
@@ -36,33 +31,9 @@ const (
 	maxResetParametersSize = 20
 )
 
-var (
-	errUnknownParameter         = fmt.Errorf("unknown parameter")
-	errUnmodifiableParameter    = fmt.Errorf("parameter is not modifiable")
-	errParamterGroupJustCreated = fmt.Errorf("parameter group just got created")
-
-	requeueWaitWhileCreating = ackrequeue.NeededAfter(
-		errParamterGroupJustCreated,
-		100*time.Millisecond,
-	)
-)
-
-func newErrUnknownParameter(name string) error {
-	// This is a terminal error because unless the user removes this parameter
-	// from their list of parameter overrides, we will not be able to get the
-	// resource into a synced state.
-	return ackerr.NewTerminalError(
-		fmt.Errorf("%w: %s", errUnknownParameter, name),
-	)
-}
-
-func newErrUnmodifiableParameter(name string) error {
-	// This is a terminal error because unless the user removes this parameter
-	// from their list of parameter overrides, we will not be able to get the
-	// resource into a synced state.
-	return ackerr.NewTerminalError(
-		fmt.Errorf("%w: %s", errUnmodifiableParameter, name),
-	)
+// cache of parameter defaults
+var cachedParamMeta = util.ParamMetaCache{
+	Cache: map[string]map[string]util.ParamMeta{},
 }
 
 // customUpdate is required to fix
@@ -243,7 +214,7 @@ func (rm *resourceManager) syncParameters(
 	groupName := latest.ko.Spec.Name
 	family := latest.ko.Spec.Family
 
-	toModify, toDelete := computeParametersDelta(
+	toModify, toDelete := util.ComputeParametersDelta(
 		desired.ko.Spec.ParameterOverrides, latest.ko.Spec.ParameterOverrides,
 	)
 
@@ -252,7 +223,7 @@ func (rm *resourceManager) syncParameters(
 	// and modified parameter sets.
 
 	if len(toDelete) > 0 {
-		chunks := sliceStringChunks(toDelete, maxResetParametersSize)
+		chunks := util.SliceStringChunks(toDelete, maxResetParametersSize)
 		for _, chunk := range chunks {
 			err = rm.resetParameters(ctx, family, groupName, chunk)
 			if err != nil {
@@ -262,7 +233,7 @@ func (rm *resourceManager) syncParameters(
 	}
 
 	if len(toModify) > 0 {
-		chunks := mapStringChunks(toModify, maxResetParametersSize)
+		chunks := util.MapStringChunks(toModify, maxResetParametersSize)
 		for _, chunk := range chunks {
 			err = rm.modifyParameters(ctx, family, groupName, chunk)
 			if err != nil {
@@ -328,28 +299,26 @@ func (rm *resourceManager) resetParameters(
 	exit := rlog.Trace("rm.resetParameters")
 	defer func() { exit(err) }()
 
-	var pMeta *paramMeta
+	var pMeta *util.ParamMeta
 	inputParams := []*svcsdk.Parameter{}
 	for _, paramName := range toDelete {
 		// default to this if something goes wrong looking up parameter
 		// defaults
 		applyMethod := svcsdk.ApplyMethodImmediate
-		pMeta, err = cachedParamMeta.get(
+		pMeta, err = cachedParamMeta.Get(
 			ctx, *family, paramName, rm.getFamilyParameters,
 		)
 		if err != nil {
 			return err
 		}
-		if !pMeta.isModifiable {
-			return newErrUnmodifiableParameter(paramName)
+		if !pMeta.IsModifiable {
+			return util.NewErrUnmodifiableParameter(paramName)
 		}
-		if !pMeta.isDynamic {
+		if !pMeta.IsDynamic {
 			applyMethod = svcsdk.ApplyMethodPendingReboot
 		}
 		p := &svcsdk.Parameter{
 			ParameterName: aws.String(paramName),
-			// TODO(jaypipes): Look up appropriate apply method for this
-			// parameter...
 			ApplyMethod: aws.String(applyMethod),
 		}
 		inputParams = append(inputParams, p)
@@ -385,29 +354,27 @@ func (rm *resourceManager) modifyParameters(
 	exit := rlog.Trace("rm.modifyParameters")
 	defer func() { exit(err) }()
 
-	var pMeta *paramMeta
+	var pMeta *util.ParamMeta
 	inputParams := []*svcsdk.Parameter{}
 	for paramName, paramValue := range toModify {
 		// default to this if something goes wrong looking up parameter
 		// defaults
 		applyMethod := svcsdk.ApplyMethodImmediate
-		pMeta, err = cachedParamMeta.get(
+		pMeta, err = cachedParamMeta.Get(
 			ctx, *family, paramName, rm.getFamilyParameters,
 		)
 		if err != nil {
 			return err
 		}
-		if !pMeta.isModifiable {
-			return newErrUnmodifiableParameter(paramName)
+		if !pMeta.IsModifiable {
+			return util.NewErrUnmodifiableParameter(paramName)
 		}
-		if !pMeta.isDynamic {
+		if !pMeta.IsDynamic {
 			applyMethod = svcsdk.ApplyMethodPendingReboot
 		}
 		p := &svcsdk.Parameter{
 			ParameterName:  aws.String(paramName),
 			ParameterValue: paramValue,
-			// TODO(jaypipes): Look up appropriate apply method for this
-			// parameter...
 			ApplyMethod: aws.String(applyMethod),
 		}
 		inputParams = append(inputParams, p)
@@ -436,9 +403,9 @@ func (rm *resourceManager) modifyParameters(
 func (rm *resourceManager) getFamilyParameters(
 	ctx context.Context,
 	family string,
-) (map[string]paramMeta, error) {
+) (map[string]util.ParamMeta, error) {
 	var marker *string
-	familyMeta := map[string]paramMeta{}
+	familyMeta := map[string]util.ParamMeta{}
 
 	for {
 		resp, err := rm.sdkapi.DescribeEngineDefaultParametersWithContext(
@@ -454,9 +421,9 @@ func (rm *resourceManager) getFamilyParameters(
 		}
 		for _, param := range resp.EngineDefaults.Parameters {
 			pName := *param.ParameterName
-			familyMeta[pName] = paramMeta{
-				isModifiable: *param.IsModifiable,
-				isDynamic:    *param.ApplyType != applyTypeStatic,
+			familyMeta[pName] = util.ParamMeta{
+				IsModifiable: *param.IsModifiable,
+				IsDynamic:    *param.ApplyType != applyTypeStatic,
 			}
 		}
 		marker = resp.EngineDefaults.Marker
@@ -465,154 +432,4 @@ func (rm *resourceManager) getFamilyParameters(
 		}
 	}
 	return familyMeta, nil
-}
-
-// computeParametersDelta compares two Parameter arrays and returns the new
-// parameters to add, to update and the parameter identifiers to delete
-func computeParametersDelta(
-	desired map[string]*string,
-	latest map[string]*string,
-) (map[string]*string, []string) {
-	toReset := []string{}
-	toModify := map[string]*string{}
-
-	for k, v := range desired {
-		if lv, found := latest[k]; !found {
-			toModify[k] = v
-		} else if !equalStrings(v, lv) {
-			toModify[k] = v
-		}
-	}
-	for k := range latest {
-		if _, found := desired[k]; !found {
-			toReset = append(toReset, k)
-		}
-	}
-	return toModify, toReset
-}
-
-// sliceStringChunks splits a supplied slice of string pointers into multiple
-// slices of string pointers of a given size.
-func sliceStringChunks(
-	input []string,
-	chunkSize int,
-) [][]string {
-	var chunks [][]string
-	for {
-		if len(input) == 0 {
-			break
-		}
-
-		if len(input) < chunkSize {
-			chunkSize = len(input)
-		}
-
-		chunks = append(chunks, input[0:chunkSize])
-		input = input[chunkSize:]
-	}
-
-	return chunks
-}
-
-// mapStringChunks splits a supplied map of string pointers into multiple
-// slices of maps of string pointers of a given size.
-func mapStringChunks(
-	input map[string]*string,
-	chunkSize int,
-) []map[string]*string {
-	var chunks []map[string]*string
-	chunk := map[string]*string{}
-	idx := 0
-	for k, v := range input {
-		if idx < chunkSize {
-			chunk[k] = v
-			idx++
-		} else {
-			// reset the chunker
-			chunks = append(chunks, chunk)
-			chunk = map[string]*string{}
-			idx = 0
-		}
-	}
-	chunks = append(chunks, chunk)
-
-	return chunks
-}
-
-type paramMeta struct {
-	isModifiable bool
-	isDynamic    bool
-}
-
-// metaFetcher is the functor we pass to the paramMetaCache that allows it to
-// fetch engine default parameter information
-type metaFetcher func(ctx context.Context, family string) (map[string]paramMeta, error)
-
-// paramMetaCache stores information about a parameter for a DB parameter group
-// family. We use this cached information to determine whether a parameter is
-// statically or dynamically defined (whether changes can be applied
-// immediately or pending a reboot) and whether a parameter is modifiable.
-//
-// Keeping things super simple for now and not adding any TTL or expiration
-// behaviour to the cache. Engine defaults are pretty static information...
-type paramMetaCache struct {
-	sync.RWMutex
-	hits   uint64
-	misses uint64
-	cache  map[string]map[string]paramMeta
-}
-
-// get retrieves the metadata for a named parameter group family and parameter
-// name.
-func (c *paramMetaCache) get(
-	ctx context.Context,
-	family string,
-	name string,
-	fetcher metaFetcher,
-) (*paramMeta, error) {
-	var err error
-	var found bool
-	var metas map[string]paramMeta
-	var meta paramMeta
-
-	// We need to release the lock right after the read operation, because
-	// loadFamilly will might call a writeLock at L619
-	c.RLock()
-	metas, found = c.cache[family]
-	c.RUnlock()
-
-	if !found {
-		c.misses++
-		metas, err = c.loadFamily(ctx, family, fetcher)
-		if err != nil {
-			return nil, err
-		}
-	}
-	meta, found = metas[name]
-	if !found {
-		return nil, newErrUnknownParameter(name)
-	}
-	c.hits++
-	return &meta, nil
-}
-
-// loadFamily fetches parameter information from the AWS RDS
-// DescribeEngineDefaultParameters API and caches that information.
-func (c *paramMetaCache) loadFamily(
-	ctx context.Context,
-	family string,
-	fetcher metaFetcher,
-) (map[string]paramMeta, error) {
-	familyMeta, err := fetcher(ctx, family)
-	if err != nil {
-		return nil, err
-	}
-	c.Lock()
-	defer c.Unlock()
-	c.cache[family] = familyMeta
-	return familyMeta, nil
-}
-
-var cachedParamMeta = paramMetaCache{
-	cache: map[string]map[string]paramMeta{},
 }
