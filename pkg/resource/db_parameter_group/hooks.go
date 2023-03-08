@@ -319,7 +319,7 @@ func (rm *resourceManager) resetParameters(
 		}
 		p := &svcsdk.Parameter{
 			ParameterName: aws.String(paramName),
-			ApplyMethod: aws.String(applyMethod),
+			ApplyMethod:   aws.String(applyMethod),
 		}
 		inputParams = append(inputParams, p)
 	}
@@ -375,7 +375,7 @@ func (rm *resourceManager) modifyParameters(
 		p := &svcsdk.Parameter{
 			ParameterName:  aws.String(paramName),
 			ParameterValue: paramValue,
-			ApplyMethod: aws.String(applyMethod),
+			ApplyMethod:    aws.String(applyMethod),
 		}
 		inputParams = append(inputParams, p)
 	}

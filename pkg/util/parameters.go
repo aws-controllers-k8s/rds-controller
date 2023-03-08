@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	errUnknownParameter         = fmt.Errorf("unknown parameter")
-	errUnmodifiableParameter    = fmt.Errorf("parameter is not modifiable")
+	errUnknownParameter      = fmt.Errorf("unknown parameter")
+	errUnmodifiableParameter = fmt.Errorf("parameter is not modifiable")
 )
 
 func NewErrUnknownParameter(name string) error {

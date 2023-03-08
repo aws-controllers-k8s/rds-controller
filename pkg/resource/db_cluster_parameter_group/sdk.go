@@ -126,6 +126,15 @@ func (rm *resourceManager) sdkFind(
 		}
 		ko.Spec.Tags = tags
 	}
+	if ko.Spec.Name != nil {
+		groupName := ko.Spec.Name
+		params, paramStatuses, err := rm.getParameters(ctx, groupName)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.ParameterOverrides = params
+		ko.Status.ParameterOverrideStatuses = paramStatuses
+	}
 
 	return &resource{ko}, nil
 }
