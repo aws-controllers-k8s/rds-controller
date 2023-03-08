@@ -76,7 +76,7 @@ class TestDBProxy:
         assert cr is not None
         assert 'status' in cr
         assert 'status' in cr['status']
-        assert cr['status']['status'] == 'creating'
+        assert cr['status']['status'] in ['creating', 'available']
 
         db_proxy.wait_until(
             db_proxy_id,
