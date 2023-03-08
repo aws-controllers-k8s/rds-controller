@@ -15,8 +15,11 @@ package db_cluster_parameter_group
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -32,10 +35,18 @@ const (
 	maxResetParametersSize = 20
 )
 
-// cache of parameter defaults
-var cachedParamMeta = util.ParamMetaCache{
-	Cache: map[string]map[string]util.ParamMeta{},
-}
+var (
+	// cache of parameter defaults
+	cachedParamMeta = util.ParamMetaCache{
+		Cache: map[string]map[string]util.ParamMeta{},
+	}
+
+	errParameterGroupJustCreated = fmt.Errorf("parameter group just got created")
+	requeueWaitWhileCreating = ackrequeue.NeededAfter(
+		errParameterGroupJustCreated,
+		100*time.Millisecond,
+	)
+)
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/869.
