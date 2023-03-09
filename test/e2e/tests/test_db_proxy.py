@@ -74,6 +74,7 @@ class TestDBProxy:
         cr = k8s.wait_resource_consumed_by_controller(ref)
 
         assert cr is not None
+        assert k8s.get_resource_exists(ref)
         assert 'status' in cr
         assert 'status' in cr['status']
         assert cr['status']['status'] in ['creating', 'available']
@@ -82,6 +83,14 @@ class TestDBProxy:
             db_proxy_id,
             db_proxy.status_matches('available'),
         )
+
+        assert k8s.wait_on_condition(
+            ref,
+            condition.CONDITION_TYPE_RESOURCE_SYNCED,
+            "True",
+            wait_periods=15,
+            period_length=20
+        ), "DB proxy not synced"
 
         time.sleep(CHECK_STATUS_WAIT_SECONDS)
 
