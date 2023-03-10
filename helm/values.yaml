@@ -83,6 +83,13 @@ resourceTags:
 # before the K8s resource is removed.
 deletionPolicy: delete
 
+# controller reconciliation configurations
+reconcile:
+  # The default duration, in seconds, to wait before resyncing desired state of custom resources.
+  defaultResyncPeriod: 0
+  # An object representing the reconcile resync configuration for each specific resource.
+  resourceResyncPeriods: {}
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
