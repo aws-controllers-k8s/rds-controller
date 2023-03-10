@@ -70,29 +70,6 @@ func ComputeParametersDelta(
 	return toModify, toReset
 }
 
-// sliceStringChunks splits a supplied slice of string pointers into multiple
-// slices of string pointers of a given size.
-func SliceStringChunks(
-	input []string,
-	chunkSize int,
-) [][]string {
-	var chunks [][]string
-	for {
-		if len(input) == 0 {
-			break
-		}
-
-		if len(input) < chunkSize {
-			chunkSize = len(input)
-		}
-
-		chunks = append(chunks, input[0:chunkSize])
-		input = input[chunkSize:]
-	}
-
-	return chunks
-}
-
 // mapStringChunks splits a supplied map of string pointers into multiple
 // slices of maps of string pointers of a given size.
 func MapStringChunks(
