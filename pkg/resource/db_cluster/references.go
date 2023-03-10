@@ -111,50 +111,68 @@ func resolveReferenceForDBClusterParameterGroupName(
 	namespace string,
 	ko *svcapitypes.DBCluster,
 ) error {
-	if ko.Spec.DBClusterParameterGroupRef != nil &&
-		ko.Spec.DBClusterParameterGroupRef.From != nil {
+	if ko.Spec.DBClusterParameterGroupRef != nil && ko.Spec.DBClusterParameterGroupRef.From != nil {
 		arr := ko.Spec.DBClusterParameterGroupRef.From
 		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty")
+			return fmt.Errorf("provided resource reference is nil or empty: DBClusterParameterGroupRef")
 		}
-		namespacedName := types.NamespacedName{
-			Namespace: namespace,
-			Name:      *arr.Name,
-		}
-		obj := svcapitypes.DBClusterParameterGroup{}
-		err := apiReader.Get(ctx, namespacedName, &obj)
-		if err != nil {
+		obj := &svcapitypes.DBClusterParameterGroup{}
+		if err := getReferencedResourceState_DBClusterParameterGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
 			return err
 		}
-		var refResourceSynced, refResourceTerminal bool
-		for _, cond := range obj.Status.Conditions {
-			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-				cond.Status == corev1.ConditionTrue {
-				refResourceSynced = true
-			}
-			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
-				cond.Status == corev1.ConditionTrue {
-				refResourceTerminal = true
-			}
+		ko.Spec.DBClusterParameterGroupName = (*string)(obj.Spec.Name)
+	}
+
+	return nil
+}
+
+// getReferencedResourceState_DBClusterParameterGroup looks up whether a referenced resource
+// exists and is in a ACK.ResourceSynced=True state. If the referenced resource does exist and is
+// in a Synced state, returns nil, otherwise returns `ackerr.ResourceReferenceTerminalFor` or
+// `ResourceReferenceNotSyncedFor` depending on if the resource is in a Terminal state.
+func getReferencedResourceState_DBClusterParameterGroup(
+	ctx context.Context,
+	apiReader client.Reader,
+	obj *svcapitypes.DBClusterParameterGroup,
+	name string, // the Kubernetes name of the referenced resource
+	namespace string, // the Kubernetes namespace of the referenced resource
+) error {
+	namespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+	err := apiReader.Get(ctx, namespacedName, obj)
+	if err != nil {
+		return err
+	}
+	var refResourceSynced, refResourceTerminal bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
 		}
-		if refResourceTerminal {
+		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
 				"DBClusterParameterGroup",
-				namespace, *arr.Name)
+				namespace, name)
 		}
-		if !refResourceSynced {
-			return ackerr.ResourceReferenceNotSyncedFor(
-				"DBClusterParameterGroup",
-				namespace, *arr.Name)
-		}
-		if obj.Spec.Name == nil {
-			return ackerr.ResourceReferenceMissingTargetFieldFor(
-				"DBClusterParameterGroup",
-				namespace, *arr.Name,
-				"Spec.Name")
-		}
-		referencedValue := string(*obj.Spec.Name)
-		ko.Spec.DBClusterParameterGroupName = &referencedValue
+	}
+	if refResourceTerminal {
+		return ackerr.ResourceReferenceTerminalFor(
+			"DBClusterParameterGroup",
+			namespace, name)
+	}
+	if !refResourceSynced {
+		return ackerr.ResourceReferenceNotSyncedFor(
+			"DBClusterParameterGroup",
+			namespace, name)
+	}
+	if obj.Spec.Name == nil {
+		return ackerr.ResourceReferenceMissingTargetFieldFor(
+			"DBClusterParameterGroup",
+			namespace, name,
+			"Spec.Name")
 	}
 	return nil
 }
@@ -168,50 +186,68 @@ func resolveReferenceForDBSubnetGroupName(
 	namespace string,
 	ko *svcapitypes.DBCluster,
 ) error {
-	if ko.Spec.DBSubnetGroupRef != nil &&
-		ko.Spec.DBSubnetGroupRef.From != nil {
+	if ko.Spec.DBSubnetGroupRef != nil && ko.Spec.DBSubnetGroupRef.From != nil {
 		arr := ko.Spec.DBSubnetGroupRef.From
 		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty")
+			return fmt.Errorf("provided resource reference is nil or empty: DBSubnetGroupRef")
 		}
-		namespacedName := types.NamespacedName{
-			Namespace: namespace,
-			Name:      *arr.Name,
-		}
-		obj := svcapitypes.DBSubnetGroup{}
-		err := apiReader.Get(ctx, namespacedName, &obj)
-		if err != nil {
+		obj := &svcapitypes.DBSubnetGroup{}
+		if err := getReferencedResourceState_DBSubnetGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
 			return err
 		}
-		var refResourceSynced, refResourceTerminal bool
-		for _, cond := range obj.Status.Conditions {
-			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-				cond.Status == corev1.ConditionTrue {
-				refResourceSynced = true
-			}
-			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
-				cond.Status == corev1.ConditionTrue {
-				refResourceTerminal = true
-			}
+		ko.Spec.DBSubnetGroupName = (*string)(obj.Spec.Name)
+	}
+
+	return nil
+}
+
+// getReferencedResourceState_DBSubnetGroup looks up whether a referenced resource
+// exists and is in a ACK.ResourceSynced=True state. If the referenced resource does exist and is
+// in a Synced state, returns nil, otherwise returns `ackerr.ResourceReferenceTerminalFor` or
+// `ResourceReferenceNotSyncedFor` depending on if the resource is in a Terminal state.
+func getReferencedResourceState_DBSubnetGroup(
+	ctx context.Context,
+	apiReader client.Reader,
+	obj *svcapitypes.DBSubnetGroup,
+	name string, // the Kubernetes name of the referenced resource
+	namespace string, // the Kubernetes namespace of the referenced resource
+) error {
+	namespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+	err := apiReader.Get(ctx, namespacedName, obj)
+	if err != nil {
+		return err
+	}
+	var refResourceSynced, refResourceTerminal bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
 		}
-		if refResourceTerminal {
+		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
 				"DBSubnetGroup",
-				namespace, *arr.Name)
+				namespace, name)
 		}
-		if !refResourceSynced {
-			return ackerr.ResourceReferenceNotSyncedFor(
-				"DBSubnetGroup",
-				namespace, *arr.Name)
-		}
-		if obj.Spec.Name == nil {
-			return ackerr.ResourceReferenceMissingTargetFieldFor(
-				"DBSubnetGroup",
-				namespace, *arr.Name,
-				"Spec.Name")
-		}
-		referencedValue := string(*obj.Spec.Name)
-		ko.Spec.DBSubnetGroupName = &referencedValue
+	}
+	if refResourceTerminal {
+		return ackerr.ResourceReferenceTerminalFor(
+			"DBSubnetGroup",
+			namespace, name)
+	}
+	if !refResourceSynced {
+		return ackerr.ResourceReferenceNotSyncedFor(
+			"DBSubnetGroup",
+			namespace, name)
+	}
+	if obj.Spec.Name == nil {
+		return ackerr.ResourceReferenceMissingTargetFieldFor(
+			"DBSubnetGroup",
+			namespace, name,
+			"Spec.Name")
 	}
 	return nil
 }
@@ -225,50 +261,68 @@ func resolveReferenceForKMSKeyID(
 	namespace string,
 	ko *svcapitypes.DBCluster,
 ) error {
-	if ko.Spec.KMSKeyRef != nil &&
-		ko.Spec.KMSKeyRef.From != nil {
+	if ko.Spec.KMSKeyRef != nil && ko.Spec.KMSKeyRef.From != nil {
 		arr := ko.Spec.KMSKeyRef.From
 		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty")
+			return fmt.Errorf("provided resource reference is nil or empty: KMSKeyRef")
 		}
-		namespacedName := types.NamespacedName{
-			Namespace: namespace,
-			Name:      *arr.Name,
-		}
-		obj := kmsapitypes.Key{}
-		err := apiReader.Get(ctx, namespacedName, &obj)
-		if err != nil {
+		obj := &kmsapitypes.Key{}
+		if err := getReferencedResourceState_Key(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
 			return err
 		}
-		var refResourceSynced, refResourceTerminal bool
-		for _, cond := range obj.Status.Conditions {
-			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-				cond.Status == corev1.ConditionTrue {
-				refResourceSynced = true
-			}
-			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
-				cond.Status == corev1.ConditionTrue {
-				refResourceTerminal = true
-			}
+		ko.Spec.KMSKeyID = (*string)(obj.Status.ACKResourceMetadata.ARN)
+	}
+
+	return nil
+}
+
+// getReferencedResourceState_Key looks up whether a referenced resource
+// exists and is in a ACK.ResourceSynced=True state. If the referenced resource does exist and is
+// in a Synced state, returns nil, otherwise returns `ackerr.ResourceReferenceTerminalFor` or
+// `ResourceReferenceNotSyncedFor` depending on if the resource is in a Terminal state.
+func getReferencedResourceState_Key(
+	ctx context.Context,
+	apiReader client.Reader,
+	obj *kmsapitypes.Key,
+	name string, // the Kubernetes name of the referenced resource
+	namespace string, // the Kubernetes namespace of the referenced resource
+) error {
+	namespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+	err := apiReader.Get(ctx, namespacedName, obj)
+	if err != nil {
+		return err
+	}
+	var refResourceSynced, refResourceTerminal bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
 		}
-		if refResourceTerminal {
+		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
 				"Key",
-				namespace, *arr.Name)
+				namespace, name)
 		}
-		if !refResourceSynced {
-			return ackerr.ResourceReferenceNotSyncedFor(
-				"Key",
-				namespace, *arr.Name)
-		}
-		if obj.Status.ACKResourceMetadata == nil || obj.Status.ACKResourceMetadata.ARN == nil {
-			return ackerr.ResourceReferenceMissingTargetFieldFor(
-				"Key",
-				namespace, *arr.Name,
-				"Status.ACKResourceMetadata.ARN")
-		}
-		referencedValue := string(*obj.Status.ACKResourceMetadata.ARN)
-		ko.Spec.KMSKeyID = &referencedValue
+	}
+	if refResourceTerminal {
+		return ackerr.ResourceReferenceTerminalFor(
+			"Key",
+			namespace, name)
+	}
+	if !refResourceSynced {
+		return ackerr.ResourceReferenceNotSyncedFor(
+			"Key",
+			namespace, name)
+	}
+	if obj.Status.ACKResourceMetadata == nil || obj.Status.ACKResourceMetadata.ARN == nil {
+		return ackerr.ResourceReferenceMissingTargetFieldFor(
+			"Key",
+			namespace, name,
+			"Status.ACKResourceMetadata.ARN")
 	}
 	return nil
 }
@@ -282,54 +336,72 @@ func resolveReferenceForVPCSecurityGroupIDs(
 	namespace string,
 	ko *svcapitypes.DBCluster,
 ) error {
-	if ko.Spec.VPCSecurityGroupRefs != nil &&
-		len(ko.Spec.VPCSecurityGroupRefs) > 0 {
-		resolvedReferences := []*string{}
-		for _, arrw := range ko.Spec.VPCSecurityGroupRefs {
-			arr := arrw.From
+	if len(ko.Spec.VPCSecurityGroupRefs) > 0 {
+		resolved0 := []*string{}
+		for _, iter0 := range ko.Spec.VPCSecurityGroupRefs {
+			arr := iter0.From
 			if arr == nil || arr.Name == nil || *arr.Name == "" {
-				return fmt.Errorf("provided resource reference is nil or empty")
+				return fmt.Errorf("provided resource reference is nil or empty: VPCSecurityGroupRefs")
 			}
-			namespacedName := types.NamespacedName{
-				Namespace: namespace,
-				Name:      *arr.Name,
-			}
-			obj := ec2apitypes.SecurityGroup{}
-			err := apiReader.Get(ctx, namespacedName, &obj)
-			if err != nil {
+			obj := &ec2apitypes.SecurityGroup{}
+			if err := getReferencedResourceState_SecurityGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
 				return err
 			}
-			var refResourceSynced, refResourceTerminal bool
-			for _, cond := range obj.Status.Conditions {
-				if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-					cond.Status == corev1.ConditionTrue {
-					refResourceSynced = true
-				}
-				if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
-					cond.Status == corev1.ConditionTrue {
-					refResourceTerminal = true
-				}
-			}
-			if refResourceTerminal {
-				return ackerr.ResourceReferenceTerminalFor(
-					"SecurityGroup",
-					namespace, *arr.Name)
-			}
-			if !refResourceSynced {
-				return ackerr.ResourceReferenceNotSyncedFor(
-					"SecurityGroup",
-					namespace, *arr.Name)
-			}
-			if obj.Status.ID == nil {
-				return ackerr.ResourceReferenceMissingTargetFieldFor(
-					"SecurityGroup",
-					namespace, *arr.Name,
-					"Status.ID")
-			}
-			referencedValue := string(*obj.Status.ID)
-			resolvedReferences = append(resolvedReferences, &referencedValue)
+			resolved0 = append(resolved0, (*string)(obj.Status.ID))
 		}
-		ko.Spec.VPCSecurityGroupIDs = resolvedReferences
+		ko.Spec.VPCSecurityGroupIDs = resolved0
+	}
+
+	return nil
+}
+
+// getReferencedResourceState_SecurityGroup looks up whether a referenced resource
+// exists and is in a ACK.ResourceSynced=True state. If the referenced resource does exist and is
+// in a Synced state, returns nil, otherwise returns `ackerr.ResourceReferenceTerminalFor` or
+// `ResourceReferenceNotSyncedFor` depending on if the resource is in a Terminal state.
+func getReferencedResourceState_SecurityGroup(
+	ctx context.Context,
+	apiReader client.Reader,
+	obj *ec2apitypes.SecurityGroup,
+	name string, // the Kubernetes name of the referenced resource
+	namespace string, // the Kubernetes namespace of the referenced resource
+) error {
+	namespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+	err := apiReader.Get(ctx, namespacedName, obj)
+	if err != nil {
+		return err
+	}
+	var refResourceSynced, refResourceTerminal bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
+		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+			cond.Status == corev1.ConditionTrue {
+			return ackerr.ResourceReferenceTerminalFor(
+				"SecurityGroup",
+				namespace, name)
+		}
+	}
+	if refResourceTerminal {
+		return ackerr.ResourceReferenceTerminalFor(
+			"SecurityGroup",
+			namespace, name)
+	}
+	if !refResourceSynced {
+		return ackerr.ResourceReferenceNotSyncedFor(
+			"SecurityGroup",
+			namespace, name)
+	}
+	if obj.Status.ID == nil {
+		return ackerr.ResourceReferenceMissingTargetFieldFor(
+			"SecurityGroup",
+			namespace, name,
+			"Status.ID")
 	}
 	return nil
 }
