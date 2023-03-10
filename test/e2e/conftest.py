@@ -13,6 +13,7 @@
 
 import os
 import pytest
+import boto3
 
 from acktest import k8s
 
@@ -44,3 +45,15 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(scope='class')
 def k8s_client():
     return k8s._get_k8s_api_client()
+
+@pytest.fixture(scope='module')
+def rds_client():
+    return boto3.client('rds')
+
+@pytest.fixture(scope='module')
+def rds_resource():
+    return boto3.resource('rds') 
+
+@pytest.fixture(scope='module')
+def sts_client():
+    return boto3.client('sts')

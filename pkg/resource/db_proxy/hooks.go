@@ -15,8 +15,11 @@ package db_proxy
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -24,6 +27,86 @@ import (
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
+
+var (
+	// TerminalStatuses are the status strings that are terminal states for a
+	// DB proxy.
+	TerminalStatuses = []string{
+		svcsdk.DBProxyStatusIncompatibleNetwork,
+		svcsdk.DBProxyStatusDeleting,
+		svcsdk.DBProxyStatusSuspending,
+	}
+)
+
+var (
+	requeueWaitWhileDeleting = ackrequeue.NeededAfter(
+		errors.New("DB proxy in 'deleting' state, cannot be modified or deleted."),
+		ackrequeue.DefaultRequeueAfterDuration,
+	)
+)
+
+// requeueWaitUntilCanModify returns a `ackrequeue.RequeueNeededAfter` struct
+// explaining the DB proxy cannot be modified until it reaches an available
+// status.
+func requeueWaitUntilCanModify(r *resource) *ackrequeue.RequeueNeededAfter {
+	if r.ko.Status.Status == nil {
+		return nil
+	}
+	status := *r.ko.Status.Status
+	msg := fmt.Sprintf(
+		"DB proxy in '%s' state, cannot be modified until '%s'.",
+		status, svcsdk.DBProxyStatusAvailable,
+	)
+	return ackrequeue.NeededAfter(
+		errors.New(msg),
+		ackrequeue.DefaultRequeueAfterDuration,
+	)
+}
+
+// proxyHasTerminalStatus returns whether the supplied DB proxy is in a
+// terminal state
+func proxyHasTerminalStatus(r *resource) bool {
+	if r.ko.Status.Status == nil {
+		return false
+	}
+	dbis := *r.ko.Status.Status
+	for _, s := range TerminalStatuses {
+		if dbis == s {
+			return true
+		}
+	}
+	return false
+}
+
+// proxyAvailable returns true if the supplied DB proxy is in an
+// available status
+func proxyAvailable(r *resource) bool {
+	if r.ko.Status.Status == nil {
+		return false
+	}
+	dbis := *r.ko.Status.Status
+	return dbis == svcsdk.DBProxyStatusAvailable
+}
+
+// proxyCreating returns true if the supplied DB proxy is in the process
+// of being created
+func proxyCreating(r *resource) bool {
+	if r.ko.Status.Status == nil {
+		return false
+	}
+	dbis := *r.ko.Status.Status
+	return dbis == svcsdk.DBProxyStatusCreating
+}
+
+// proxyDeleting returns true if the supplied DB proxy is in the process
+// of being deleted
+func proxyDeleting(r *resource) bool {
+	if r.ko.Status.Status == nil {
+		return false
+	}
+	dbis := *r.ko.Status.Status
+	return dbis == svcsdk.DBProxyStatusDeleting
+}
 
 // syncTags keeps the resource's tags in sync
 //
