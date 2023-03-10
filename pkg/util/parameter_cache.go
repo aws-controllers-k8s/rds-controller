@@ -24,9 +24,9 @@ type ParamMeta struct {
 	IsDynamic    bool
 }
 
-// metaFetcher is the functor we pass to the paramMetaCache that allows it to
+// MetaFetcher is the functor we pass to the paramMetaCache that allows it to
 // fetch engine default parameter information
-type metaFetcher func(ctx context.Context, family string) (map[string]ParamMeta, error)
+type MetaFetcher func(ctx context.Context, family string) (map[string]ParamMeta, error)
 
 // ParamMetaCache stores information about a parameter for a DB parameter group
 // family. We use this cached information to determine whether a parameter is
@@ -48,7 +48,7 @@ func (c *ParamMetaCache) Get(
 	ctx context.Context,
 	family string,
 	name string,
-	fetcher metaFetcher,
+	fetcher MetaFetcher,
 ) (*ParamMeta, error) {
 	var err error
 	var found bool
@@ -81,7 +81,7 @@ func (c *ParamMetaCache) Get(
 func (c *ParamMetaCache) loadFamily(
 	ctx context.Context,
 	family string,
-	fetcher metaFetcher,
+	fetcher MetaFetcher,
 ) (map[string]ParamMeta, error) {
 	familyMeta, err := fetcher(ctx, family)
 	if err != nil {
