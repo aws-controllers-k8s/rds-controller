@@ -428,3 +428,14 @@ resources:
         ModifyDBProxy:
           input_fields:
             DBProxyName: Name
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/db_proxy/sdk_create_post_set_output.go.tpl
+      sdk_read_many_post_set_output:
+        template_path: hooks/db_proxy/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/db_proxy/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_set_output:
+        template_path: hooks/db_proxy/sdk_update_post_set_output.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/db_proxy/sdk_delete_pre_build_request.go.tpl
