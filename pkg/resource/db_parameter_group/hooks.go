@@ -43,7 +43,7 @@ var (
 	}
 
 	errParameterGroupJustCreated = fmt.Errorf("parameter group just got created")
-	requeueWaitWhileCreating = ackrequeue.NeededAfter(
+	requeueWaitWhileCreating     = ackrequeue.NeededAfter(
 		errParameterGroupJustCreated,
 		100*time.Millisecond,
 	)

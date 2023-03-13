@@ -629,6 +629,17 @@ func (in *DBClusterParameterGroupSpec) DeepCopyInto(out *DBClusterParameterGroup
 			(*out)[key] = outVal
 		}
 	}
+	if in.Parameters != nil {
+		in, out := &in.Parameters, &out.Parameters
+		*out = make([]*Parameter, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(Parameter)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make([]*Tag, len(*in))

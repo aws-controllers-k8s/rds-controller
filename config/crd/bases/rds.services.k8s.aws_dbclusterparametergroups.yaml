@@ -70,7 +70,54 @@ spec:
               parameterOverrides:
                 additionalProperties:
                   type: string
+                description: These are ONLY user-defined parameter overrides for the
+                  DB cluster parameter group. This does not contain default or system
+                  parameters.
                 type: object
+              parameters:
+                description: "A list of parameters in the DB cluster parameter group
+                  to modify. \n Valid Values (for the application method): immediate
+                  | pending-reboot \n You can use the immediate value with dynamic
+                  parameters only. You can use the pending-reboot value for both dynamic
+                  and static parameters. \n When the application method is immediate,
+                  changes to dynamic parameters are applied immediately to the DB
+                  clusters associated with the parameter group. When the application
+                  method is pending-reboot, changes to dynamic and static parameters
+                  are applied after a reboot without failover to the DB clusters associated
+                  with the parameter group. \n DEPRECATED - do not use.  Prefer ParameterOverrides
+                  instead."
+                items:
+                  description: "This data type is used as a request parameter in the
+                    ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This
+                    data type is used as a response element in the DescribeEngineDefaultParameters
+                    and DescribeDBParameters actions."
+                  properties:
+                    allowedValues:
+                      type: string
+                    applyMethod:
+                      type: string
+                    applyType:
+                      type: string
+                    dataType:
+                      type: string
+                    description:
+                      type: string
+                    isModifiable:
+                      type: boolean
+                    minimumEngineVersion:
+                      type: string
+                    parameterName:
+                      type: string
+                    parameterValue:
+                      type: string
+                    source:
+                      type: string
+                    supportedEngineModes:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
               tags:
                 description: Tags to assign to the DB cluster parameter group.
                 items:

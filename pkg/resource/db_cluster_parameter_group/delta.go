@@ -72,6 +72,9 @@ func newResourceDelta(
 			delta.Add("Spec.ParameterOverrides", a.ko.Spec.ParameterOverrides, b.ko.Spec.ParameterOverrides)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.Parameters, b.ko.Spec.Parameters) {
+		delta.Add("Spec.Parameters", a.ko.Spec.Parameters, b.ko.Spec.Parameters)
+	}
 
 	return delta
 }
