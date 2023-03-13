@@ -205,6 +205,11 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	if !proxyAvailable(&resource{ko}) {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
+	}
 	return &resource{ko}, nil
 }
 
@@ -371,6 +376,16 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
+	// We expect the DB proxy to be in 'creating' status since we just
+	// issued the call to create it, but I suppose it doesn't hurt to check
+	// here.
+	if proxyCreating(&resource{ko}) {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
+		return &resource{ko}, nil
+	}
+
 	return &resource{ko}, nil
 }
 
@@ -472,6 +487,27 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if proxyDeleting(latest) {
+		msg := "DB proxy is currently being deleted"
+		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitWhileDeleting
+	}
+	if proxyCreating(latest) {
+		msg := "DB proxy is currently being created"
+		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitUntilCanModify(latest)
+	}
+	if proxyHasTerminalStatus(latest) {
+		msg := "DB proxy is in '" + *latest.ko.Status.Status + "' status"
+		ackcondition.SetTerminal(desired, corev1.ConditionTrue, &msg, nil)
+		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
+		return desired, nil
+	}
+	if !proxyAvailable(latest) {
+		msg := "DB proxy cannot be modifed while in '" + *latest.ko.Status.Status + "' status"
+		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitUntilCanModify(latest)
+	}
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
@@ -599,6 +635,14 @@ func (rm *resourceManager) sdkUpdate(
 	}
 
 	rm.setStatusDefaults(ko)
+	// When ModifyDBProxy API is successful, it asynchronously
+	// updates the DBProxyStatus. Requeue to find the current
+	// DBProxy status and set Synced condition accordingly
+	if err == nil {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
+	}
 	return &resource{ko}, nil
 }
 
@@ -663,6 +707,10 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
+	if proxyDeleting(r) {
+		return r, requeueWaitWhileDeleting
+	}
+
 	input, err := rm.newDeleteRequestPayload(r)
 	if err != nil {
 		return nil, err
