@@ -56,6 +56,14 @@ spec:
         - "$(ACK_WATCH_NAMESPACE)"
         - --deletion-policy
         - "$(DELETION_POLICY)"
+{{- if gt .Values.reconcile.defaultResyncPeriod 0.0 }}
+        - --reconcile-default-resync-seconds
+        - "$(RECONCILE_DEFAULT_RESYNC_SECONDS)"
+{{- end }}
+{{- range $key, $value := .Values.reconcile.resourceResyncPeriods }}
+        - --reconcile-resource-resync-seconds
+        - "$(RECONCILE_RESOURCE_RESYNC_SECONDS_{{ $key | upper }})"
+{{- end }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: controller
@@ -83,6 +91,14 @@ spec:
           value: {{ .Values.log.level | quote }}
         - name: ACK_RESOURCE_TAGS
           value: {{ join "," .Values.resourceTags | quote }}
+{{- if gt .Values.reconcile.defaultResyncPeriod 0.0 }}
+        - name: RECONCILE_DEFAULT_RESYNC_SECONDS
+          value: {{ .Values.reconcile.defaultResyncPeriod | quote }}
+{{- end }}
+{{- range $key, $value := .Values.reconcile.resourceResyncPeriods }}
+        - name: RECONCILE_RESOURCE_RESYNC_SECONDS_{{ $key | upper }}
+          value: {{ $key }}={{ $value }}
+{{- end }}
         {{- if .Values.aws.credentials.secretName }}
         - name: AWS_SHARED_CREDENTIALS_FILE
           value: {{ include "aws.credentials.path" . }}
