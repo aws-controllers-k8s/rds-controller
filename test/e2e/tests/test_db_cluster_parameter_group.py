@@ -82,8 +82,15 @@ class TestDBClusterParameterGroup:
                 "value": "prod",
             }
         ]
+        new_params = {
+            "array_nulls": "1",
+            "authentication_timeout": "60",
+        }
         updates = {
-            "spec": {"tags": new_tags},
+            "spec": {
+                "tags": new_tags,
+                "parameterOverrides": new_params,
+            },
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
@@ -96,6 +103,11 @@ class TestDBClusterParameterGroup:
             }
         ]
         assert latest_tags == after_update_expected_tags
+        params = db_cluster_parameter_group.get_parameters(resource_name)
+        test_params = list(filter(lambda x: x["ParameterName"] in ["array_nulls", "authentication_timeout"], params))
+        assert len(test_params) == 2
+        assert test_params[1]["ParameterName"] == "authentication_timeout"
+        assert test_params[1]["ParameterValue"] == "60"
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
