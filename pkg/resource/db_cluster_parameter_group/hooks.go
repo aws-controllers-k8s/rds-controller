@@ -69,6 +69,11 @@ func (rm *resourceManager) customUpdate(
 			return nil, err
 		}
 	}
+	if delta.DifferentAt("Spec.ParameterOverrides") {
+		if err = rm.syncParameters(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
 	return desired, nil
 }
 
