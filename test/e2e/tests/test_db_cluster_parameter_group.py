@@ -20,6 +20,7 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import db_cluster_parameter_group
@@ -38,7 +39,7 @@ MODIFY_WAIT_AFTER_SECONDS = 180
 @pytest.mark.canary
 class TestDBClusterParameterGroup:
     def test_create_delete_aurora_mysql5_7(self):
-        resource_name = "aurora-mysql-5-7"
+        resource_name = random_suffix_name("aurora-mysql-5-7", 32)
         resource_desc = "Parameters for Aurora MySQL 5.7-compatible"
 
         replacements = REPLACEMENT_VALUES.copy()
