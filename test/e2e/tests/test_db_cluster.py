@@ -19,6 +19,7 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
@@ -51,55 +52,69 @@ CHECK_STATUS_WAIT_SECONDS = 60*2
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
+# MUP == Master user password...
+MUP_NS = "default"
+MUP_SEC_NAME = "dbclustersecrets"
+MUP_SEC_KEY = "master_user_password"
+MUP_SEC_VAL = "secretpass123456"
+
+
+@pytest.fixture
+def aurora_mysql_cluster(k8s_secret):
+    db_cluster_id = random_suffix_name("my-aurora-mysql", 20)
+    db_name = "mydb"
+    secret = k8s_secret(
+        MUP_NS,
+        MUP_SEC_NAME,
+        MUP_SEC_KEY,
+        MUP_SEC_VAL,
+    )
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
+    replacements["DB_CLUSTER_ID"] = db_cluster_id
+    replacements["DB_NAME"] = db_name
+    replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
+    replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
+    replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
+
+    resource_data = load_rds_resource(
+        "db_cluster_mysql_serverless",
+        additional_replacements=replacements,
+    )
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        db_cluster_id, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert 'status' in cr
+    assert 'status' in cr['status']
+    assert cr['status']['status'] == 'creating'
+    condition.assert_not_synced(ref)
+
+    yield (ref, cr, db_cluster_id)
+
+    # Try to delete, if doesn't already exist
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_cluster.wait_until_deleted(db_cluster_id)
 
 @service_marker
 @pytest.mark.canary
 class TestDBCluster:
-
-    # MUP == Master user password...
-    MUP_NS = "default"
-    MUP_SEC_NAME = "dbclustersecrets"
-    MUP_SEC_KEY = "master_user_password"
-    MUP_SEC_VAL = "secretpass123456"
-
     def test_crud_mysql_serverless(
-            self,
-            k8s_secret,
+            self, aurora_mysql_cluster,
     ):
-        db_cluster_id = "my-aurora-mysql"
-        db_name = "mydb"
-        secret = k8s_secret(
-            self.MUP_NS,
-            self.MUP_SEC_NAME,
-            self.MUP_SEC_KEY,
-            self.MUP_SEC_VAL,
-        )
-
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements['COPY_TAGS_TO_SNAPSHOT'] = "False"
-        replacements["DB_CLUSTER_ID"] = db_cluster_id
-        replacements["DB_NAME"] = db_name
-        replacements["MASTER_USER_PASS_SECRET_NAMESPACE"] = secret.ns
-        replacements["MASTER_USER_PASS_SECRET_NAME"] = secret.name
-        replacements["MASTER_USER_PASS_SECRET_KEY"] = secret.key
-
-        resource_data = load_rds_resource(
-            "db_cluster_mysql_serverless",
-            additional_replacements=replacements,
-        )
-
-        ref = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            db_cluster_id, namespace="default",
-        )
-        k8s.create_custom_resource(ref, resource_data)
-        cr = k8s.wait_resource_consumed_by_controller(ref)
-
-        assert cr is not None
-        assert 'status' in cr
-        assert 'status' in cr['status']
-        assert cr['status']['status'] == 'creating'
-        condition.assert_not_synced(ref)
+        ref, cr, db_cluster_id = aurora_mysql_cluster
 
         db_cluster.wait_until(
             db_cluster_id,
@@ -168,9 +183,3 @@ class TestDBCluster:
             }
         ]
         assert latest_tags == after_update_expected_tags
-
-        k8s.delete_custom_resource(ref)
-
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
-
-        db_cluster.wait_until_deleted(db_cluster_id)
