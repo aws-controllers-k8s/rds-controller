@@ -17,12 +17,17 @@ import (
 	"fmt"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	"github.com/samber/lo"
 )
 
 var (
 	ErrUnknownParameter      = fmt.Errorf("unknown parameter")
 	ErrUnmodifiableParameter = fmt.Errorf("parameter is not modifiable")
 )
+
+// Parameters represents the elements of a DB Parameter Group
+// or a DB Cluster Parameter Group
+type Parameters map[string]*string
 
 // NewErrUnknownParameter generates an ACK terminal error about
 // an unknown parameter
@@ -46,51 +51,22 @@ func NewErrUnmodifiableParameter(name string) error {
 	)
 }
 
-// ComputeParametersDelta compares two Parameter arrays and returns the new
-// parameters to add, to update and the parameter identifiers to delete
-func ComputeParametersDelta(
-	desired map[string]*string,
-	latest map[string]*string,
-) (map[string]*string, []string) {
-	toReset := []string{}
-	toModify := map[string]*string{}
+// GetParametersDifference compares two Parameters maps and returns the
+// parameters to add & update, the unchanged parameters, and
+// the parameters to remove
+func GetParametersDifference(
+	to, from Parameters,
+	) (added, unchanged, removed Parameters) {
+	// we need to convert the tag tuples to a comparable interface type
+	fromPairs := lo.ToPairs(from)
+	toPairs := lo.ToPairs(to)
 
-	for k, v := range desired {
-		if lv, found := latest[k]; !found {
-			toModify[k] = v
-		} else if !equalStrings(v, lv) {
-			toModify[k] = v
-		}
-	}
-	for k := range latest {
-		if _, found := desired[k]; !found {
-			toReset = append(toReset, k)
-		}
-	}
-	return toModify, toReset
-}
+	left, right := lo.Difference(fromPairs, toPairs)
+	middle := lo.Intersect(fromPairs, toPairs)
 
-// mapStringChunks splits a supplied map of string pointers into multiple
-// slices of maps of string pointers of a given size.
-func MapStringChunks(
-	input map[string]*string,
-	chunkSize int,
-) []map[string]*string {
-	var chunks []map[string]*string
-	chunk := map[string]*string{}
-	idx := 0
-	for k, v := range input {
-		if idx < chunkSize {
-			chunk[k] = v
-			idx++
-		} else {
-			// reset the chunker
-			chunks = append(chunks, chunk)
-			chunk = map[string]*string{}
-			idx = 0
-		}
-	}
-	chunks = append(chunks, chunk)
+	removed = lo.FromPairs(left)
+	added = lo.FromPairs(right)
+	unchanged = lo.FromPairs(middle)
 
-	return chunks
+	return added, unchanged, removed
 }

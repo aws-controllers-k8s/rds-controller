@@ -226,8 +226,9 @@ func (rm *resourceManager) syncParameters(
 	groupName := latest.ko.Spec.Name
 	family := latest.ko.Spec.Family
 
-	toModify, toDelete := util.ComputeParametersDelta(
-		desired.ko.Spec.ParameterOverrides, latest.ko.Spec.ParameterOverrides,
+	toModify, _, toDelete := util.GetParametersDifference(
+		desired.ko.Spec.ParameterOverrides,
+		latest.ko.Spec.ParameterOverrides,
 	)
 
 	if len(toDelete) > 0 {
@@ -294,7 +295,7 @@ func (rm *resourceManager) resetParameters(
 	ctx context.Context,
 	family *string,
 	groupName *string,
-	toDelete []string,
+	toDelete util.Parameters,
 ) (err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.resetParameters")
@@ -302,7 +303,7 @@ func (rm *resourceManager) resetParameters(
 
 	var pMeta *util.ParamMeta
 	inputParams := []*svcsdk.Parameter{}
-	for _, paramName := range toDelete {
+	for paramName, _ := range toDelete {
 		// default to this if something goes wrong looking up parameter
 		// defaults
 		applyMethod := svcsdk.ApplyMethodImmediate
@@ -348,7 +349,7 @@ func (rm *resourceManager) modifyParameters(
 	ctx context.Context,
 	family *string,
 	groupName *string,
-	toModify map[string]*string,
+	toModify util.Parameters,
 ) (err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.modifyParameters")
