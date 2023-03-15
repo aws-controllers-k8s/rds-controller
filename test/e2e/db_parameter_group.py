@@ -13,7 +13,47 @@
 
 """Utilities for working with DB parameter group resources"""
 
+import datetime
+import time
+
 import boto3
+import pytest
+
+DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*10
+DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
+
+
+def wait_until_deleted(
+        pg_name: str,
+        timeout_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS,
+        interval_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS,
+    ) -> None:
+    """Waits until a DB param group with a supplied ID is no longer returned
+    from the RDS API.
+
+    Usage:
+        from e2e.db_parameter_group import wait_until_deleted
+
+        wait_until_deleted(pg_name)
+
+    Raises:
+        pytest.fail upon timeout or if the DB param group goes to any other
+        status other than 'deleting'
+    """
+    now = datetime.datetime.now()
+    timeout = now + datetime.timedelta(seconds=timeout_seconds)
+
+    while True:
+        if datetime.datetime.now() >= timeout:
+            pytest.fail(
+                "Timed out waiting for DB param group to be "
+                "deleted in RDS API"
+            )
+        time.sleep(interval_seconds)
+
+        latest = get(pg_name)
+        if latest is None:
+            break
 
 
 def get(db_parameter_group_name):
@@ -32,6 +72,7 @@ def get(db_parameter_group_name):
     except c.exceptions.DBParameterGroupNotFoundFault:
         return None
 
+
 def get_parameters(db_parameter_group_name):
     """Returns a dict containing the paramters of a given parameter group
 
@@ -45,6 +86,7 @@ def get_parameters(db_parameter_group_name):
         return resp['Parameters']
     except c.exceptions.DBParameterGroupNotFoundFault:
         return None
+
 
 def get_tags(db_parameter_group_arn):
     """Returns a dict containing the DB parameter group's tag records from the

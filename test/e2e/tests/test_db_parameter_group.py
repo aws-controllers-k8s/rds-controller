@@ -33,39 +33,58 @@ CREATE_WAIT_AFTER_SECONDS = 10
 MODIFY_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 
+RESOURCE_DESC_PG13 = "Parameters for PostgreSQL 13"
+
+
+@pytest.fixture
+def pg13_param_group():
+    resource_name = random_suffix_name("pg13-standard", 24)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["DB_PARAMETER_GROUP_NAME"] = resource_name
+    replacements["DB_PARAMETER_GROUP_DESC"] = RESOURCE_DESC_PG13
+
+    resource_data = load_rds_resource(
+        "db_parameter_group_postgres13_standard",
+        additional_replacements=replacements,
+    )
+    logging.debug(resource_data)
+
+    # Create the k8s resource
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        resource_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+
+    yield ref, cr, resource_name
+
+    # Try to delete, if doesn't already exist
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_parameter_group.wait_until_deleted(resource_name)
+
+
 @service_marker
 @pytest.mark.canary
 class TestDBParameterGroup:
-    def test_create_delete_postgres13_standard(self):
-        resource_name = random_suffix_name("pg13-standard", 32)
-        resource_desc = "Parameters for PostgreSQL 13"
-
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements["DB_PARAMETER_GROUP_NAME"] = resource_name
-        replacements["DB_PARAMETER_GROUP_DESC"] = resource_desc
-
-        resource_data = load_rds_resource(
-            "db_parameter_group_postgres13_standard",
-            additional_replacements=replacements,
-        )
-        logging.debug(resource_data)
-
-        # Create the k8s resource
-        ref = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            resource_name, namespace="default",
-        )
-        k8s.create_custom_resource(ref, resource_data)
-        time.sleep(CREATE_WAIT_AFTER_SECONDS)
-        cr = k8s.wait_resource_consumed_by_controller(ref)
-
-        assert cr is not None
-        assert k8s.get_resource_exists(ref)
+    def test_crud_postgres13_standard(self, pg13_param_group):
+        ref, cr, resource_name = pg13_param_group
 
         # Let's check that the DB parameter group appears in RDS
         latest = db_parameter_group.get(resource_name)
         assert latest is not None
-        assert latest['Description'] == resource_desc
+        assert latest['Description'] == RESOURCE_DESC_PG13
 
         params = db_parameter_group.get_parameters(resource_name)
         test_params = list(filter(lambda x: x["ParameterName"] in ["array_nulls", "authentication_timeout"], params))
@@ -94,7 +113,7 @@ class TestDBParameterGroup:
             "array_nulls": "1",
             "authentication_timeout": "60",
         }
-        
+
         updates = {
             "spec": {
                 "tags": new_tags,
@@ -117,12 +136,3 @@ class TestDBParameterGroup:
         assert len(test_params) == 2
         assert test_params[1]["ParameterName"] == "authentication_timeout"
         assert test_params[1]["ParameterValue"] == "60"
-
-        # Delete the k8s resource on teardown of the module
-        k8s.delete_custom_resource(ref)
-
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
-
-        # DB parameter group should no longer appear in RDS
-        latest = db_parameter_group.get(resource_name)
-        assert latest is None
