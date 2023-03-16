@@ -70,3 +70,28 @@ func GetParametersDifference(
 
 	return added, unchanged, removed
 }
+
+// ChunkMap splits a supplied map of parameters into multiple
+// slices of maps of parameters of a given size.
+func ChunkMap(
+	input Parameters,
+	chunkSize int,
+) []Parameters {
+	var chunks []Parameters
+	chunk := Parameters{}
+	idx := 0
+	for k, v := range input {
+		if idx < chunkSize {
+			chunk[k] = v
+			idx++
+		} else {
+			// reset the chunker
+			chunks = append(chunks, chunk)
+			chunk = Parameters{}
+			idx = 0
+		}
+	}
+	chunks = append(chunks, chunk)
+
+	return chunks
+}

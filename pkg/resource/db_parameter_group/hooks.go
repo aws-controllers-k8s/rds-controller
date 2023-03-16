@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/samber/lo"
-
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
@@ -237,7 +235,7 @@ func (rm *resourceManager) syncParameters(
 	// and modified parameter sets.
 
 	if len(toDelete) > 0 {
-		chunks := lo.Chunk(toDelete, maxResetParametersSize)
+		chunks := util.ChunkMap(toDelete, maxResetParametersSize)
 		for _, chunk := range chunks {
 			err = rm.resetParameters(ctx, family, groupName, chunk)
 			if err != nil {
@@ -247,7 +245,7 @@ func (rm *resourceManager) syncParameters(
 	}
 
 	if len(toModify) > 0 {
-		chunks := lo.Chunk(toModify, maxResetParametersSize)
+		chunks := util.ChunkMap(toModify, maxResetParametersSize)
 		for _, chunk := range chunks {
 			err = rm.modifyParameters(ctx, family, groupName, chunk)
 			if err != nil {
