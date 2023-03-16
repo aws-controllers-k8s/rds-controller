@@ -84,6 +84,7 @@ class TestDBClusterParameterGroup:
             }
         ]
         new_params = {
+            "aurora_enable_replica_log_compression": "1",
             "autocommit": "1",
         }
         updates = {
@@ -104,10 +105,10 @@ class TestDBClusterParameterGroup:
         ]
         assert latest_tags == after_update_expected_tags
         params = db_cluster_parameter_group.get_parameters(resource_name)
-        test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit"], params))
-        assert len(test_params) == 1
-        assert test_params[0]["ParameterName"] == "autocommit"
-        assert test_params[0]["ParameterValue"] == "1"
+        test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit", "aurora_enable_replica_log_compression"], params))
+        assert len(test_params) == 2
+        assert test_params[1]["ParameterName"] == "autocommit"
+        assert test_params[1]["ParameterValue"] == "1"
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
