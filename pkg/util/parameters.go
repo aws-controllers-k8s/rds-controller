@@ -71,9 +71,9 @@ func GetParametersDifference(
 	return added, unchanged, removed
 }
 
-// ChunkMap splits a supplied map of parameters into multiple
+// ChunkParameters splits a supplied map of parameters into multiple
 // slices of maps of parameters of a given size.
-func ChunkMap(
+func ChunkParameters(
 	input Parameters,
 	chunkSize int,
 ) []Parameters {

@@ -235,7 +235,7 @@ func (rm *resourceManager) syncParameters(
 	// and modified parameter sets.
 
 	if len(toDelete) > 0 {
-		chunks := util.ChunkMap(toDelete, maxResetParametersSize)
+		chunks := util.ChunkParameters(toDelete, maxResetParametersSize)
 		for _, chunk := range chunks {
 			err = rm.resetParameters(ctx, family, groupName, chunk)
 			if err != nil {
@@ -245,7 +245,7 @@ func (rm *resourceManager) syncParameters(
 	}
 
 	if len(toModify) > 0 {
-		chunks := util.ChunkMap(toModify, maxResetParametersSize)
+		chunks := util.ChunkParameters(toModify, maxResetParametersSize)
 		for _, chunk := range chunks {
 			err = rm.modifyParameters(ctx, family, groupName, chunk)
 			if err != nil {
