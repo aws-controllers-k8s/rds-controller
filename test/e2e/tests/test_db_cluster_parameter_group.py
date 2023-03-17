@@ -106,9 +106,10 @@ class TestDBClusterParameterGroup:
         assert latest_tags == after_update_expected_tags
         params = db_cluster_parameter_group.get_parameters(resource_name)
         test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit", "aurora_enable_replica_log_compression"], params))
-        assert len(test_params) == 2
-        assert test_params[1]["ParameterName"] == "autocommit"
-        assert test_params[1]["ParameterValue"] == "1"
+        assert len(test_params) == 2, f"test_params of wrong length: {test_params}"
+        assert test_params[1]["ParameterName"] == "autocommit", f"Could not find parameter of name 'autocommit': {test_params[1]}"
+        assert "ParameterValue" in test_params[1], f"No ParameterValue in parameter of name 'autocommit': {test_params[1]}"
+        assert test_params[1]["ParameterValue"] == "1", f"Wrong value for parameter of name 'autocommit': {test_params[1]}"
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
