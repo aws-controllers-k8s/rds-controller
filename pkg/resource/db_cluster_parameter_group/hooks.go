@@ -202,13 +202,6 @@ func sdkTagsFromResourceTags(
 	return tags
 }
 
-func equalStrings(a, b *string) bool {
-	if a == nil {
-		return b == nil || *b == ""
-	}
-	return (*a == "" && b == nil) || *a == *b
-}
-
 // syncParameters keeps the resource's parameters in sync
 //
 // RDS does not have a DeleteParameter or DeleteParameterFromParameterGroup API
