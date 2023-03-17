@@ -84,8 +84,8 @@ class TestDBClusterParameterGroup:
             }
         ]
         new_params = {
-            "aurora_enable_replica_log_compression": "1",
             "autocommit": "1",
+            "aurora_binlog_read_buffer_size": "5242880",
         }
         updates = {
             "spec": {
@@ -105,11 +105,11 @@ class TestDBClusterParameterGroup:
         ]
         assert latest_tags == after_update_expected_tags
         params = db_cluster_parameter_group.get_parameters(resource_name)
-        test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit", "aurora_enable_replica_log_compression"], params))
+        test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit", "aurora_binlog_read_buffer_size"], params))
         assert len(test_params) == 2, f"test_params of wrong length: {test_params}"
-        assert test_params[1]["ParameterName"] == "autocommit", f"Could not find parameter of name 'autocommit': {test_params[1]}"
-        assert "ParameterValue" in test_params[1], f"No ParameterValue in parameter of name 'autocommit': {test_params[1]}"
-        assert test_params[1]["ParameterValue"] == "1", f"Wrong value for parameter of name 'autocommit': {test_params[1]}"
+        assert test_params[1]["ParameterName"] == "aurora_binlog_read_buffer_size", f"Could not find parameter of name 'aurora_binlog_read_buffer_size': {test_params[1]}"
+        assert "ParameterValue" in test_params[1], f"No ParameterValue in parameter of name 'aurora_binlog_read_buffer_size': {test_params}"
+        assert test_params[1]["ParameterValue"] == "5242880", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {test_params}"
 
         # Delete the k8s resource on teardown of the module
         k8s.delete_custom_resource(ref)
