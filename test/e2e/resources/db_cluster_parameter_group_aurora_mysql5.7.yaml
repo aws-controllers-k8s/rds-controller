@@ -9,3 +9,6 @@ spec:
   tags:
     - key: environment
       value: dev
+  parameterOverrides:
+    aurora_binlog_read_buffer_size: "4321"
+    autocommit: "1"
