@@ -97,15 +97,18 @@ class TestDBClusterParameterGroup:
             "aurora_read_replica_read_committed",
             "aurora_binlog_read_buffer_size",
         ], latest_params))
-        found = False
+        found = 0
         for tp in test_params:
             assert "ParameterName" in tp, f"No ParameterName in parameter: {tp}"
             if tp["ParameterName"] == "aurora_binlog_read_buffer_size":
-                found = True
+                found += 1
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_binlog_read_buffer_size': {tp}"
                 assert tp["ParameterValue"] == "8192", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-                break
-        assert found, f"No parameter of name 'aurora_binlog_read_buffer_size' was found: {test_params}"
+            elif tp["ParameterName"] == "aurora_read_replica_read_committed":
+                found += 1
+                assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_read_replica_read_committed': {tp}"
+                assert tp["ParameterValue"] == "OFF", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
+        assert found == 2, f"Did not find parameters with names 'aurora_binlog_read_buffer_size' and 'aurora_read_replica_read_committed': {test_params}"
 
         # OK, now let's update the tag set and check that the tags are
         # updated accordingly.
@@ -143,12 +146,15 @@ class TestDBClusterParameterGroup:
         ], params))
         assert len(test_params) == 2, f"test_params of wrong length: {test_params}"
 
-        found = False
+        found = 0
         for tp in test_params:
             assert "ParameterName" in tp, f"No ParameterName in parameter: {tp}"
             if tp["ParameterName"] == "aurora_binlog_read_buffer_size":
-                found = True
+                found += 1
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_binlog_read_buffer_size': {tp}"
                 assert tp["ParameterValue"] == "5242880", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-                break
-        assert found, f"No parameter of name 'aurora_binlog_read_buffer_size' was found: {test_params}"
+            elif tp["ParameterName"] == "aurora_read_replica_read_committed":
+                found += 1
+                assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_read_replica_read_committed': {tp}"
+                assert tp["ParameterValue"] == "ON", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
+        assert found == 2, f"Did not find parameters with names 'aurora_binlog_read_buffer_size' and 'aurora_read_replica_read_committed': {test_params}"
