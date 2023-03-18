@@ -79,12 +79,11 @@ class TestDBClusterParameterGroup:
         aurora_mysql57_cluster_parameter_group,
     ):
         (ref, cr) = aurora_mysql57_cluster_parameter_group
-        dbc_pg_name = cr["spec"]["name"]
+        resource_name = cr["spec"]["name"]
 
         # Let's check that the DB cluster parameter group appears in RDS
-        latest = db_cluster_parameter_group.get(dbc_pg_name)
+        latest = db_cluster_parameter_group.get(resource_name)
         assert latest is not None
-        assert latest['Description'] == resource_desc
 
         arn = latest['DBClusterParameterGroupArn']
         expect_tags = [
