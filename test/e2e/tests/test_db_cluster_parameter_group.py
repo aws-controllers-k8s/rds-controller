@@ -92,18 +92,18 @@ class TestDBClusterParameterGroup:
         latest_tags = tag.clean(db_cluster_parameter_group.get_tags(arn))
         assert expect_tags == latest_tags
 
-        expect_params = [
-            {"autocommit": "1", "aurora_binlog_read_buffer_size": "4321"}
-        ]
         latest_params = db_cluster_parameter_group.get_parameters(resource_name)
-        test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit", "aurora_binlog_read_buffer_size"], params))
+        test_params = list(filter(lambda x: x["ParameterName"] in [
+            "aurora_read_replica_read_committed",
+            "aurora_binlog_read_buffer_size",
+        ], latest_params))
         found = False
         for tp in test_params:
             assert "ParameterName" in tp, f"No ParameterName in parameter: {tp}"
             if tp["ParameterName"] == "aurora_binlog_read_buffer_size":
                 found = True
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-                assert tp["ParameterValue"] == "4321", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {tp}"
+                assert tp["ParameterValue"] == "8192", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {tp}"
                 break
         assert found, f"No parameter of name 'aurora_binlog_read_buffer_size' was found: {test_params}"
 
@@ -116,7 +116,7 @@ class TestDBClusterParameterGroup:
             }
         ]
         new_params = {
-            "autocommit": "0",
+            "aurora_read_replica_read_committed": "ON",
             "aurora_binlog_read_buffer_size": "5242880",
         }
         updates = {
@@ -137,7 +137,10 @@ class TestDBClusterParameterGroup:
         ]
         assert latest_tags == after_update_expected_tags
         params = db_cluster_parameter_group.get_parameters(resource_name)
-        test_params = list(filter(lambda x: x["ParameterName"] in ["autocommit", "aurora_binlog_read_buffer_size"], params))
+        test_params = list(filter(lambda x: x["ParameterName"] in [
+            "aurora_read_replica_read_committed",
+            "aurora_binlog_read_buffer_size"
+        ], params))
         assert len(test_params) == 2, f"test_params of wrong length: {test_params}"
 
         found = False
