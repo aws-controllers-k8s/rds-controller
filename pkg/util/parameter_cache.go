@@ -56,7 +56,7 @@ func (c *ParamMetaCache) Get(
 	var meta ParamMeta
 
 	// We need to release the lock right after the read operation, because
-	// loadFamilly will might call a writeLock at L619
+	// loadFamily might call a writeLock below
 	c.RLock()
 	metas, found = c.Cache[family]
 	c.RUnlock()
