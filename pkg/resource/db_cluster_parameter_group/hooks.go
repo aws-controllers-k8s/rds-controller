@@ -391,8 +391,8 @@ func (rm *resourceManager) modifyParameters(
 	return nil
 }
 
-// getFamilyParameters calls the RDS DescribeEngineDefaultParameters API to
-// retrieve the set of parameter information for a DB parameter group family.
+// getFamilyParameters calls the RDS DescribeEngineDefaultClusterParameters API to
+// retrieve the set of parameter information for a DB cluster parameter group family.
 func (rm *resourceManager) getFamilyParameters(
 	ctx context.Context,
 	family string,
@@ -401,14 +401,14 @@ func (rm *resourceManager) getFamilyParameters(
 	familyMeta := map[string]util.ParamMeta{}
 
 	for {
-		resp, err := rm.sdkapi.DescribeEngineDefaultParametersWithContext(
+		resp, err := rm.sdkapi.DescribeEngineDefaultClusterParametersWithContext(
 			ctx,
-			&svcsdk.DescribeEngineDefaultParametersInput{
+			&svcsdk.DescribeEngineDefaultClusterParametersInput{
 				DBParameterGroupFamily: aws.String(family),
 				Marker:                 marker,
 			},
 		)
-		rm.metrics.RecordAPICall("GET", "DescribeEngineDefaultParameters", err)
+		rm.metrics.RecordAPICall("GET", "DescribeEngineDefaultClusterParameters", err)
 		if err != nil {
 			return nil, err
 		}
