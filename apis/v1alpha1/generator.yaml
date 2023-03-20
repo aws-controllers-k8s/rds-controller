@@ -170,6 +170,8 @@ resources:
         template_path: hooks/db_cluster_parameter_group/sdk_read_many_post_set_output.go.tpl
       delta_pre_compare:
         template_path: hooks/db_cluster_parameter_group/delta_pre_compare.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/db_cluster_parameter_group/sdk_create_post_set_output.go.tpl
     fields:
       Name:
         is_primary_key: true
@@ -177,10 +179,26 @@ resources:
         from:
           operation: ModifyDBClusterParameterGroup
           path: Parameters
+        documentation:  DEPRECATED - do not use.  Prefer ParameterOverrides instead.
+      ParameterOverrides:
+        custom_field:
+          # Map keys are the parameter name and the values are the parameter value.
+          # We automatically determine the "apply method" for parameters.
+          map_of: String
+        documentation: These are ONLY user-defined parameter overrides for the
+          DB cluster parameter group. This does not contain default or system
+          parameters.
       Tags:
         compare:
           # We have a custom comparison function...
           is_ignored: true
+      # These are the "statuses" for the user-defined parameter overrides in
+      # Spec.ParameterOverrides
+      ParameterOverrideStatuses:
+        from:
+          operation: DescribeDBClusterParameters
+          path: Parameters
+        is_read_only: true
   DBInstance:
     hooks:
       delta_pre_compare:
@@ -324,8 +342,6 @@ resources:
     fields:
       Name:
         is_primary_key: true
-      # These are ONLY user-defined parameter overrides for the DB parameter
-      # group. This does not contain default or system parameters.
       ParameterOverrides:
         custom_field:
           # The type is a map[string]string where the map keys are the
@@ -334,6 +350,9 @@ resources:
           # the user needs to do is specify the parameter name and value they
           # want to override...
           map_of: String
+        documentation:
+          These are ONLY user-defined parameter overrides for the DB parameter
+          group. This does not contain default or system parameters.
       Tags:
         compare:
           # We have a custom comparison function...

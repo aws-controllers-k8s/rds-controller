@@ -20,6 +20,7 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
@@ -36,7 +37,7 @@ DELETE_WAIT_AFTER_SECONDS = 10
 @pytest.mark.canary
 class TestDBParameterGroup:
     def test_create_delete_postgres13_standard(self):
-        resource_name = "pg13-standard"
+        resource_name = random_suffix_name("pg13-standard", 32)
         resource_desc = "Parameters for PostgreSQL 13"
 
         replacements = REPLACEMENT_VALUES.copy()

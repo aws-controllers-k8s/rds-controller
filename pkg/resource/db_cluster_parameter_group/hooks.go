@@ -15,21 +15,44 @@ package db_cluster_parameter_group
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	"github.com/aws/aws-sdk-go/aws"
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
 
+const (
+	applyTypeStatic        = "static"
+	sourceUser             = "user"
+	maxResetParametersSize = 20
+)
+
+var (
+	// cache of parameter defaults
+	cachedParamMeta = util.ParamMetaCache{
+		Cache: map[string]map[string]util.ParamMeta{},
+	}
+
+	errParameterGroupJustCreated = fmt.Errorf("parameter group just got created")
+	requeueWaitWhileCreating     = ackrequeue.NeededAfter(
+		errParameterGroupJustCreated,
+		100*time.Millisecond,
+	)
+)
+
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/869.
 //
-// We will need to update parameters in a parameter group using custom logic.
-// Until then, however, let's support updating tags for the parameter group.
+// We will need to update parameters in a cluster parameter group using custom logic.
+// Until then, however, let's support updating tags for the cluster parameter group.
 func (rm *resourceManager) customUpdate(
 	ctx context.Context,
 	desired *resource,
@@ -43,6 +66,11 @@ func (rm *resourceManager) customUpdate(
 	}()
 	if delta.DifferentAt("Spec.Tags") {
 		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+	if delta.DifferentAt("Spec.ParameterOverrides") {
+		if err = rm.syncParameters(ctx, desired, latest); err != nil {
 			return nil, err
 		}
 	}
@@ -172,4 +200,229 @@ func sdkTagsFromResourceTags(
 		}
 	}
 	return tags
+}
+
+// syncParameters keeps the resource's parameters in sync
+//
+// RDS does not have a DeleteParameter or DeleteParameterFromParameterGroup API
+// call. Instead, you need to call ResetDBClusterParameterGroup with a list of
+// DB Cluster Parameters that you want RDS to reset to a default value.
+func (rm *resourceManager) syncParameters(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.syncParameters")
+	defer func() { exit(err) }()
+
+	groupName := latest.ko.Spec.Name
+	family := latest.ko.Spec.Family
+
+	toModify, _, toDelete := util.GetParametersDifference(
+		desired.ko.Spec.ParameterOverrides,
+		latest.ko.Spec.ParameterOverrides,
+	)
+
+	if len(toDelete) > 0 {
+		err = rm.resetParameters(ctx, family, groupName, toDelete)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(toModify) > 0 {
+		err = rm.modifyParameters(ctx, family, groupName, toModify)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// getParameters retrieves the cluster parameter group's user-defined parameters
+// (overrides) and the "statuses" of those parameter overrides.
+func (rm *resourceManager) getParameters(
+	ctx context.Context,
+	groupName *string,
+) (
+	params map[string]*string,
+	paramStatuses []*svcapitypes.Parameter,
+	err error,
+) {
+	var marker *string
+	params = make(map[string]*string)
+	for {
+		resp, err := rm.sdkapi.DescribeDBClusterParametersWithContext(
+			ctx,
+			&svcsdk.DescribeDBClusterParametersInput{
+				DBClusterParameterGroupName: groupName,
+				Source:                      aws.String(sourceUser),
+				Marker:                      marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeDBClusterParameters", err)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, param := range resp.Parameters {
+			params[*param.ParameterName] = param.ParameterValue
+			p := svcapitypes.Parameter{
+				ParameterName:  param.ParameterName,
+				ParameterValue: param.ParameterValue,
+				ApplyMethod:    param.ApplyMethod,
+				ApplyType:      param.ApplyType,
+			}
+			paramStatuses = append(paramStatuses, &p)
+		}
+		marker = resp.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return params, paramStatuses, nil
+}
+
+// resetParameters calls the RDS ResetDBClusterParameterGroup API call
+func (rm *resourceManager) resetParameters(
+	ctx context.Context,
+	family *string,
+	groupName *string,
+	toDelete util.Parameters,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.resetParameters")
+	defer func() { exit(err) }()
+
+	var pMeta *util.ParamMeta
+	inputParams := []*svcsdk.Parameter{}
+	for paramName, _ := range toDelete {
+		// default to this if something goes wrong looking up parameter
+		// defaults
+		applyMethod := svcsdk.ApplyMethodImmediate
+		pMeta, err = cachedParamMeta.Get(
+			ctx, *family, paramName, rm.getFamilyParameters,
+		)
+		if err != nil {
+			return err
+		}
+		if !pMeta.IsModifiable {
+			return util.NewErrUnmodifiableParameter(paramName)
+		}
+		if !pMeta.IsDynamic {
+			applyMethod = svcsdk.ApplyMethodPendingReboot
+		}
+		p := &svcsdk.Parameter{
+			ParameterName: aws.String(paramName),
+			ApplyMethod:   aws.String(applyMethod),
+		}
+		inputParams = append(inputParams, p)
+	}
+
+	rlog.Debug(
+		"resetting parameters from cluster parameter group",
+		"parameters", toDelete,
+	)
+	_, err = rm.sdkapi.ResetDBClusterParameterGroupWithContext(
+		ctx,
+		&svcsdk.ResetDBClusterParameterGroupInput{
+			DBClusterParameterGroupName: groupName,
+			Parameters:                  inputParams,
+		},
+	)
+	rm.metrics.RecordAPICall("UPDATE", "ResetDBClusterParameterGroup", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// modifyParameters calls the RDS ModifyDBClusterParameterGroup API call
+func (rm *resourceManager) modifyParameters(
+	ctx context.Context,
+	family *string,
+	groupName *string,
+	toModify util.Parameters,
+) (err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.modifyParameters")
+	defer func() { exit(err) }()
+
+	var pMeta *util.ParamMeta
+	inputParams := []*svcsdk.Parameter{}
+	for paramName, paramValue := range toModify {
+		// default to "immediate" if something goes wrong looking up defaults
+		applyMethod := svcsdk.ApplyMethodImmediate
+		pMeta, err = cachedParamMeta.Get(
+			ctx, *family, paramName, rm.getFamilyParameters,
+		)
+		if err != nil {
+			return err
+		}
+		if !pMeta.IsModifiable {
+			return util.NewErrUnmodifiableParameter(paramName)
+		}
+		if !pMeta.IsDynamic {
+			applyMethod = svcsdk.ApplyMethodPendingReboot
+		}
+		p := &svcsdk.Parameter{
+			ParameterName:  aws.String(paramName),
+			ParameterValue: paramValue,
+			ApplyMethod:    aws.String(applyMethod),
+		}
+		inputParams = append(inputParams, p)
+	}
+
+	rlog.Debug(
+		"modifying parameters from parameter group",
+		"parameters", toModify,
+	)
+	_, err = rm.sdkapi.ModifyDBClusterParameterGroupWithContext(
+		ctx,
+		&svcsdk.ModifyDBClusterParameterGroupInput{
+			DBClusterParameterGroupName: groupName,
+			Parameters:                  inputParams,
+		},
+	)
+	rm.metrics.RecordAPICall("UPDATE", "ModifyDBClusterParameterGroup", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// getFamilyParameters calls the RDS DescribeEngineDefaultClusterParameters API to
+// retrieve the set of parameter information for a DB cluster parameter group family.
+func (rm *resourceManager) getFamilyParameters(
+	ctx context.Context,
+	family string,
+) (map[string]util.ParamMeta, error) {
+	var marker *string
+	familyMeta := map[string]util.ParamMeta{}
+
+	for {
+		resp, err := rm.sdkapi.DescribeEngineDefaultClusterParametersWithContext(
+			ctx,
+			&svcsdk.DescribeEngineDefaultClusterParametersInput{
+				DBParameterGroupFamily: aws.String(family),
+				Marker:                 marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeEngineDefaultClusterParameters", err)
+		if err != nil {
+			return nil, err
+		}
+		for _, param := range resp.EngineDefaults.Parameters {
+			pName := *param.ParameterName
+			familyMeta[pName] = util.ParamMeta{
+				IsModifiable: *param.IsModifiable,
+				IsDynamic:    *param.ApplyType != applyTypeStatic,
+			}
+		}
+		marker = resp.EngineDefaults.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return familyMeta, nil
 }

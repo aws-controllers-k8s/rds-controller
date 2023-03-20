@@ -67,6 +67,13 @@ spec:
                   \n * Must not match the name of an existing DB cluster parameter
                   group. \n This value is stored as a lowercase string."
                 type: string
+              parameterOverrides:
+                additionalProperties:
+                  type: string
+                description: These are ONLY user-defined parameter overrides for the
+                  DB cluster parameter group. This does not contain default or system
+                  parameters.
+                type: object
               parameters:
                 description: "A list of parameters in the DB cluster parameter group
                   to modify. \n Valid Values (for the application method): immediate
@@ -77,7 +84,8 @@ spec:
                   clusters associated with the parameter group. When the application
                   method is pending-reboot, changes to dynamic and static parameters
                   are applied after a reboot without failover to the DB clusters associated
-                  with the parameter group."
+                  with the parameter group. \n DEPRECATED - do not use.  Prefer ParameterOverrides
+                  instead."
                 items:
                   description: "This data type is used as a request parameter in the
                     ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This
@@ -190,6 +198,41 @@ spec:
                   required:
                   - status
                   - type
+                  type: object
+                type: array
+              parameterOverrideStatuses:
+                description: Provides a list of parameters for the DB cluster parameter
+                  group.
+                items:
+                  description: "This data type is used as a request parameter in the
+                    ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This
+                    data type is used as a response element in the DescribeEngineDefaultParameters
+                    and DescribeDBParameters actions."
+                  properties:
+                    allowedValues:
+                      type: string
+                    applyMethod:
+                      type: string
+                    applyType:
+                      type: string
+                    dataType:
+                      type: string
+                    description:
+                      type: string
+                    isModifiable:
+                      type: boolean
+                    minimumEngineVersion:
+                      type: string
+                    parameterName:
+                      type: string
+                    parameterValue:
+                      type: string
+                    source:
+                      type: string
+                    supportedEngineModes:
+                      items:
+                        type: string
+                      type: array
                   type: object
                 type: array
             type: object

@@ -126,6 +126,15 @@ func (rm *resourceManager) sdkFind(
 		}
 		ko.Spec.Tags = tags
 	}
+	if ko.Spec.Name != nil {
+		groupName := ko.Spec.Name
+		params, paramStatuses, err := rm.getParameters(ctx, groupName)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.ParameterOverrides = params
+		ko.Status.ParameterOverrideStatuses = paramStatuses
+	}
 
 	return &resource{ko}, nil
 }
@@ -206,6 +215,10 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
+	// We need to instantly requeue after a create operation, otherwise the controller
+	// will override the latest resource with the desired resource overrideParameters
+	// and cause the controller to not properly compare latest and desired resources.
+	return &resource{ko}, requeueWaitWhileCreating
 	return &resource{ko}, nil
 }
 

@@ -34,6 +34,19 @@ def get(db_cluster_parameter_group_name):
     except c.exceptions.DBParameterGroupNotFoundFault:
         return None
 
+def get_parameters(db_cluster_parameter_group_name):
+    """Returns a dict containing the paramters of a given parameter group
+
+    If no such DB cluster parameter group exists, returns None.
+    """
+    c = boto3.client('rds')
+    try:
+        resp = c.describe_db_cluster_parameters(
+            DBClusterParameterGroupName=db_cluster_parameter_group_name,
+        )
+        return resp['Parameters']
+    except c.exceptions.DBClusterParameterGroupNotFoundFault:
+        return None
 
 def get_tags(db_cluster_parameter_group_arn):
     """Returns a dict containing the DB cluster parameter group's tag records
