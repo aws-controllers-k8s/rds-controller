@@ -13,7 +13,46 @@
 
 """Utilities for working with DB cluster parameter group resources"""
 
+import datetime
+import time
+
 import boto3
+import pytest
+
+DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*10
+DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
+
+
+def wait_until_deleted(
+        cpg_name: str,
+        timeout_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS,
+        interval_seconds: int = DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS,
+    ) -> None:
+    """Waits until a DB cluster param group with a supplied ID is no longer
+    returned from the RDS API.
+
+    Usage:
+        from e2e.db_cluster_parameter_group import wait_until_deleted
+
+        wait_until_deleted(cpg_name)
+
+    Raises:
+        pytest.fail upon timeout
+    """
+    now = datetime.datetime.now()
+    timeout = now + datetime.timedelta(seconds=timeout_seconds)
+
+    while True:
+        if datetime.datetime.now() >= timeout:
+            pytest.fail(
+                "Timed out waiting for DB cluster param group to be "
+                "deleted in RDS API"
+            )
+        time.sleep(interval_seconds)
+
+        latest = get(cpg_name)
+        if latest is None:
+            break
 
 
 def get(db_cluster_parameter_group_name):

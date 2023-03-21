@@ -34,15 +34,16 @@ DELETE_WAIT_AFTER_SECONDS = 10
 # take several minutes before the new tag values are available due to caching.
 MODIFY_WAIT_AFTER_SECONDS = 180
 
+RESOURCE_DESC_AURORA_MYSQL57 = "Parameters for Aurora MySQL 5.7-compatible"
+
 
 @pytest.fixture
-def aurora_mysql57_cluster_parameter_group():
-    resource_name = random_suffix_name("aurora-mysql-5-7", 32)
-    resource_desc = "Parameters for Aurora MySQL 5.7-compatible"
+def aurora_mysql57_cluster_param_group():
+    resource_name = random_suffix_name("aurora-mysql-5-7", 24)
 
     replacements = REPLACEMENT_VALUES.copy()
     replacements["DB_CLUSTER_PARAMETER_GROUP_NAME"] = resource_name
-    replacements["DB_CLUSTER_PARAMETER_GROUP_DESC"] = resource_desc
+    replacements["DB_CLUSTER_PARAMETER_GROUP_DESC"] = RESOURCE_DESC_AURORA_MYSQL57
 
     resource_data = load_rds_resource(
         "db_cluster_parameter_group_aurora_mysql5.7",
@@ -61,29 +62,29 @@ def aurora_mysql57_cluster_parameter_group():
     assert cr is not None
     assert k8s.get_resource_exists(ref)
 
-    yield (ref, cr)
+    yield ref, cr, resource_name
 
     # Try to delete, if doesn't already exist
     try:
         _, deleted = k8s.delete_custom_resource(ref, 3, 10)
         assert deleted
-        db_instance.wait_until_deleted(db_instance_id)
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
     except:
         pass
+
+    db_cluster_parameter_group.wait_until_deleted(resource_name)
+
 
 @service_marker
 @pytest.mark.canary
 class TestDBClusterParameterGroup:
-    def test_create_delete_aurora_mysql5_7(
-        self,
-        aurora_mysql57_cluster_parameter_group,
-    ):
-        (ref, cr) = aurora_mysql57_cluster_parameter_group
-        resource_name = cr["spec"]["name"]
+    def test_crud_aurora_mysql5_7(self, aurora_mysql57_cluster_param_group):
+        ref, cr, resource_name = aurora_mysql57_cluster_param_group
 
         # Let's check that the DB cluster parameter group appears in RDS
         latest = db_cluster_parameter_group.get(resource_name)
         assert latest is not None
+        assert latest['Description'] == RESOURCE_DESC_AURORA_MYSQL57
 
         arn = latest['DBClusterParameterGroupArn']
         expect_tags = [

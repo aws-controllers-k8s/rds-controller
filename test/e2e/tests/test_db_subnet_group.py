@@ -20,6 +20,7 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
@@ -33,35 +34,52 @@ DELETE_WAIT_AFTER_SECONDS = 10
 # take several minutes before the new tag values are available due to caching.
 MODIFY_WAIT_AFTER_SECONDS = 180
 
+RESOURCE_DESC = "my-db-subnet-group description"
+
+@pytest.fixture
+def subnet_group_2az():
+    resource_name = random_suffix_name("my-db-subnet-group", 24)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["DB_SUBNET_GROUP_NAME"] = resource_name
+    replacements["DB_SUBNET_GROUP_DESC"] = RESOURCE_DESC
+
+    resource_data = load_rds_resource(
+        "db_subnet_group_2az",
+        additional_replacements=replacements,
+    )
+    logging.debug(resource_data)
+
+    # Create the k8s resource
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        resource_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+    condition.assert_synced(ref)
+
+    yield ref, cr, resource_name
+
+    # Try to delete, if doesn't already exist
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_subnet_group.wait_until_deleted(resource_name)
+
 
 @service_marker
 @pytest.mark.canary
 class TestDBSubnetGroup:
-    def test_create_delete_2az(self):
-        resource_name = "my-db-subnet-group"
-        resource_desc = "my-db-subnet-group description"
-
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements["DB_SUBNET_GROUP_NAME"] = resource_name
-        replacements["DB_SUBNET_GROUP_DESC"] = resource_desc
-
-        resource_data = load_rds_resource(
-            "db_subnet_group_2az",
-            additional_replacements=replacements,
-        )
-        logging.debug(resource_data)
-
-        # Create the k8s resource
-        ref = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            resource_name, namespace="default",
-        )
-        k8s.create_custom_resource(ref, resource_data)
-        cr = k8s.wait_resource_consumed_by_controller(ref)
-
-        assert cr is not None
-        assert k8s.get_resource_exists(ref)
-        condition.assert_synced(ref)
+    def test_crud_2az(self, subnet_group_2az):
+        ref, cr, resource_name = subnet_group_2az
 
         # Let's check that the DB subnet group appears in RDS
         latest = db_subnet_group.get(resource_name)
@@ -69,7 +87,7 @@ class TestDBSubnetGroup:
         # NOTE(jaypipes): This field for DBParameterGroup is called
         # `Description`. For DBSubnetGroup it is called
         # `DBSubnetGroupDescription`
-        assert latest['DBSubnetGroupDescription'] == resource_desc
+        assert latest['DBSubnetGroupDescription'] == RESOURCE_DESC
 
         arn = latest['DBSubnetGroupArn']
         expect_tags = [
@@ -100,10 +118,3 @@ class TestDBSubnetGroup:
             }
         ]
         assert latest_tags == after_update_expected_tags
-
-        k8s.delete_custom_resource(ref)
-
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
-
-        # DB subnet group should no longer appear in RDS
-        db_subnet_group.wait_until_deleted(resource_name)
