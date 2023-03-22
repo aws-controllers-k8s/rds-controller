@@ -769,6 +769,11 @@ func (rm *resourceManager) sdkFind(
 		}
 		ko.Spec.VPCSecurityGroupIDs = sgIDs
 	}
+	if len(r.ko.Status.DBParameterGroups) > 0 {
+		// If the db parameter group name is changed then update the spec of the latest resource with the
+		// latest values from the status.
+		r.ko.Spec.DBParameterGroupName = r.ko.Status.DBParameterGroups[0].DBParameterGroupName
+	}
 
 	return &resource{ko}, nil
 }

@@ -25,3 +25,8 @@
 		}
 		ko.Spec.VPCSecurityGroupIDs = sgIDs
 	}
+	if r.ko.Status.DBClusterParameterGroup != nil {
+		// If the db cluster parameter group name is changed then update the spec of the latest resource with the 
+		// latest values from the status. 
+		r.ko.Spec.DBClusterParameterGroupName = r.ko.Status.DBClusterParameterGroup
+	}

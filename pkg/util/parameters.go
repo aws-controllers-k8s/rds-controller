@@ -56,7 +56,7 @@ func NewErrUnmodifiableParameter(name string) error {
 // the parameters to remove
 func GetParametersDifference(
 	to, from Parameters,
-	) (added, unchanged, removed Parameters) {
+) (added, unchanged, removed Parameters) {
 	// we need to convert the tag tuples to a comparable interface type
 	fromPairs := lo.ToPairs(from)
 	toPairs := lo.ToPairs(to)
