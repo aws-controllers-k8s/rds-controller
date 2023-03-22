@@ -23,3 +23,10 @@
 		}
 		ko.Spec.VPCSecurityGroupIDs = sgIDs
 	}
+	if r.ko.Spec.DBParameterGroupName != nil {
+		// If the desired resource has db parameter group name specified then update the spec of the latest 
+		// resource with the value from the status.
+		if len(ko.Status.DBParameterGroups) > 0 {
+			ko.Spec.DBParameterGroupName = ko.Status.DBParameterGroups[0].DBParameterGroupName
+		}
+	}

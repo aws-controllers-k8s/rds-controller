@@ -612,6 +612,11 @@ func (rm *resourceManager) sdkFind(
 		}
 		ko.Spec.VPCSecurityGroupIDs = sgIDs
 	}
+	if r.ko.Spec.DBClusterParameterGroupName != nil {
+		// If the desired resource has db cluster parameter group name specified then update the spec of the latest
+		// resource with the value from the status.
+		ko.Spec.DBClusterParameterGroupName = ko.Status.DBClusterParameterGroup
+	}
 
 	return &resource{ko}, nil
 }
