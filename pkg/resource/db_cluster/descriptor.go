@@ -20,6 +20,7 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	k8sctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -43,10 +44,10 @@ var (
 type resourceDescriptor struct {
 }
 
-// GroupKind returns a Kubernetes metav1.GroupKind struct that describes the
-// API Group and Kind of CRs described by the descriptor
-func (d *resourceDescriptor) GroupKind() *metav1.GroupKind {
-	return &GroupKind
+// GroupVersionKind returns a Kubernetes schema.GroupVersionKind struct that
+// describes the API Group, Version and Kind of CRs described by the descriptor
+func (d *resourceDescriptor) GroupVersionKind() schema.GroupVersionKind {
+	return svcapitypes.GroupVersion.WithKind(GroupKind.Kind)
 }
 
 // EmptyRuntimeObject returns an empty object prototype that may be used in

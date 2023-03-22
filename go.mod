@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/aws-controllers-k8s/ec2-controller v0.0.16
 	github.com/aws-controllers-k8s/kms-controller v0.0.15
-	github.com/aws-controllers-k8s/runtime v0.24.1
+	github.com/aws-controllers-k8s/runtime v0.25.0
 	github.com/aws/aws-sdk-go v1.44.93
 	github.com/go-logr/logr v1.2.3
 	github.com/samber/lo v1.37.0
