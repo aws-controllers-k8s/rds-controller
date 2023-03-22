@@ -41,10 +41,6 @@ func (rm *resourceManager) customUpdate(
 	exit := rlog.Trace("rm.customUpdate")
 	defer exit(err)
 
-	rlog.Debug("Desired", "desired", desired)
-	rlog.Debug("Latest", "latest", latest)
-	rlog.Debug("Delta", "delta", delta)
-
 	if clusterDeleting(latest) {
 		msg := "DB cluster is currently being deleted"
 		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
@@ -72,13 +68,9 @@ func (rm *resourceManager) customUpdate(
 		return nil, err
 	}
 
-	rlog.Debug("Input of the update request", "input", input)
-
 	var resp *svcsdk.ModifyDBClusterOutput
 	_ = resp
 	resp, err = rm.sdkapi.ModifyDBClusterWithContext(ctx, input)
-
-	rlog.Debug("Response of the update request", "response", resp)
 
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBCluster", err)
 	if err != nil {
