@@ -22,7 +22,7 @@ import pytest
 
 DEFAULT_WAIT_UNTIL_TIMEOUT_SECONDS = 60*30
 DEFAULT_WAIT_UNTIL_INTERVAL_SECONDS = 15
-DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*10
+DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*20
 DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
 
 InstanceMatchFunc = typing.NewType(
@@ -35,7 +35,7 @@ class StatusMatcher:
         self.match_on = status
 
     def __call__(self, record: dict) -> bool:
-        return ('DBInstanceStatus' in record
+        return (record is not None and 'DBInstanceStatus' in record
                 and record['DBInstanceStatus'] == self.match_on)
 
 

@@ -1,0 +1,8 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBParameterGroup
+metadata:
+  name: $DB_PARAMETER_GROUP_NAME
+spec:
+  name: $DB_PARAMETER_GROUP_NAME
+  description: $DB_PARAMETER_GROUP_DESC
+  family: aurora-postgresql14
