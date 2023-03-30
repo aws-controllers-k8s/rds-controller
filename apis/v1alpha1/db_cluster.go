@@ -422,7 +422,8 @@ type DBClusterSpec struct {
 	// Services Region.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
-	MasterUserSecretKMSKeyID *string `json:"masterUserSecretKMSKeyID,omitempty"`
+	MasterUserSecretKMSKeyID  *string                                  `json:"masterUserSecretKMSKeyID,omitempty"`
+	MasterUserSecretKMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"masterUserSecretKMSKeyRef,omitempty"`
 	// The name of the master user for the DB cluster.
 	//
 	// Constraints:

@@ -309,6 +309,9 @@ func newResourceDelta(
 			delta.Add("Spec.MasterUserSecretKMSKeyID", a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef) {
+		delta.Add("Spec.MasterUserSecretKMSKeyRef", a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername) {
 		delta.Add("Spec.MasterUsername", a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername)
 	} else if a.ko.Spec.MasterUsername != nil && b.ko.Spec.MasterUsername != nil {

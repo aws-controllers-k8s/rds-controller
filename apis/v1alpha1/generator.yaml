@@ -114,6 +114,11 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      MasterUserSecretKmsKeyId:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
       DBClusterParameterGroupName:
         references:
           resource: DBClusterParameterGroup
@@ -237,6 +242,11 @@ resources:
       MasterUserPassword:
         is_secret: true
       KmsKeyId:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
+      MasterUserSecretKmsKeyId:
         references:
           resource: Key
           service_name: kms
