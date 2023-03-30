@@ -29,6 +29,7 @@ from e2e import condition
 
 RESOURCE_PLURAL = 'dbclusterparametergroups'
 
+CREATE_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
 # NOTE(jaypipes): According to the RDS API documentation, updating tags can
 # take several minutes before the new tag values are available due to caching.
@@ -58,6 +59,7 @@ def aurora_mysql57_cluster_param_group():
     )
     k8s.create_custom_resource(ref, resource_data)
     cr = k8s.wait_resource_consumed_by_controller(ref)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
     assert cr is not None
     assert k8s.get_resource_exists(ref)

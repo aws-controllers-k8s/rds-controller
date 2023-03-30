@@ -30,8 +30,10 @@ from e2e import tag
 RESOURCE_PLURAL = 'dbparametergroups'
 
 CREATE_WAIT_AFTER_SECONDS = 10
-MODIFY_WAIT_AFTER_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 10
+# NOTE(jaypipes): According to the RDS API documentation, updating tags can
+# take several minutes before the new tag values are available due to caching.
+MODIFY_WAIT_AFTER_SECONDS = 180
 
 RESOURCE_DESC_PG13 = "Parameters for PostgreSQL 13"
 
@@ -56,8 +58,8 @@ def pg13_param_group():
         resource_name, namespace="default",
     )
     k8s.create_custom_resource(ref, resource_data)
-    time.sleep(CREATE_WAIT_AFTER_SECONDS)
     cr = k8s.wait_resource_consumed_by_controller(ref)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
 
     assert cr is not None
     assert k8s.get_resource_exists(ref)

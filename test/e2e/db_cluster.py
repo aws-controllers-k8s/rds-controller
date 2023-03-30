@@ -35,7 +35,8 @@ class StatusMatcher:
         self.match_on = status
 
     def __call__(self, record: dict) -> bool:
-        return 'Status' in record and record['Status'] == self.match_on
+        return (record is not None and 'Status' in record
+                and record['Status'] == self.match_on)
 
 
 def status_matches(status: str) -> ClusterMatchFunc:

@@ -1,0 +1,14 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBInstance
+metadata:
+  name: $DB_INSTANCE_ID
+spec:
+  # NOTE(jaypipes): This needs to be db.t3.medium to support Aurora PostgreSQL
+  # 14.6+. Smaller sizes will result in an InvalidParameterCombination.
+  dbInstanceClass: db.t3.medium
+  dbInstanceIdentifier: $DB_INSTANCE_ID
+  dbClusterIdentifier: $DB_CLUSTER_ID
+  dbParameterGroupRef:
+    from:
+      name: $DB_PARAMETER_GROUP_NAME
+  engine: aurora-postgresql

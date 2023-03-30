@@ -216,12 +216,18 @@ func (rm *resourceManager) syncParameters(
 	exit := rlog.Trace("rm.syncParameters")
 	defer func() { exit(err) }()
 
-	groupName := latest.ko.Spec.Name
-	family := latest.ko.Spec.Family
+	groupName := desired.ko.Spec.Name
+	family := desired.ko.Spec.Family
+
+	desiredOverrides := desired.ko.Spec.ParameterOverrides
+	latestOverrides := util.Parameters{}
+	// In the create code paths, we pass a nil latest...
+	if latest != nil {
+		latestOverrides = latest.ko.Spec.ParameterOverrides
+	}
 
 	toModify, _, toDelete := util.GetParametersDifference(
-		desired.ko.Spec.ParameterOverrides,
-		latest.ko.Spec.ParameterOverrides,
+		desiredOverrides, latestOverrides,
 	)
 
 	if len(toDelete) > 0 {

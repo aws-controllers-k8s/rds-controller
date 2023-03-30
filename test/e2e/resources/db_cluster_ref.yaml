@@ -1,0 +1,19 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBCluster
+metadata:
+  name: $DB_CLUSTER_ID
+spec:
+  copyTagsToSnapshot: false
+  dbClusterIdentifier: $DB_CLUSTER_ID
+  databaseName: $DB_NAME
+  dbClusterParameterGroupRef:
+    from:
+      name: $DB_CLUSTER_PARAMETER_GROUP_NAME
+  engine: aurora-postgresql
+  engineMode: provisioned
+  engineVersion: "14.6"
+  masterUsername: root
+  masterUserPassword:
+    namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
+    name: $MASTER_USER_PASS_SECRET_NAME
+    key: $MASTER_USER_PASS_SECRET_KEY
