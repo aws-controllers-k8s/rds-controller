@@ -64,8 +64,7 @@ type GlobalClusterStatus struct {
 	// this Aurora global database (GlobalCluster).
 	// +kubebuilder:validation:Optional
 	FailoverState *FailoverState `json:"failoverState,omitempty"`
-	// The list of cluster IDs for secondary clusters within the global database
-	// cluster. Currently limited to 1 item.
+	// The list of primary and secondary clusters within the global database cluster.
 	// +kubebuilder:validation:Optional
 	GlobalClusterMembers []*GlobalClusterMember `json:"globalClusterMembers,omitempty"`
 	// The Amazon Web Services Region-unique, immutable identifier for the global

@@ -1,5 +1,6 @@
 ignore:
   resource_names:
+    - BlueGreenDeployment
     - CustomAvailabilityZone
     - CustomDBEngineVersion
     #- DBCluster
@@ -262,6 +263,10 @@ resources:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
           path: DBSnapshotIdentifier
+      DBClusterSnapshotIdentifier:
+        from:
+          operation: RestoreDBInstanceFromDBSnapshot
+          path: DBClusterSnapshotIdentifier
       UseDefaultProcessorFeatures:
         from:
           operation: RestoreDBInstanceFromDBSnapshot
