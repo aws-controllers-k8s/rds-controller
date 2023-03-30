@@ -391,6 +391,19 @@ spec:
                   account has a different default KMS key for each Amazon Web Services
                   Region. \n Valid for: Aurora DB clusters and Multi-AZ DB clusters"
                 type: string
+              masterUserSecretKMSKeyRef:
+                description: "AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference type to provide more user friendly syntax
+                  for references using 'from' field Ex: APIIDRef: \n from: name: my-api"
+                properties:
+                  from:
+                    description: AWSResourceReference provides all the values necessary
+                      to reference another k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                type: object
               masterUsername:
                 description: "The name of the master user for the DB cluster. \n Constraints:
                   \n - Must be 1 to 16 letters or numbers. \n - First character must

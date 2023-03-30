@@ -1233,6 +1233,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.MasterUserSecretKMSKeyRef != nil {
+		in, out := &in.MasterUserSecretKMSKeyRef, &out.MasterUserSecretKMSKeyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.MasterUsername != nil {
 		in, out := &in.MasterUsername, &out.MasterUsername
 		*out = new(string)
@@ -2657,6 +2662,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		in, out := &in.MasterUserSecretKMSKeyID, &out.MasterUserSecretKMSKeyID
 		*out = new(string)
 		**out = **in
+	}
+	if in.MasterUserSecretKMSKeyRef != nil {
+		in, out := &in.MasterUserSecretKMSKeyRef, &out.MasterUserSecretKMSKeyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.MasterUsername != nil {
 		in, out := &in.MasterUsername, &out.MasterUsername

@@ -36,6 +36,9 @@ import (
 // +kubebuilder:rbac:groups=kms.services.k8s.aws,resources=keys,verbs=get;list
 // +kubebuilder:rbac:groups=kms.services.k8s.aws,resources=keys/status,verbs=get;list
 
+// +kubebuilder:rbac:groups=kms.services.k8s.aws,resources=keys,verbs=get;list
+// +kubebuilder:rbac:groups=kms.services.k8s.aws,resources=keys/status,verbs=get;list
+
 // +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=securitygroups,verbs=get;list
 // +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=securitygroups/status,verbs=get;list
 
@@ -64,6 +67,9 @@ func (rm *resourceManager) ResolveReferences(
 		err = resolveReferenceForKMSKeyID(ctx, apiReader, namespace, ko)
 	}
 	if err == nil {
+		err = resolveReferenceForMasterUserSecretKMSKeyID(ctx, apiReader, namespace, ko)
+	}
+	if err == nil {
 		err = resolveReferenceForVPCSecurityGroupIDs(ctx, apiReader, namespace, ko)
 	}
 
@@ -90,6 +96,9 @@ func validateReferenceFields(ko *svcapitypes.DBInstance) error {
 	if ko.Spec.KMSKeyRef != nil && ko.Spec.KMSKeyID != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("KMSKeyID", "KMSKeyRef")
 	}
+	if ko.Spec.MasterUserSecretKMSKeyRef != nil && ko.Spec.MasterUserSecretKMSKeyID != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("MasterUserSecretKMSKeyID", "MasterUserSecretKMSKeyRef")
+	}
 	if ko.Spec.VPCSecurityGroupRefs != nil && ko.Spec.VPCSecurityGroupIDs != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("VPCSecurityGroupIDs", "VPCSecurityGroupRefs")
 	}
@@ -99,7 +108,7 @@ func validateReferenceFields(ko *svcapitypes.DBInstance) error {
 // hasNonNilReferences returns true if resource contains a reference to another
 // resource
 func hasNonNilReferences(ko *svcapitypes.DBInstance) bool {
-	return false || (ko.Spec.DBParameterGroupRef != nil) || (ko.Spec.DBSubnetGroupRef != nil) || (ko.Spec.KMSKeyRef != nil) || (ko.Spec.VPCSecurityGroupRefs != nil)
+	return false || (ko.Spec.DBParameterGroupRef != nil) || (ko.Spec.DBSubnetGroupRef != nil) || (ko.Spec.KMSKeyRef != nil) || (ko.Spec.MasterUserSecretKMSKeyRef != nil) || (ko.Spec.VPCSecurityGroupRefs != nil)
 }
 
 // resolveReferenceForDBParameterGroupName reads the resource referenced
@@ -324,6 +333,30 @@ func getReferencedResourceState_Key(
 			namespace, name,
 			"Status.ACKResourceMetadata.ARN")
 	}
+	return nil
+}
+
+// resolveReferenceForMasterUserSecretKMSKeyID reads the resource referenced
+// from MasterUserSecretKMSKeyRef field and sets the MasterUserSecretKMSKeyID
+// from referenced resource
+func resolveReferenceForMasterUserSecretKMSKeyID(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.DBInstance,
+) error {
+	if ko.Spec.MasterUserSecretKMSKeyRef != nil && ko.Spec.MasterUserSecretKMSKeyRef.From != nil {
+		arr := ko.Spec.MasterUserSecretKMSKeyRef.From
+		if arr == nil || arr.Name == nil || *arr.Name == "" {
+			return fmt.Errorf("provided resource reference is nil or empty: MasterUserSecretKMSKeyRef")
+		}
+		obj := &kmsapitypes.Key{}
+		if err := getReferencedResourceState_Key(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
+			return err
+		}
+		ko.Spec.MasterUserSecretKMSKeyID = (*string)(obj.Status.ACKResourceMetadata.ARN)
+	}
+
 	return nil
 }
 
