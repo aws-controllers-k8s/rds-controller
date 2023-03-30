@@ -112,8 +112,8 @@ spec:
                 type: string
               dbClusterInstanceClass:
                 description: "The compute and memory capacity of each DB instance
-                  in the Multi-AZ DB cluster, for example db.m6g.xlarge. Not all DB
-                  instance classes are available in all Amazon Web Services Regions,
+                  in the Multi-AZ DB cluster, for example db.m6gd.xlarge. Not all
+                  DB instance classes are available in all Amazon Web Services Regions,
                   or for all database engines. \n For the full list of DB instance
                   classes and availability for your engine, see DB instance class
                   (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html)
@@ -161,6 +161,9 @@ spec:
                         type: string
                     type: object
                 type: object
+              dbSystemID:
+                description: Reserved for future use.
+                type: string
               deletionProtection:
                 description: "A value that indicates whether the DB cluster has deletion
                   protection enabled. The database can't be deleted when deletion
@@ -244,57 +247,47 @@ spec:
                 type: boolean
               engine:
                 description: "The name of the database engine to be used for this
-                  DB cluster. \n Valid Values: \n * aurora (for MySQL 5.6-compatible
-                  Aurora) \n * aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible
-                  Aurora) \n * aurora-postgresql \n * mysql \n * postgres \n Valid
-                  for: Aurora DB clusters and Multi-AZ DB clusters"
+                  DB cluster. \n Valid Values: \n * aurora-mysql \n * aurora-postgresql
+                  \n * mysql \n * postgres \n Valid for: Aurora DB clusters and Multi-AZ
+                  DB clusters"
                 type: string
               engineMode:
-                description: "The DB engine mode of the DB cluster, either provisioned,
-                  serverless, parallelquery, global, or multimaster. \n The parallelquery
-                  engine mode isn't required for Aurora MySQL version 1.23 and higher
-                  1.x versions, and version 2.09 and higher 2.x versions. \n The global
-                  engine mode isn't required for Aurora MySQL version 1.22 and higher
-                  1.x versions, and global engine mode isn't required for any 2.x
-                  versions. \n The multimaster engine mode only applies for DB clusters
-                  created with Aurora MySQL version 5.6.10a. \n The serverless engine
-                  mode only applies for Aurora Serverless v1 DB clusters. \n For Aurora
-                  PostgreSQL, the global engine mode isn't required, and both the
-                  parallelquery and the multimaster engine modes currently aren't
-                  supported. \n Limitations and requirements apply to some DB engine
-                  modes. For more information, see the following sections in the Amazon
-                  Aurora User Guide: \n * Limitations of Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
+                description: "The DB engine mode of the DB cluster, either provisioned
+                  or serverless. \n The serverless engine mode only applies for Aurora
+                  Serverless v1 DB clusters. \n Limitations and requirements apply
+                  to some DB engine modes. For more information, see the following
+                  sections in the Amazon Aurora User Guide: \n * Limitations of Aurora
+                  Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
                   \n * Requirements for Aurora Serverless v2 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.requirements.html)
-                  \n * Limitations of Parallel Query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
-                  \n * Limitations of Aurora Global Databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
-                  \n * Limitations of Multi-Master Clusters (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-multi-master.html#aurora-multi-master-limitations)
+                  \n * Limitations of parallel query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
+                  \n * Limitations of Aurora global databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
                   \n Valid for: Aurora DB clusters only"
                 type: string
               engineVersion:
                 description: "The version number of the database engine to use. \n
-                  To list all of the available engine versions for MySQL 5.6-compatible
-                  Aurora, use the following command: \n aws rds describe-db-engine-versions
-                  --engine aurora --query \"DBEngineVersions[].EngineVersion\" \n
-                  To list all of the available engine versions for MySQL 5.7-compatible
-                  and MySQL 8.0-compatible Aurora, use the following command: \n aws
-                  rds describe-db-engine-versions --engine aurora-mysql --query \"DBEngineVersions[].EngineVersion\"
-                  \n To list all of the available engine versions for Aurora PostgreSQL,
-                  use the following command: \n aws rds describe-db-engine-versions
-                  --engine aurora-postgresql --query \"DBEngineVersions[].EngineVersion\"
-                  \n To list all of the available engine versions for RDS for MySQL,
+                  To list all of the available engine versions for Aurora MySQL version
+                  2 (5.7-compatible) and version 3 (MySQL 8.0-compatible), use the
+                  following command: \n aws rds describe-db-engine-versions --engine
+                  aurora-mysql --query \"DBEngineVersions[].EngineVersion\" \n You
+                  can supply either 5.7 or 8.0 to use the default engine version for
+                  Aurora MySQL version 2 or version 3, respectively. \n To list all
+                  of the available engine versions for Aurora PostgreSQL, use the
+                  following command: \n aws rds describe-db-engine-versions --engine
+                  aurora-postgresql --query \"DBEngineVersions[].EngineVersion\" \n
+                  To list all of the available engine versions for RDS for MySQL,
                   use the following command: \n aws rds describe-db-engine-versions
                   --engine mysql --query \"DBEngineVersions[].EngineVersion\" \n To
                   list all of the available engine versions for RDS for PostgreSQL,
                   use the following command: \n aws rds describe-db-engine-versions
                   --engine postgres --query \"DBEngineVersions[].EngineVersion\" \n
-                  Aurora MySQL \n For information, see MySQL on Amazon RDS Versions
-                  (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
+                  Aurora MySQL \n For information, see Database engine updates for
+                  Amazon Aurora MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
                   in the Amazon Aurora User Guide. \n Aurora PostgreSQL \n For information,
                   see Amazon Aurora PostgreSQL releases and engine versions (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Updates.20180305.html)
                   in the Amazon Aurora User Guide. \n MySQL \n For information, see
-                  MySQL on Amazon RDS Versions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
+                  Amazon RDS for MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
                   in the Amazon RDS User Guide. \n PostgreSQL \n For information,
-                  see Amazon RDS for PostgreSQL versions and extensions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
+                  see Amazon RDS for PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
                   in the Amazon RDS User Guide. \n Valid for: Aurora DB clusters and
                   Multi-AZ DB clusters"
                 type: string
@@ -306,8 +299,8 @@ spec:
               iops:
                 description: "The amount of Provisioned IOPS (input/output operations
                   per second) to be initially allocated for each DB instance in the
-                  Multi-AZ DB cluster. \n For information about valid Iops values,
-                  see Amazon RDS Provisioned IOPS storage to improve performance (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS)
+                  Multi-AZ DB cluster. \n For information about valid IOPS values,
+                  see Provisioned IOPS storage (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS)
                   in the Amazon RDS User Guide. \n This setting is required to create
                   a Multi-AZ DB cluster. \n Constraints: Must be a multiple between
                   .5 and 50 of the storage amount for the DB cluster. \n Valid for:
@@ -347,10 +340,23 @@ spec:
                         type: string
                     type: object
                 type: object
+              manageMasterUserPassword:
+                description: "A value that indicates whether to manage the master
+                  user password with Amazon Web Services Secrets Manager. \n For more
+                  information, see Password management with Amazon Web Services Secrets
+                  Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+                  in the Amazon RDS User Guide and Password management with Amazon
+                  Web Services Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+                  in the Amazon Aurora User Guide. \n Constraints: \n * Can't manage
+                  the master user password with Amazon Web Services Secrets Manager
+                  if MasterUserPassword is specified. \n Valid for: Aurora DB clusters
+                  and Multi-AZ DB clusters"
+                type: boolean
               masterUserPassword:
                 description: "The password for the master database user. This password
                   can contain any printable ASCII character except \"/\", \"\"\",
-                  or \"@\". \n Constraints: Must contain from 8 to 41 characters.
+                  or \"@\". \n Constraints: \n * Must contain from 8 to 41 characters.
+                  \n * Can't be specified if ManageMasterUserPassword is turned on.
                   \n Valid for: Aurora DB clusters and Multi-AZ DB clusters"
                 properties:
                   key:
@@ -368,6 +374,23 @@ spec:
                 - key
                 type: object
                 x-kubernetes-map-type: atomic
+              masterUserSecretKMSKeyID:
+                description: "The Amazon Web Services KMS key identifier to encrypt
+                  a secret that is automatically generated and managed in Amazon Web
+                  Services Secrets Manager. \n This setting is valid only if the master
+                  user password is managed by RDS in Amazon Web Services Secrets Manager
+                  for the DB cluster. \n The Amazon Web Services KMS key identifier
+                  is the key ARN, key ID, alias ARN, or alias name for the KMS key.
+                  To use a KMS key in a different Amazon Web Services account, specify
+                  the key ARN or alias ARN. \n If you don't specify MasterUserSecretKmsKeyId,
+                  then the aws/secretsmanager KMS key is used to encrypt the secret.
+                  If the secret is in a different Amazon Web Services account, then
+                  you can't use the aws/secretsmanager KMS key to encrypt the secret,
+                  and you must use a customer managed KMS key. \n There is a default
+                  KMS key for your Amazon Web Services account. Your Amazon Web Services
+                  account has a different default KMS key for each Amazon Web Services
+                  Region. \n Valid for: Aurora DB clusters and Multi-AZ DB clusters"
+                type: string
               masterUsername:
                 description: "The name of the master user for the DB cluster. \n Constraints:
                   \n * Must be 1 to 16 letters or numbers. \n * First character must
@@ -519,7 +542,7 @@ spec:
               replicationSourceIdentifier:
                 description: "The Amazon Resource Name (ARN) of the source DB instance
                   or DB cluster if this DB cluster is created as a read replica. \n
-                  Valid for: Aurora DB clusters only"
+                  Valid for: Aurora DB clusters and Multi-AZ DB clusters"
                 type: string
               scalingConfiguration:
                 description: "For DB clusters in serverless DB engine mode, the scaling
@@ -581,8 +604,10 @@ spec:
                 description: "Tags to assign to the DB cluster. \n Valid for: Aurora
                   DB clusters and Multi-AZ DB clusters"
                 items:
-                  description: Metadata assigned to an Amazon RDS resource consisting
-                    of a key-value pair.
+                  description: "Metadata assigned to an Amazon RDS resource consisting
+                    of a key-value pair. \n For more information, see Tagging Amazon
+                    RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide."
                   properties:
                     key:
                       type: string
@@ -871,6 +896,22 @@ spec:
                   restored with point-in-time restore.
                 format: date-time
                 type: string
+              masterUserSecret:
+                description: "Contains the secret managed by RDS in Amazon Web Services
+                  Secrets Manager for the master user password. \n For more information,
+                  see Password management with Amazon Web Services Secrets Manager
+                  (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+                  in the Amazon RDS User Guide and Password management with Amazon
+                  Web Services Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+                  in the Amazon Aurora User Guide."
+                properties:
+                  kmsKeyID:
+                    type: string
+                  secretARN:
+                    type: string
+                  secretStatus:
+                    type: string
+                type: object
               multiAZ:
                 description: Specifies whether the DB cluster has instances in multiple
                   Availability Zones.
@@ -880,12 +921,21 @@ spec:
                   are pending. This element is only included when changes are pending.
                   Specific changes are identified by subelements.
                 properties:
+                  allocatedStorage:
+                    format: int64
+                    type: integer
+                  backupRetentionPeriod:
+                    format: int64
+                    type: integer
                   dbClusterIdentifier:
                     type: string
                   engineVersion:
                     type: string
                   iamDatabaseAuthenticationEnabled:
                     type: boolean
+                  iops:
+                    format: int64
+                    type: integer
                   masterUserPassword:
                     type: string
                   pendingCloudwatchLogsExports:
@@ -935,8 +985,10 @@ spec:
                 type: string
               tagList:
                 items:
-                  description: Metadata assigned to an Amazon RDS resource consisting
-                    of a key-value pair.
+                  description: "Metadata assigned to an Amazon RDS resource consisting
+                    of a key-value pair. \n For more information, see Tagging Amazon
+                    RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide."
                   properties:
                     key:
                       type: string

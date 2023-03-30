@@ -115,6 +115,13 @@ func newResourceDelta(
 			delta.Add("Spec.BackupTarget", a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.CACertificateIdentifier, b.ko.Spec.CACertificateIdentifier) {
+		delta.Add("Spec.CACertificateIdentifier", a.ko.Spec.CACertificateIdentifier, b.ko.Spec.CACertificateIdentifier)
+	} else if a.ko.Spec.CACertificateIdentifier != nil && b.ko.Spec.CACertificateIdentifier != nil {
+		if *a.ko.Spec.CACertificateIdentifier != *b.ko.Spec.CACertificateIdentifier {
+			delta.Add("Spec.CACertificateIdentifier", a.ko.Spec.CACertificateIdentifier, b.ko.Spec.CACertificateIdentifier)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.CharacterSetName, b.ko.Spec.CharacterSetName) {
 		delta.Add("Spec.CharacterSetName", a.ko.Spec.CharacterSetName, b.ko.Spec.CharacterSetName)
 	} else if a.ko.Spec.CharacterSetName != nil && b.ko.Spec.CharacterSetName != nil {
@@ -141,6 +148,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.DBClusterIdentifier != nil && b.ko.Spec.DBClusterIdentifier != nil {
 		if *a.ko.Spec.DBClusterIdentifier != *b.ko.Spec.DBClusterIdentifier {
 			delta.Add("Spec.DBClusterIdentifier", a.ko.Spec.DBClusterIdentifier, b.ko.Spec.DBClusterIdentifier)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DBClusterSnapshotIdentifier, b.ko.Spec.DBClusterSnapshotIdentifier) {
+		delta.Add("Spec.DBClusterSnapshotIdentifier", a.ko.Spec.DBClusterSnapshotIdentifier, b.ko.Spec.DBClusterSnapshotIdentifier)
+	} else if a.ko.Spec.DBClusterSnapshotIdentifier != nil && b.ko.Spec.DBClusterSnapshotIdentifier != nil {
+		if *a.ko.Spec.DBClusterSnapshotIdentifier != *b.ko.Spec.DBClusterSnapshotIdentifier {
+			delta.Add("Spec.DBClusterSnapshotIdentifier", a.ko.Spec.DBClusterSnapshotIdentifier, b.ko.Spec.DBClusterSnapshotIdentifier)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBInstanceClass, b.ko.Spec.DBInstanceClass) {
@@ -274,11 +288,25 @@ func newResourceDelta(
 			delta.Add("Spec.LicenseModel", a.ko.Spec.LicenseModel, b.ko.Spec.LicenseModel)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.ManageMasterUserPassword, b.ko.Spec.ManageMasterUserPassword) {
+		delta.Add("Spec.ManageMasterUserPassword", a.ko.Spec.ManageMasterUserPassword, b.ko.Spec.ManageMasterUserPassword)
+	} else if a.ko.Spec.ManageMasterUserPassword != nil && b.ko.Spec.ManageMasterUserPassword != nil {
+		if *a.ko.Spec.ManageMasterUserPassword != *b.ko.Spec.ManageMasterUserPassword {
+			delta.Add("Spec.ManageMasterUserPassword", a.ko.Spec.ManageMasterUserPassword, b.ko.Spec.ManageMasterUserPassword)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MasterUserPassword, b.ko.Spec.MasterUserPassword) {
 		delta.Add("Spec.MasterUserPassword", a.ko.Spec.MasterUserPassword, b.ko.Spec.MasterUserPassword)
 	} else if a.ko.Spec.MasterUserPassword != nil && b.ko.Spec.MasterUserPassword != nil {
 		if *a.ko.Spec.MasterUserPassword != *b.ko.Spec.MasterUserPassword {
 			delta.Add("Spec.MasterUserPassword", a.ko.Spec.MasterUserPassword, b.ko.Spec.MasterUserPassword)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID) {
+		delta.Add("Spec.MasterUserSecretKMSKeyID", a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID)
+	} else if a.ko.Spec.MasterUserSecretKMSKeyID != nil && b.ko.Spec.MasterUserSecretKMSKeyID != nil {
+		if *a.ko.Spec.MasterUserSecretKMSKeyID != *b.ko.Spec.MasterUserSecretKMSKeyID {
+			delta.Add("Spec.MasterUserSecretKMSKeyID", a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername) {
@@ -429,6 +457,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.StorageEncrypted != nil && b.ko.Spec.StorageEncrypted != nil {
 		if *a.ko.Spec.StorageEncrypted != *b.ko.Spec.StorageEncrypted {
 			delta.Add("Spec.StorageEncrypted", a.ko.Spec.StorageEncrypted, b.ko.Spec.StorageEncrypted)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.StorageThroughput, b.ko.Spec.StorageThroughput) {
+		delta.Add("Spec.StorageThroughput", a.ko.Spec.StorageThroughput, b.ko.Spec.StorageThroughput)
+	} else if a.ko.Spec.StorageThroughput != nil && b.ko.Spec.StorageThroughput != nil {
+		if *a.ko.Spec.StorageThroughput != *b.ko.Spec.StorageThroughput {
+			delta.Add("Spec.StorageThroughput", a.ko.Spec.StorageThroughput, b.ko.Spec.StorageThroughput)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.StorageType, b.ko.Spec.StorageType) {

@@ -67,6 +67,15 @@ const (
 	AutomationMode_all_paused AutomationMode = "all-paused"
 )
 
+type ClientPasswordAuthType string
+
+const (
+	ClientPasswordAuthType_MYSQL_NATIVE_PASSWORD     ClientPasswordAuthType = "MYSQL_NATIVE_PASSWORD"
+	ClientPasswordAuthType_POSTGRES_SCRAM_SHA_256    ClientPasswordAuthType = "POSTGRES_SCRAM_SHA_256"
+	ClientPasswordAuthType_POSTGRES_MD5              ClientPasswordAuthType = "POSTGRES_MD5"
+	ClientPasswordAuthType_SQL_SERVER_AUTHENTICATION ClientPasswordAuthType = "SQL_SERVER_AUTHENTICATION"
+)
+
 type CustomEngineVersionStatus string
 
 const (
@@ -112,6 +121,14 @@ type EngineFamily string
 const (
 	EngineFamily_MYSQL      EngineFamily = "MYSQL"
 	EngineFamily_POSTGRESQL EngineFamily = "POSTGRESQL"
+	EngineFamily_SQLSERVER  EngineFamily = "SQLSERVER"
+)
+
+type ExportSourceType string
+
+const (
+	ExportSourceType_SNAPSHOT ExportSourceType = "SNAPSHOT"
+	ExportSourceType_CLUSTER  ExportSourceType = "CLUSTER"
 )
 
 type FailoverStatus string
@@ -127,6 +144,7 @@ type IAMAuthMode string
 const (
 	IAMAuthMode_DISABLED IAMAuthMode = "DISABLED"
 	IAMAuthMode_REQUIRED IAMAuthMode = "REQUIRED"
+	IAMAuthMode_ENABLED  IAMAuthMode = "ENABLED"
 )
 
 type ReplicaMode string
@@ -147,6 +165,7 @@ const (
 	SourceType_db_cluster_snapshot   SourceType = "db-cluster-snapshot"
 	SourceType_custom_engine_version SourceType = "custom-engine-version"
 	SourceType_db_proxy              SourceType = "db-proxy"
+	SourceType_blue_green_deployment SourceType = "blue-green-deployment"
 )
 
 type TargetHealthReason string

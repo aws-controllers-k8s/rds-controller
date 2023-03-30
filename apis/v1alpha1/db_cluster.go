@@ -112,8 +112,8 @@ type DBClusterSpec struct {
 	// +kubebuilder:validation:Required
 	DBClusterIdentifier *string `json:"dbClusterIdentifier"`
 	// The compute and memory capacity of each DB instance in the Multi-AZ DB cluster,
-	// for example db.m6g.xlarge. Not all DB instance classes are available in all
-	// Amazon Web Services Regions, or for all database engines.
+	// for example db.m6gd.xlarge. Not all DB instance classes are available in
+	// all Amazon Web Services Regions, or for all database engines.
 	//
 	// For the full list of DB instance classes and availability for your engine,
 	// see DB instance class (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html)
@@ -147,6 +147,8 @@ type DBClusterSpec struct {
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
 	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
+	// Reserved for future use.
+	DBSystemID *string `json:"dbSystemID,omitempty"`
 	// The name for your database of up to 64 alphanumeric characters. If you do
 	// not provide a name, Amazon RDS doesn't create a database in the DB cluster
 	// you are creating.
@@ -252,9 +254,7 @@ type DBClusterSpec struct {
 	//
 	// Valid Values:
 	//
-	//   - aurora (for MySQL 5.6-compatible Aurora)
-	//
-	//   - aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
+	//   - aurora-mysql
 	//
 	//   - aurora-postgresql
 	//
@@ -265,22 +265,9 @@ type DBClusterSpec struct {
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	// +kubebuilder:validation:Required
 	Engine *string `json:"engine"`
-	// The DB engine mode of the DB cluster, either provisioned, serverless, parallelquery,
-	// global, or multimaster.
-	//
-	// The parallelquery engine mode isn't required for Aurora MySQL version 1.23
-	// and higher 1.x versions, and version 2.09 and higher 2.x versions.
-	//
-	// The global engine mode isn't required for Aurora MySQL version 1.22 and higher
-	// 1.x versions, and global engine mode isn't required for any 2.x versions.
-	//
-	// The multimaster engine mode only applies for DB clusters created with Aurora
-	// MySQL version 5.6.10a.
+	// The DB engine mode of the DB cluster, either provisioned or serverless.
 	//
 	// The serverless engine mode only applies for Aurora Serverless v1 DB clusters.
-	//
-	// For Aurora PostgreSQL, the global engine mode isn't required, and both the
-	// parallelquery and the multimaster engine modes currently aren't supported.
 	//
 	// Limitations and requirements apply to some DB engine modes. For more information,
 	// see the following sections in the Amazon Aurora User Guide:
@@ -289,25 +276,21 @@ type DBClusterSpec struct {
 	//
 	//   - Requirements for Aurora Serverless v2 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.requirements.html)
 	//
-	//   - Limitations of Parallel Query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
+	//   - Limitations of parallel query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
 	//
-	//   - Limitations of Aurora Global Databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
-	//
-	//   - Limitations of Multi-Master Clusters (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-multi-master.html#aurora-multi-master-limitations)
+	//   - Limitations of Aurora global databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
 	//
 	// Valid for: Aurora DB clusters only
 	EngineMode *string `json:"engineMode,omitempty"`
 	// The version number of the database engine to use.
 	//
-	// To list all of the available engine versions for MySQL 5.6-compatible Aurora,
-	// use the following command:
-	//
-	// aws rds describe-db-engine-versions --engine aurora --query "DBEngineVersions[].EngineVersion"
-	//
-	// To list all of the available engine versions for MySQL 5.7-compatible and
-	// MySQL 8.0-compatible Aurora, use the following command:
+	// To list all of the available engine versions for Aurora MySQL version 2 (5.7-compatible)
+	// and version 3 (MySQL 8.0-compatible), use the following command:
 	//
 	// aws rds describe-db-engine-versions --engine aurora-mysql --query "DBEngineVersions[].EngineVersion"
+	//
+	// You can supply either 5.7 or 8.0 to use the default engine version for Aurora
+	// MySQL version 2 or version 3, respectively.
 	//
 	// To list all of the available engine versions for Aurora PostgreSQL, use the
 	// following command:
@@ -326,7 +309,7 @@ type DBClusterSpec struct {
 	//
 	// # Aurora MySQL
 	//
-	// For information, see MySQL on Amazon RDS Versions (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
+	// For information, see Database engine updates for Amazon Aurora MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
 	// in the Amazon Aurora User Guide.
 	//
 	// # Aurora PostgreSQL
@@ -337,12 +320,12 @@ type DBClusterSpec struct {
 	//
 	// # MySQL
 	//
-	// For information, see MySQL on Amazon RDS Versions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
+	// For information, see Amazon RDS for MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
 	// in the Amazon RDS User Guide.
 	//
 	// # PostgreSQL
 	//
-	// For information, see Amazon RDS for PostgreSQL versions and extensions (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
+	// For information, see Amazon RDS for PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
 	// in the Amazon RDS User Guide.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
@@ -355,8 +338,7 @@ type DBClusterSpec struct {
 	// The amount of Provisioned IOPS (input/output operations per second) to be
 	// initially allocated for each DB instance in the Multi-AZ DB cluster.
 	//
-	// For information about valid Iops values, see Amazon RDS Provisioned IOPS
-	// storage to improve performance (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS)
+	// For information about valid IOPS values, see Provisioned IOPS storage (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS)
 	// in the Amazon RDS User Guide.
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
@@ -393,13 +375,54 @@ type DBClusterSpec struct {
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	KMSKeyID  *string                                  `json:"kmsKeyID,omitempty"`
 	KMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsKeyRef,omitempty"`
+	// A value that indicates whether to manage the master user password with Amazon
+	// Web Services Secrets Manager.
+	//
+	// For more information, see Password management with Amazon Web Services Secrets
+	// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+	// in the Amazon RDS User Guide and Password management with Amazon Web Services
+	// Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+	// in the Amazon Aurora User Guide.
+	//
+	// Constraints:
+	//
+	//   - Can't manage the master user password with Amazon Web Services Secrets
+	//     Manager if MasterUserPassword is specified.
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	ManageMasterUserPassword *bool `json:"manageMasterUserPassword,omitempty"`
 	// The password for the master database user. This password can contain any
 	// printable ASCII character except "/", """, or "@".
 	//
-	// Constraints: Must contain from 8 to 41 characters.
+	// Constraints:
+	//
+	//   - Must contain from 8 to 41 characters.
+	//
+	//   - Can't be specified if ManageMasterUserPassword is turned on.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	MasterUserPassword *ackv1alpha1.SecretKeyReference `json:"masterUserPassword,omitempty"`
+	// The Amazon Web Services KMS key identifier to encrypt a secret that is automatically
+	// generated and managed in Amazon Web Services Secrets Manager.
+	//
+	// This setting is valid only if the master user password is managed by RDS
+	// in Amazon Web Services Secrets Manager for the DB cluster.
+	//
+	// The Amazon Web Services KMS key identifier is the key ARN, key ID, alias
+	// ARN, or alias name for the KMS key. To use a KMS key in a different Amazon
+	// Web Services account, specify the key ARN or alias ARN.
+	//
+	// If you don't specify MasterUserSecretKmsKeyId, then the aws/secretsmanager
+	// KMS key is used to encrypt the secret. If the secret is in a different Amazon
+	// Web Services account, then you can't use the aws/secretsmanager KMS key to
+	// encrypt the secret, and you must use a customer managed KMS key.
+	//
+	// There is a default KMS key for your Amazon Web Services account. Your Amazon
+	// Web Services account has a different default KMS key for each Amazon Web
+	// Services Region.
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	MasterUserSecretKMSKeyID *string `json:"masterUserSecretKMSKeyID,omitempty"`
 	// The name of the master user for the DB cluster.
 	//
 	// Constraints:
@@ -626,7 +649,7 @@ type DBClusterSpec struct {
 	// The Amazon Resource Name (ARN) of the source DB instance or DB cluster if
 	// this DB cluster is created as a read replica.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	ReplicationSourceIdentifier *string `json:"replicationSourceIdentifier,omitempty"`
 	// For DB clusters in serverless DB engine mode, the scaling properties of the
 	// DB cluster.
@@ -815,6 +838,16 @@ type DBClusterStatus struct {
 	// restore.
 	// +kubebuilder:validation:Optional
 	LatestRestorableTime *metav1.Time `json:"latestRestorableTime,omitempty"`
+	// Contains the secret managed by RDS in Amazon Web Services Secrets Manager
+	// for the master user password.
+	//
+	// For more information, see Password management with Amazon Web Services Secrets
+	// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
+	// in the Amazon RDS User Guide and Password management with Amazon Web Services
+	// Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
+	// in the Amazon Aurora User Guide.
+	// +kubebuilder:validation:Optional
+	MasterUserSecret *MasterUserSecret `json:"masterUserSecret,omitempty"`
 	// Specifies whether the DB cluster has instances in multiple Availability Zones.
 	// +kubebuilder:validation:Optional
 	MultiAZ *bool `json:"multiAZ,omitempty"`
