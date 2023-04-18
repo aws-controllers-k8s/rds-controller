@@ -96,7 +96,6 @@ resources:
         template_path: hooks/db_cluster/sdk_file_end.go.tpl
     exceptions:
       terminal_codes:
-        - DBClusterQuotaExceededFault
         - DBSubnetGroupDoesNotCoverEnoughAZs
         - InsufficientStorageClusterCapacity
         - InvalidParameter
