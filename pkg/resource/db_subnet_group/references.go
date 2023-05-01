@@ -25,7 +25,6 @@ import (
 
 	ec2apitypes "github.com/aws-controllers-k8s/ec2-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
-	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 
@@ -35,80 +34,88 @@ import (
 // +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=subnets,verbs=get;list
 // +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=subnets/status,verbs=get;list
 
+// ClearResolvedReferences removes any reference values that were made
+// concrete in the spec. It returns a copy of the input AWSResource which
+// contains the original *Ref values, but none of their respective concrete
+// values.
+func (rm *resourceManager) ClearResolvedReferences(res acktypes.AWSResource) acktypes.AWSResource {
+	ko := rm.concreteResource(res).ko.DeepCopy()
+
+	if len(ko.Spec.SubnetRefs) > 0 {
+		ko.Spec.SubnetIDs = nil
+	}
+
+	return &resource{ko}
+}
+
 // ResolveReferences finds if there are any Reference field(s) present
-// inside AWSResource passed in the parameter and attempts to resolve
-// those reference field(s) into target field(s).
-// It returns an AWSResource with resolved reference(s), and an error if the
-// passed AWSResource's reference field(s) cannot be resolved.
-// This method also adds/updates the ConditionTypeReferencesResolved for the
-// AWSResource.
+// inside AWSResource passed in the parameter and attempts to resolve those
+// reference field(s) into their respective target field(s). It returns a
+// copy of the input AWSResource with resolved reference(s), a boolean which
+// is set to true if the resource contains any references (regardless of if
+// they are resolved successfully) and an error if the passed AWSResource's
+// reference field(s) could not be resolved.
 func (rm *resourceManager) ResolveReferences(
 	ctx context.Context,
 	apiReader client.Reader,
 	res acktypes.AWSResource,
-) (acktypes.AWSResource, error) {
+) (acktypes.AWSResource, bool, error) {
 	namespace := res.MetaObject().GetNamespace()
-	ko := rm.concreteResource(res).ko.DeepCopy()
+	ko := rm.concreteResource(res).ko
+
+	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if err == nil {
-		err = resolveReferenceForSubnetIDs(ctx, apiReader, namespace, ko)
+	if fieldHasReferences, err := rm.resolveReferenceForSubnetIDs(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	// If there was an error while resolving any reference, reset all the
-	// resolved values so that they do not get persisted inside etcd
-	if err != nil {
-		ko = rm.concreteResource(res).ko.DeepCopy()
-	}
-	if hasNonNilReferences(ko) {
-		return ackcondition.WithReferencesResolvedCondition(&resource{ko}, err)
-	}
-	return &resource{ko}, err
+	return &resource{ko}, resourceHasReferences, err
 }
 
 // validateReferenceFields validates the reference field and corresponding
 // identifier field.
 func validateReferenceFields(ko *svcapitypes.DBSubnetGroup) error {
-	if ko.Spec.SubnetRefs != nil && ko.Spec.SubnetIDs != nil {
+
+	if len(ko.Spec.SubnetRefs) > 0 && len(ko.Spec.SubnetIDs) > 0 {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("SubnetIDs", "SubnetRefs")
 	}
-	if ko.Spec.SubnetRefs == nil && ko.Spec.SubnetIDs == nil {
+	if len(ko.Spec.SubnetRefs) == 0 && len(ko.Spec.SubnetIDs) == 0 {
 		return ackerr.ResourceReferenceOrIDRequiredFor("SubnetIDs", "SubnetRefs")
 	}
 	return nil
 }
 
-// hasNonNilReferences returns true if resource contains a reference to another
-// resource
-func hasNonNilReferences(ko *svcapitypes.DBSubnetGroup) bool {
-	return false || (ko.Spec.SubnetRefs != nil)
-}
-
 // resolveReferenceForSubnetIDs reads the resource referenced
 // from SubnetRefs field and sets the SubnetIDs
-// from referenced resource
-func resolveReferenceForSubnetIDs(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForSubnetIDs(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.DBSubnetGroup,
-) error {
-	if len(ko.Spec.SubnetRefs) > 0 {
-		resolved0 := []*string{}
-		for _, iter0 := range ko.Spec.SubnetRefs {
-			arr := iter0.From
-			if arr == nil || arr.Name == nil || *arr.Name == "" {
-				return fmt.Errorf("provided resource reference is nil or empty: SubnetRefs")
+) (hasReferences bool, err error) {
+	for _, f0iter := range ko.Spec.SubnetRefs {
+		if f0iter != nil && f0iter.From != nil {
+			hasReferences = true
+			arr := f0iter.From
+			if arr.Name == nil || *arr.Name == "" {
+				return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SubnetRefs")
 			}
 			obj := &ec2apitypes.Subnet{}
 			if err := getReferencedResourceState_Subnet(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-				return err
+				return hasReferences, err
 			}
-			resolved0 = append(resolved0, (*string)(obj.Status.SubnetID))
+			if ko.Spec.SubnetIDs == nil {
+				ko.Spec.SubnetIDs = make([]*string, 0, 1)
+			}
+			ko.Spec.SubnetIDs = append(ko.Spec.SubnetIDs, (*string)(obj.Status.SubnetID))
 		}
-		ko.Spec.SubnetIDs = resolved0
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_Subnet looks up whether a referenced resource
