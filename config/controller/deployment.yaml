@@ -73,6 +73,9 @@ spec:
           capabilities:
             drop:
               - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 10
       serviceAccountName: ack-rds-controller
       hostIPC: false

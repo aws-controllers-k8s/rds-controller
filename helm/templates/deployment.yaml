@@ -116,6 +116,9 @@ spec:
           capabilities:
             drop:
               - ALL
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 10
       nodeSelector: {{ toYaml .Values.deployment.nodeSelector | nindent 8 }}
       {{ if .Values.deployment.tolerations -}}

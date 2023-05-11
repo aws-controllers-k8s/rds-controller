@@ -45,7 +45,7 @@ func (r *resource) Identifiers() acktypes.AWSResourceIdentifiers {
 }
 
 // IsBeingDeleted returns true if the Kubernetes resource has a non-zero
-// deletion timestemp
+// deletion timestamp
 func (r *resource) IsBeingDeleted() bool {
 	return !r.ko.DeletionTimestamp.IsZero()
 }

@@ -196,6 +196,9 @@
       "type": "string",
       "enum": ["cluster", "namespace"]
     },
+    "watchNamespace": {
+      "type": "string"
+    },    
     "resourceTags": {
       "type": "array",
       "items": {

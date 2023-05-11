@@ -97,14 +97,14 @@ def postgres14_t3_micro_instance(k8s_secret):
     # Try to delete, if doesn't already exist
     try:
         _, deleted = k8s.delete_custom_resource(ref, 3, 10)
-        assert deleted
-        db_instance.wait_until_deleted(db_instance_id)
     except:
         pass
+    db_instance.wait_until_deleted(db_instance_id)
+
 
 @service_marker
 @pytest.mark.canary
-class TestDBInstance:  
+class TestDBInstance:
     def test_crud_postgres14_t3_micro(
             self,
             postgres14_t3_micro_instance,
@@ -125,7 +125,6 @@ class TestDBInstance:
         assert latest is not None
         assert latest['DBInstanceStatus'] == 'available'
         assert latest['MultiAZ'] is False
-        # Comment below multiAZ assert until https://github.com/aws-controllers-k8s/community/issues/1376 fixed
 
         # Before we update the DBInstance CR below, let's check to see that the
         # DbInstanceStatus field in the CR has been updated to something other
@@ -161,7 +160,6 @@ class TestDBInstance:
         latest = db_instance.get(db_instance_id)
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] is True
-        # assert latest['MultiAZ'] is True
 
         updates = {
             "spec": {"copyTagsToSnapshot": False},
@@ -176,8 +174,6 @@ class TestDBInstance:
         latest = db_instance.get(db_instance_id)
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] is False
-        # Comment below multiAZ assert until https://github.com/aws-controllers-k8s/community/issues/1376 fixed
-        # assert latest['MultiAZ'] is False
 
         arn = latest['DBInstanceArn']
         expect_tags = [
@@ -208,12 +204,6 @@ class TestDBInstance:
             }
         ]
         assert latest_tags == after_update_expected_tags
-
-        k8s.delete_custom_resource(ref)
-
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
-
-        db_instance.wait_until_deleted(db_instance_id)
 
     def test_enable_pi_postgres14_t3_micro(
             self,
@@ -263,3 +253,93 @@ class TestDBInstance:
         # TODO: Ensure that the server side defaults
         # (PerformanceInsightsRetentionPeriod and PerformanceInsightsKMSKeyID)
         # are also persisted back into the spec. This currently does not work
+
+    def test_state_field_flapping(
+            self,
+            postgres14_t3_micro_instance,
+    ):
+        """
+        This test ensures that various state fields -- such as instanceClass --
+        do not "flap" when updated between the original and new values.
+
+        :see https://github.com/aws-controllers-k8s/community/issues/1773
+        :see https://github.com/aws-controllers-k8s/community/issues/1650
+        :see https://github.com/aws-controllers-k8s/community/issues/1376
+        """
+        (ref, cr) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+
+        # latest CR should have desired state set properly...
+        cr = k8s.get_resource(ref)
+        assert cr["spec"]["dbInstanceClass"] == "db.t3.micro"
+        assert not bool(cr["spec"]["multiAZ"])
+
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # We're now going to modify the instanceClass field of the DB instance,
+        # wait some time and verify that the RDS server-side resource shows the
+        # new value of the field.
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert 'DBInstanceClass' in latest
+        assert latest['DBInstanceClass'] == "db.t3.micro"
+        assert 'MultiAZ' in latest
+        assert bool(latest['MultiAZ']) == False
+
+        updates = {
+            "spec": {"dbInstanceClass": "db.m5.large"},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # wait for the resource to get synced after the patch
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # latest CR should have desired state set properly...
+        cr = k8s.get_resource(ref)
+        assert cr["spec"]["dbInstanceClass"] == "db.m5.large"
+        assert not bool(cr["spec"]["multiAZ"])
+
+        # After resource is synced again, assert that patches are reflected in the AWS resource
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert 'DBInstanceClass' in latest
+        if latest['DBInstanceClass'] != "db.m5.large":
+            assert "PendingModifiedValues" in latest
+            assert "DBInstanceClass" in latest["PendingModifiedValues"]
+            assert latest["PendingModifiedValues"]["DBInstanceClass"] == "db.m5.large"
+        assert 'MultiAZ' in latest
+        assert bool(latest['MultiAZ']) == False
+
+        # Now update the MultiAZ flag to True, wait and check that the MultiAZ
+        # field value is set to True and that the DBInstanceClass hasn't
+        # changed either.
+
+        updates = {
+            "spec": {"multiAZ": True},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # wait for the resource to get synced after the patch
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # latest CR should have desired state set properly...
+        cr = k8s.get_resource(ref)
+        assert cr["spec"]["dbInstanceClass"] == "db.m5.large"
+        assert bool(cr["spec"]["multiAZ"])
+
+        # After resource is synced again, assert that patches are reflected in the AWS resource
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert 'DBInstanceClass' in latest
+        if latest['DBInstanceClass'] != "db.m5.large":
+            assert "PendingModifiedValues" in latest
+            assert "DBInstanceClass" in latest["PendingModifiedValues"]
+            assert latest["PendingModifiedValues"]["DBInstanceClass"] == "db.m5.large"
+        assert 'MultiAZ' in latest
+        if not bool(latest['MultiAZ']):
+            assert "PendingModifiedValues" in latest
+            assert "MultiAZ" in latest["PendingModifiedValues"]
+            assert bool(latest["PendingModifiedValues"]["MultiAZ"])
