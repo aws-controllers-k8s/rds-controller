@@ -185,15 +185,11 @@ resources:
         from:
           operation: ModifyDBClusterParameterGroup
           path: Parameters
-        documentation:  DEPRECATED - do not use.  Prefer ParameterOverrides instead.
       ParameterOverrides:
         custom_field:
           # Map keys are the parameter name and the values are the parameter value.
           # We automatically determine the "apply method" for parameters.
           map_of: String
-        documentation: These are ONLY user-defined parameter overrides for the
-          DB cluster parameter group. This does not contain default or system
-          parameters.
       Tags:
         compare:
           # We have a custom comparison function...
@@ -365,9 +361,6 @@ resources:
           # the user needs to do is specify the parameter name and value they
           # want to override...
           map_of: String
-        documentation:
-          These are ONLY user-defined parameter overrides for the DB parameter
-          group. This does not contain default or system parameters.
       Tags:
         compare:
           # We have a custom comparison function...

@@ -1,0 +1,17 @@
+resources:
+  DBClusterParameterGroup:
+    fields:
+      Parameters: 
+        override: |
+          DEPRECATED - do not use.  Prefer ParameterOverrides instead.
+      ParameterOverrides: 
+        append: |
+          These are ONLY user-defined parameter overrides for the
+          DB cluster parameter group. This does not contain default or system
+          parameters.
+  DBParameterGroup:
+    fields:
+      ParameterOverrides: 
+        append: |
+          These are ONLY user-defined parameter overrides for the DB parameter
+          group. This does not contain default or system parameters.
