@@ -94,8 +94,7 @@ type DBParameterGroupSpec struct {
 	//
 	// This value is stored as a lowercase string.
 	// +kubebuilder:validation:Required
-	Name *string `json:"name"`
-	// These are ONLY user-defined parameter overrides for the DB parameter group. This does not contain default or system parameters.
+	Name               *string            `json:"name"`
 	ParameterOverrides map[string]*string `json:"parameterOverrides,omitempty"`
 	// Tags to assign to the DB parameter group.
 	Tags []*Tag `json:"tags,omitempty"`

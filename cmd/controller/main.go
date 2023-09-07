@@ -95,13 +95,14 @@ func main() {
 	}
 
 	mgr, err := ctrlrt.NewManager(ctrlrt.GetConfigOrDie(), ctrlrt.Options{
-		Scheme:             scheme,
-		Port:               port,
-		Host:               host,
-		MetricsBindAddress: ackCfg.MetricsAddr,
-		LeaderElection:     ackCfg.EnableLeaderElection,
-		LeaderElectionID:   awsServiceAPIGroup,
-		Namespace:          ackCfg.WatchNamespace,
+		Scheme:                  scheme,
+		Port:                    port,
+		Host:                    host,
+		MetricsBindAddress:      ackCfg.MetricsAddr,
+		LeaderElection:          ackCfg.EnableLeaderElection,
+		LeaderElectionID:        "ack-" + awsServiceAPIGroup,
+		Namespace:               ackCfg.WatchNamespace,
+		LeaderElectionNamespace: ackCfg.LeaderElectionNamespace,
 	})
 	if err != nil {
 		setupLog.Error(

@@ -58,6 +58,15 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "extraVolumeMounts": {
+          "type": "array"
+        },
+        "extraVolumes": {
+          "type": "array"
+        },
+        "extraEnvVars": {
+          "type": "array"
         }
       },
       "required": [
@@ -218,6 +227,18 @@
         },
         "resourceResyncPeriods": {
           "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "leaderElection": {
+      "description": "Parameter to configure the controller's leader election system.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "namespace": {
+          "type": "string"
         }
       },
       "type": "object"
