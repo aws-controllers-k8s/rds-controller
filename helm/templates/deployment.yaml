@@ -18,10 +18,12 @@ spec:
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
+{{- if .Values.deployment.annotations }}
       annotations:
       {{- range $key, $value := .Values.deployment.annotations }}
         {{ $key }}: {{ $value | quote }}
       {{- end }}
+{{- end }}
       labels:
         app.kubernetes.io/name: {{ include "app.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
@@ -47,7 +49,7 @@ spec:
         - --aws-endpoint-url
         - "$(AWS_ENDPOINT_URL)"
         - --enable-development-logging
-        - "$(ACK_ENABLE_DEVELOPMENT_LOGGING)"
+        - "$(ENABLE_DEVELOPMENT_LOGGING)"
         - --log-level
         - "$(ACK_LOG_LEVEL)"
         - --resource-tags
@@ -56,6 +58,10 @@ spec:
         - "$(ACK_WATCH_NAMESPACE)"
         - --deletion-policy
         - "$(DELETION_POLICY)"
+        - --enable-leader-election
+        - "$(ENABLE_LEADER_ELECTION)"
+        - --leader-election-namespace
+        - "$(LEADER_ELECTION_NAMESPACE)"
 {{- if gt .Values.reconcile.defaultResyncPeriod 0.0 }}
         - --reconcile-default-resync-seconds
         - "$(RECONCILE_DEFAULT_RESYNC_SECONDS)"
@@ -85,6 +91,10 @@ spec:
           value: {{ include "watch-namespace" . }}
         - name: DELETION_POLICY
           value: {{ .Values.deletionPolicy }}
+        - name: ENABLED_LEADER_ELECTION
+          value: {{ .Values.leaderElection.enabled | quote }}
+        - name: LEADER_ELECTION_NAMESPACE
+          value: {{ .Values.leaderElection.namespace | quote }}
         - name: ACK_ENABLE_DEVELOPMENT_LOGGING
           value: {{ .Values.log.enable_development_logging | quote }}
         - name: ACK_LOG_LEVEL
@@ -104,10 +114,18 @@ spec:
           value: {{ include "aws.credentials.path" . }}
         - name: AWS_PROFILE
           value: {{ .Values.aws.credentials.profile }}
+        {{- end }}
+        {{- if .Values.deployment.extraEnvVars -}}
+          {{ toYaml .Values.deployment.extraEnvVars | nindent 8 }}
+        {{- end }}
         volumeMounts:
+        {{- if .Values.aws.credentials.secretName }}
           - name: {{ .Values.aws.credentials.secretName }}
             mountPath: {{ include "aws.credentials.secret_mount_path" . }}
             readOnly: true
+        {{- end }}
+        {{- if .Values.deployment.extraVolumeMounts -}}
+          {{ toYaml .Values.deployment.extraVolumeMounts | nindent 12 }}
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
@@ -133,9 +151,12 @@ spec:
       hostIPC: false
       hostNetwork: false
       hostPID: false
-      {{ if .Values.aws.credentials.secretName -}}
       volumes:
+      {{- if .Values.aws.credentials.secretName -}}
         - name: {{ .Values.aws.credentials.secretName }}
           secret:
             secretName: {{ .Values.aws.credentials.secretName }}
       {{ end -}}
+{{- if .Values.deployment.extraVolumes }}
+{{ toYaml .Values.deployment.extraVolumes | indent 8}}
+{{- end }}

@@ -71,9 +71,6 @@ spec:
               parameterOverrides:
                 additionalProperties:
                   type: string
-                description: These are ONLY user-defined parameter overrides for the
-                  DB cluster parameter group. This does not contain default or system
-                  parameters.
                 type: object
               parameters:
                 description: "A list of parameters in the DB cluster parameter group
@@ -85,8 +82,7 @@ spec:
                   clusters associated with the parameter group. When the application
                   method is pending-reboot, changes to dynamic and static parameters
                   are applied after a reboot without failover to the DB clusters associated
-                  with the parameter group. \n DEPRECATED - do not use.  Prefer ParameterOverrides
-                  instead."
+                  with the parameter group."
                 items:
                   description: "This data type is used as a request parameter in the
                     ModifyDBParameterGroup and ResetDBParameterGroup actions. \n This

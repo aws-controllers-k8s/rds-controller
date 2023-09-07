@@ -29,14 +29,16 @@ spec:
         - "$(AWS_REGION)"
         - --aws-endpoint-url
         - "$(AWS_ENDPOINT_URL)"
-        - --enable-development-logging
-        - "$(ACK_ENABLE_DEVELOPMENT_LOGGING)"
+        - --enable-development-logging=$(ACK_ENABLE_DEVELOPMENT_LOGGING)
         - --log-level
         - "$(ACK_LOG_LEVEL)"
         - --resource-tags
         - "$(ACK_RESOURCE_TAGS)"
         - --watch-namespace
         - "$(ACK_WATCH_NAMESPACE)"
+        - --enable-leader-election=$(ENABLE_LEADER_ELECTION)
+        - --leader-election-namespace
+        - "$(LEADER_ELECTION_NAMESPACE)"
         image: controller:latest
         name: controller
         ports:
@@ -66,6 +68,10 @@ spec:
           value: "info"
         - name: ACK_RESOURCE_TAGS
           value: "services.k8s.aws/controller-version=%CONTROLLER_SERVICE%-%CONTROLLER_VERSION%,services.k8s.aws/namespace=%K8S_NAMESPACE%"
+        - name: ENABLE_LEADER_ELECTION
+          value: "false"
+        - name: LEADER_ELECTION_NAMESPACE
+          value: "ack-system"
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false

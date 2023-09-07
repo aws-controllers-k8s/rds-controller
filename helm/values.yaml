@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.1.5
+  tag: 1.1.6
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -28,6 +28,26 @@ deployment:
   # Which priorityClassName to set?
   # See: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#pod-priority
   priorityClassName: ""
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  # Additional server container environment variables
+  #
+  # You specify this manually like you would a raw deployment manifest.
+  # This means you can bind in environment variables from secrets.
+  #
+  # e.g. static environment variable:
+  #  - name: DEMO_GREETING
+  #    value: "Hello from the environment"
+  #
+  # e.g. secret environment variable:
+  # - name: USERNAME
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: mysecret
+  #       key: username
+  extraEnvVars: []
+
 
 # If "installScope: cluster" then these labels will be applied to ClusterRole
 role:
@@ -90,7 +110,7 @@ deletionPolicy: delete
 # controller reconciliation configurations
 reconcile:
   # The default duration, in seconds, to wait before resyncing desired state of custom resources.
-  defaultResyncPeriod: 0
+  defaultResyncPeriod: 36000 # 10 Hours
   # An object representing the reconcile resync configuration for each specific resource.
   resourceResyncPeriods: {}
 
@@ -101,3 +121,15 @@ serviceAccount:
   name: ack-rds-controller
   annotations: {}
     # eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
+
+# Configuration of the leader election. Required for running multiple instances of the
+# controller within the same cluster.
+# See https://kubernetes.io/docs/concepts/architecture/leases/#leader-election
+leaderElection:
+  # Enable Controller Leader Election. Set this to true to enable leader election
+  # for this controller.
+  enabled: false
+  # Leader election can be scoped to a specific namespace. By default, the controller
+  # will attempt to use the namespace of the service account mounted to the Controller
+  # pod.
+  namespace: ""
