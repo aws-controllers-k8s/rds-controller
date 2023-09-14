@@ -11,7 +11,7 @@ metadata:
     k8s-app: {{ include "app.name" . }}
     helm.sh/chart: {{ include "chart.name-version" . }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "app.name" . }}
@@ -48,8 +48,9 @@ spec:
         - "$(AWS_REGION)"
         - --aws-endpoint-url
         - "$(AWS_ENDPOINT_URL)"
+{{- if .Values.log.enable_development_logging }}
         - --enable-development-logging
-        - "$(ENABLE_DEVELOPMENT_LOGGING)"
+{{- end }}
         - --log-level
         - "$(ACK_LOG_LEVEL)"
         - --resource-tags
@@ -58,10 +59,11 @@ spec:
         - "$(ACK_WATCH_NAMESPACE)"
         - --deletion-policy
         - "$(DELETION_POLICY)"
+{{- if .Values.leaderElection.enabled }}
         - --enable-leader-election
-        - "$(ENABLE_LEADER_ELECTION)"
         - --leader-election-namespace
         - "$(LEADER_ELECTION_NAMESPACE)"
+{{- end }}
 {{- if gt .Values.reconcile.defaultResyncPeriod 0.0 }}
         - --reconcile-default-resync-seconds
         - "$(RECONCILE_DEFAULT_RESYNC_SECONDS)"
@@ -91,12 +93,8 @@ spec:
           value: {{ include "watch-namespace" . }}
         - name: DELETION_POLICY
           value: {{ .Values.deletionPolicy }}
-        - name: ENABLED_LEADER_ELECTION
-          value: {{ .Values.leaderElection.enabled | quote }}
         - name: LEADER_ELECTION_NAMESPACE
           value: {{ .Values.leaderElection.namespace | quote }}
-        - name: ACK_ENABLE_DEVELOPMENT_LOGGING
-          value: {{ .Values.log.enable_development_logging | quote }}
         - name: ACK_LOG_LEVEL
           value: {{ .Values.log.level | quote }}
         - name: ACK_RESOURCE_TAGS
@@ -149,8 +147,9 @@ spec:
       priorityClassName: {{ .Values.deployment.priorityClassName }}
       {{ end -}}
       hostIPC: false
-      hostNetwork: false
       hostPID: false
+      hostNetwork: {{ .Values.deployment.hostNetwork }}
+      dnsPolicy: {{ .Values.deployment.dnsPolicy }}
       volumes:
       {{- if .Values.aws.credentials.secretName -}}
         - name: {{ .Values.aws.credentials.secretName }}
