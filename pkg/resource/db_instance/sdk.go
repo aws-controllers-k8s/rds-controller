@@ -2831,6 +2831,36 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.DomainIAMRoleName != nil {
 		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
 	}
+	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
+		f4 := []*string{}
+		f5 := []string{"audit", "error", "general", "slowquery"}
+		options := []string{"audit", "error", "general", "slowquery"}
+		for _, f4iter := range r.ko.Spec.EnableCloudwatchLogsExports {
+			var f4elem string
+			f4elem = *f4iter
+			for element := range options {
+				if options[element] == f4elem {
+					f4 = append(f4, &f4elem)
+					f5[element] = ""
+				}
+				
+			}
+		}
+
+		  // Convert f5 to []*string
+		  f5ptr := []*string{}
+		  for _, s := range f5 {
+			  if s != "" {
+				elem := s
+				f5ptr = append(f5ptr, &elem)
+			  }
+		  }
+
+		res.SetCloudwatchLogsExportConfiguration(&svcsdk.CloudwatchLogsExportConfiguration{
+			EnableLogTypes: f4,
+			DisableLogTypes: f5ptr,
+		})
+	}
 	if r.ko.Spec.EnableCustomerOwnedIP != nil {
 		res.SetEnableCustomerOwnedIp(*r.ko.Spec.EnableCustomerOwnedIP)
 	}
