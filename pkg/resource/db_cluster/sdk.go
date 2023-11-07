@@ -647,6 +647,12 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.DBClusterParameterGroupName = ko.Status.DBClusterParameterGroup
 	}
 
+	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
+		// If the desired resource has IAM authentication explicitly enabled or disabled then update the spec of the
+		// latest resource with the value from the status.
+		ko.Spec.EnableIAMDatabaseAuthentication = ko.Status.IAMDatabaseAuthenticationEnabled
+	}
+
 	return &resource{ko}, nil
 }
 
