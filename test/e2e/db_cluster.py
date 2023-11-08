@@ -30,17 +30,18 @@ ClusterMatchFunc = typing.NewType(
     typing.Callable[[dict], bool],
 )
 
-class StatusMatcher:
-    def __init__(self, status):
-        self.match_on = status
+class AttributeMatcher:
+    def __init__(self, match_on: str, expected_value: typing.Any):
+        self.match_on = match_on
+        self.expected_value = expected_value
 
-    def __call__(self, record: dict) -> bool:
-        return (record is not None and 'Status' in record
-                and record['Status'] == self.match_on)
+    def __call__(self, record: typing.Dict[str, typing.Any]) -> bool:
+        return (record is not None and self.match_on in record
+                and record[self.match_on] == self.expected_value)
 
 
 def status_matches(status: str) -> ClusterMatchFunc:
-    return StatusMatcher(status)
+    return AttributeMatcher("Status", status)
 
 
 def wait_until(
