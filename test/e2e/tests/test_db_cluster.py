@@ -65,7 +65,7 @@ def aurora_mysql_cluster(k8s_secret):
     db_name = "mydb"
     secret = k8s_secret(
         MUP_NS,
-        MUP_SEC_NAME,
+        f"{MUP_SEC_NAME}-mysql",
         MUP_SEC_KEY,
         MUP_SEC_VAL,
     )
@@ -114,7 +114,7 @@ def aurora_postgres_cluster(k8s_secret):
     db_cluster_id = random_suffix_name("my-aurora-postgres", 20)
     secret = k8s_secret(
         MUP_NS,
-        MUP_SEC_NAME,
+        f"{MUP_SEC_NAME}-postgres",
         MUP_SEC_KEY,
         MUP_SEC_VAL,
     )
