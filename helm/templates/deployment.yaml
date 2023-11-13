@@ -123,7 +123,7 @@ spec:
             readOnly: true
         {{- end }}
         {{- if .Values.deployment.extraVolumeMounts -}}
-          {{ toYaml .Values.deployment.extraVolumeMounts | nindent 12 }}
+          {{ toYaml .Values.deployment.extraVolumeMounts | nindent 10 }}
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
@@ -151,11 +151,11 @@ spec:
       hostNetwork: {{ .Values.deployment.hostNetwork }}
       dnsPolicy: {{ .Values.deployment.dnsPolicy }}
       volumes:
-      {{- if .Values.aws.credentials.secretName -}}
+      {{- if .Values.aws.credentials.secretName }}
         - name: {{ .Values.aws.credentials.secretName }}
           secret:
             secretName: {{ .Values.aws.credentials.secretName }}
-      {{ end -}}
+      {{- end }}
 {{- if .Values.deployment.extraVolumes }}
 {{ toYaml .Values.deployment.extraVolumes | indent 8}}
 {{- end }}
