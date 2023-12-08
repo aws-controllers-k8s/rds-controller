@@ -23,10 +23,20 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"encoding/json"
+	"slices"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
+type Difference struct {
+	A 		[]*string
+	B 		[]*string
+	Path 	[]*Parts
+}
+type Parts struct {
+	Parts []*string
+}
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/917. The Input shape
 // sent to ModifyDBCluster MUST have fields that are unchanged between desired
@@ -623,5 +633,49 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetServerlessV2ScalingConfiguration(f23)
 	}
+ 
+	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
+
+		for _, diff := range delta.Differences {
+			jsonParts, _ :=  diff.Path.MarshalJSON()
+			var parts = &Parts{}
+			err := json.Unmarshal([]byte(jsonParts), &parts); 
+			if err != nil {
+				panic(err)
+			}
+			if *parts.Parts[1] == "EnableCloudwatchLogsExports" {
+				//Current log types config 
+				cloudwatchLogExportsConfig := r.ko.Spec.EnableCloudwatchLogsExports
+				//Old log types config 
+				cloudwatchLogExportsConfigOld :=diff.B.([]*string)
+				logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences (cloudwatchLogExportsConfig,cloudwatchLogExportsConfigOld)
+				f24 := &svcsdk.CloudwatchLogsExportConfiguration{
+					EnableLogTypes: logsTypesToEnable,
+					DisableLogTypes: logsTypesToDisable,
+				}
+				res.SetCloudwatchLogsExportConfiguration(f24)
+			}
+		}
+
+	}
 	return res, nil
+}
+
+func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfig []*string, cloudwatchLogExportsConfigOld []*string ) ([]*string ,[]*string){
+	logsTypesToEnable := []*string{}
+	logsTypesToDisable := []*string{}
+
+	for _, config := range cloudwatchLogExportsConfig {
+		a := slices.Contains(cloudwatchLogExportsConfigOld, config)
+		if !a {
+			logsTypesToEnable = append(logsTypesToEnable,config)
+		}
+	} 
+	for _, config := range cloudwatchLogExportsConfigOld {
+		a := slices.Contains(cloudwatchLogExportsConfig, config)
+		if !a {
+			logsTypesToDisable = append(logsTypesToDisable,config)
+		}
+	} 
+	return logsTypesToEnable,logsTypesToDisable
 }
