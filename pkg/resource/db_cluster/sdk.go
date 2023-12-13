@@ -334,10 +334,8 @@ func (rm *resourceManager) sdkFind(
 				f33 = append(f33, &f33elem)
 			}
 			ko.Status.EnabledCloudwatchLogsExports = f33
-			ko.Spec.EnableCloudwatchLogsExports = f33
 		} else {
 			ko.Status.EnabledCloudwatchLogsExports = nil
-			ko.Spec.EnableCloudwatchLogsExports = nil
 		}
 		if elem.Endpoint != nil {
 			ko.Status.Endpoint = elem.Endpoint
