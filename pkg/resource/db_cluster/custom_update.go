@@ -23,7 +23,7 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"slices"
+	 "slices"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
@@ -625,14 +625,14 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetServerlessV2ScalingConfiguration(f23)
 	}
- 
+
 	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
 		cloudwatchLogExportsConfig := desired.ko.Spec.EnableCloudwatchLogsExports
-		//Old log types config 
+		//Old log types config
 		cloudwatchLogExportsConfigOld := latest.ko.Spec.EnableCloudwatchLogsExports
-		logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences (cloudwatchLogExportsConfig,cloudwatchLogExportsConfigOld)
+		logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfig, cloudwatchLogExportsConfigOld)
 		f24 := &svcsdk.CloudwatchLogsExportConfiguration{
-			EnableLogTypes: logsTypesToEnable,
+			EnableLogTypes:  logsTypesToEnable,
 			DisableLogTypes: logsTypesToDisable,
 		}
 		res.SetCloudwatchLogsExportConfiguration(f24)
@@ -640,19 +640,19 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 	return res, nil
 }
 
-func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfig []*string, cloudwatchLogExportsConfigOld []*string ) ([]*string ,[]*string){
+func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfig []*string, cloudwatchLogExportsConfigOld []*string) ([]*string, []*string) {
 	logsTypesToEnable := []*string{}
 	logsTypesToDisable := []*string{}
 
 	for _, config := range cloudwatchLogExportsConfig {
 		if !slices.Contains(cloudwatchLogExportsConfigOld, config) {
-			logsTypesToEnable = append(logsTypesToEnable,config)
+			logsTypesToEnable = append(logsTypesToEnable, config)
 		}
-	} 
+	}
 	for _, config := range cloudwatchLogExportsConfigOld {
 		if !slices.Contains(cloudwatchLogExportsConfig, config) {
-			logsTypesToDisable = append(logsTypesToDisable,config)
+			logsTypesToDisable = append(logsTypesToDisable, config)
 		}
-	} 
-	return logsTypesToEnable,logsTypesToDisable
+	}
+	return logsTypesToEnable, logsTypesToDisable
 }
