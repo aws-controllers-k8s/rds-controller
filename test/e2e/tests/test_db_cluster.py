@@ -109,7 +109,7 @@ def aurora_mysql_cluster(k8s_secret):
     db_cluster.wait_until_deleted(db_cluster_id)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def aurora_postgres_cluster(k8s_secret):
     db_cluster_id = random_suffix_name("my-aurora-postgres", 20)
     secret = k8s_secret(
@@ -235,7 +235,6 @@ class TestDBCluster:
             self, aurora_postgres_cluster,
     ):
         ref, _, db_cluster_id = aurora_postgres_cluster
-
         db_cluster.wait_until(
             db_cluster_id,
             db_cluster.status_matches('available'),
@@ -257,3 +256,30 @@ class TestDBCluster:
         latest = db_cluster.get(db_cluster_id)
         assert latest is not None
         assert latest["IAMDatabaseAuthenticationEnabled"] == True
+
+    def test_enable_cloudwatch_logs_exports(
+            self, aurora_postgres_cluster,
+    ):
+        ref, _, db_cluster_id = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+        enabledCloudwatchLogsExports = current.get("EnabledCloudwatchLogsExports",None)
+        assert enabledCloudwatchLogsExports is None
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableCloudwatchLogsExports": ["postgresql"]}},
+        )
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.AttributeMatcher("EnabledCloudwatchLogsExports", ["postgresql"]),
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest["EnabledCloudwatchLogsExports"] == ["postgresql"]
