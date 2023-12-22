@@ -233,8 +233,12 @@ func newResourceDelta(
 			delta.Add("Spec.DomainIAMRoleName", a.ko.Spec.DomainIAMRoleName, b.ko.Spec.DomainIAMRoleName)
 		}
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports) {
+	if len(a.ko.Spec.EnableCloudwatchLogsExports) != len(b.ko.Spec.EnableCloudwatchLogsExports) {
 		delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
+	} else if len(a.ko.Spec.EnableCloudwatchLogsExports) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports) {
+			delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.EnableCustomerOwnedIP, b.ko.Spec.EnableCustomerOwnedIP) {
 		delta.Add("Spec.EnableCustomerOwnedIP", a.ko.Spec.EnableCustomerOwnedIP, b.ko.Spec.EnableCustomerOwnedIP)
@@ -417,8 +421,12 @@ func newResourceDelta(
 			delta.Add("Spec.PreferredMaintenanceWindow", a.ko.Spec.PreferredMaintenanceWindow, b.ko.Spec.PreferredMaintenanceWindow)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures) {
+	if len(a.ko.Spec.ProcessorFeatures) != len(b.ko.Spec.ProcessorFeatures) {
 		delta.Add("Spec.ProcessorFeatures", a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures)
+	} else if len(a.ko.Spec.ProcessorFeatures) > 0 {
+		if !reflect.DeepEqual(a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures) {
+			delta.Add("Spec.ProcessorFeatures", a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.PromotionTier, b.ko.Spec.PromotionTier) {
 		delta.Add("Spec.PromotionTier", a.ko.Spec.PromotionTier, b.ko.Spec.PromotionTier)
@@ -504,8 +512,12 @@ func newResourceDelta(
 			delta.Add("Spec.UseDefaultProcessorFeatures", a.ko.Spec.UseDefaultProcessorFeatures, b.ko.Spec.UseDefaultProcessorFeatures)
 		}
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {
+	if len(a.ko.Spec.VPCSecurityGroupIDs) != len(b.ko.Spec.VPCSecurityGroupIDs) {
 		delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
+	} else if len(a.ko.Spec.VPCSecurityGroupIDs) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {
+			delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
+		}
 	}
 	if !reflect.DeepEqual(a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs) {
 		delta.Add("Spec.VPCSecurityGroupRefs", a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs)

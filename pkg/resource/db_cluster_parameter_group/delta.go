@@ -65,15 +65,19 @@ func newResourceDelta(
 			delta.Add("Spec.Name", a.ko.Spec.Name, b.ko.Spec.Name)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.ParameterOverrides, b.ko.Spec.ParameterOverrides) {
+	if len(a.ko.Spec.ParameterOverrides) != len(b.ko.Spec.ParameterOverrides) {
 		delta.Add("Spec.ParameterOverrides", a.ko.Spec.ParameterOverrides, b.ko.Spec.ParameterOverrides)
-	} else if a.ko.Spec.ParameterOverrides != nil && b.ko.Spec.ParameterOverrides != nil {
+	} else if len(a.ko.Spec.ParameterOverrides) > 0 {
 		if !ackcompare.MapStringStringPEqual(a.ko.Spec.ParameterOverrides, b.ko.Spec.ParameterOverrides) {
 			delta.Add("Spec.ParameterOverrides", a.ko.Spec.ParameterOverrides, b.ko.Spec.ParameterOverrides)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.Parameters, b.ko.Spec.Parameters) {
+	if len(a.ko.Spec.Parameters) != len(b.ko.Spec.Parameters) {
 		delta.Add("Spec.Parameters", a.ko.Spec.Parameters, b.ko.Spec.Parameters)
+	} else if len(a.ko.Spec.Parameters) > 0 {
+		if !reflect.DeepEqual(a.ko.Spec.Parameters, b.ko.Spec.Parameters) {
+			delta.Add("Spec.Parameters", a.ko.Spec.Parameters, b.ko.Spec.Parameters)
+		}
 	}
 
 	return delta
