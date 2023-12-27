@@ -43,8 +43,12 @@ func newResourceDelta(
 		return delta
 	}
 
-	if !reflect.DeepEqual(a.ko.Spec.Auth, b.ko.Spec.Auth) {
+	if len(a.ko.Spec.Auth) != len(b.ko.Spec.Auth) {
 		delta.Add("Spec.Auth", a.ko.Spec.Auth, b.ko.Spec.Auth)
+	} else if len(a.ko.Spec.Auth) > 0 {
+		if !reflect.DeepEqual(a.ko.Spec.Auth, b.ko.Spec.Auth) {
+			delta.Add("Spec.Auth", a.ko.Spec.Auth, b.ko.Spec.Auth)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DebugLogging, b.ko.Spec.DebugLogging) {
 		delta.Add("Spec.DebugLogging", a.ko.Spec.DebugLogging, b.ko.Spec.DebugLogging)
@@ -91,11 +95,19 @@ func newResourceDelta(
 	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {
+	if len(a.ko.Spec.VPCSecurityGroupIDs) != len(b.ko.Spec.VPCSecurityGroupIDs) {
 		delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
+	} else if len(a.ko.Spec.VPCSecurityGroupIDs) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs) {
+			delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
+		}
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs) {
+	if len(a.ko.Spec.VPCSubnetIDs) != len(b.ko.Spec.VPCSubnetIDs) {
 		delta.Add("Spec.VPCSubnetIDs", a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs)
+	} else if len(a.ko.Spec.VPCSubnetIDs) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs) {
+			delta.Add("Spec.VPCSubnetIDs", a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs)
+		}
 	}
 
 	return delta
