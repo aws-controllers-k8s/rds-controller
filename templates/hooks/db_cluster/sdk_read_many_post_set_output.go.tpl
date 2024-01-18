@@ -36,3 +36,5 @@
 	    // latest resource with the value from the status.
 		ko.Spec.EnableIAMDatabaseAuthentication = ko.Status.IAMDatabaseAuthenticationEnabled
 	}
+
+	ko.Spec.EnableCloudwatchLogsExports = ko.Status.EnabledCloudwatchLogsExports 

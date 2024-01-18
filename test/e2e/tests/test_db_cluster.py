@@ -109,12 +109,12 @@ def aurora_mysql_cluster(k8s_secret):
     db_cluster.wait_until_deleted(db_cluster_id)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def aurora_postgres_cluster(k8s_secret):
     db_cluster_id = random_suffix_name("my-aurora-postgres", 20)
     secret = k8s_secret(
         MUP_NS,
-        f"{MUP_SEC_NAME}-postgres",
+        f"{MUP_SEC_NAME}-postgres-{db_cluster_id}",
         MUP_SEC_KEY,
         MUP_SEC_VAL,
     )
@@ -154,6 +154,50 @@ def aurora_postgres_cluster(k8s_secret):
 
     db_cluster.wait_until_deleted(db_cluster_id)
 
+@pytest.fixture(scope="module")
+def aurora_postgres_cluster_log_exports(k8s_secret):
+    db_cluster_id = random_suffix_name("my-aurora-postgres-log-exports", 35)
+    secret = k8s_secret(
+        MUP_NS,
+        f"{MUP_SEC_NAME}-postgres-{db_cluster_id}",
+        MUP_SEC_KEY,
+        MUP_SEC_VAL,
+    )
+
+    resource_data = load_rds_resource(
+        "db_cluster_aurora_postgres_log_exports",
+        additional_replacements={
+            "DB_CLUSTER_ID": db_cluster_id,
+            "MASTER_USER_PASS_SECRET_NAMESPACE": secret.ns,
+            "MASTER_USER_PASS_SECRET_NAME": secret.name,
+            "MASTER_USER_PASS_SECRET_KEY": secret.key,
+        },
+    )
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        db_cluster_id, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert 'status' in cr
+    assert 'status' in cr['status']
+    assert cr['status']['status'] == 'creating'
+    condition.assert_not_synced(ref)
+
+    yield (ref, cr, db_cluster_id)
+
+    # Try to delete, if doesn't already exist
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_cluster.wait_until_deleted(db_cluster_id)
 
 @service_marker
 @pytest.mark.canary
@@ -235,7 +279,6 @@ class TestDBCluster:
             self, aurora_postgres_cluster,
     ):
         ref, _, db_cluster_id = aurora_postgres_cluster
-
         db_cluster.wait_until(
             db_cluster_id,
             db_cluster.status_matches('available'),
@@ -257,3 +300,58 @@ class TestDBCluster:
         latest = db_cluster.get(db_cluster_id)
         assert latest is not None
         assert latest["IAMDatabaseAuthenticationEnabled"] == True
+
+    def test_enable_cloudwatch_logs_exports(
+            self, aurora_postgres_cluster,
+    ):
+        ref, _, db_cluster_id = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+        enabledCloudwatchLogsExports = current.get("EnabledCloudwatchLogsExports",None)
+        assert enabledCloudwatchLogsExports is None
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableCloudwatchLogsExports": ["postgresql"]}},
+        )
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.AttributeMatcher("EnabledCloudwatchLogsExports", ["postgresql"]),
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest["EnabledCloudwatchLogsExports"] == ["postgresql"]
+
+    def test_disable_cloudwatch_logs_exports(
+            self, aurora_postgres_cluster_log_exports,
+    ):
+        ref, _, db_cluster_id = aurora_postgres_cluster_log_exports
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+        enabledCloudwatchLogsExports = current.get("EnabledCloudwatchLogsExports",None)
+        assert enabledCloudwatchLogsExports is not None
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableCloudwatchLogsExports": None}},
+        )
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches("available"),
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        enabledCloudwatchLogsExportsLatest = latest.get("EnabledCloudwatchLogsExports",None)
+        assert enabledCloudwatchLogsExportsLatest is None

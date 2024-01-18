@@ -15,6 +15,7 @@ package db_cluster
 
 import (
 	"context"
+	"slices"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -63,7 +64,7 @@ func (rm *resourceManager) customUpdate(
 		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
 	}
-	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, delta)
+	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
 	if err != nil {
 		return nil, err
 	}
@@ -516,53 +517,54 @@ func (rm *resourceManager) customUpdate(
 // https://github.com/aws-controllers-k8s/community/issues/917
 func (rm *resourceManager) newCustomUpdateRequestPayload(
 	ctx context.Context,
-	r *resource,
+	desired *resource,
+	latest *resource,
 	delta *ackcompare.Delta,
 ) (*svcsdk.ModifyDBClusterInput, error) {
 	res := &svcsdk.ModifyDBClusterInput{}
 
 	res.SetApplyImmediately(true)
 	res.SetAllowMajorVersionUpgrade(true)
-	if r.ko.Spec.BacktrackWindow != nil && delta.DifferentAt("Spec.BacktrackWindow") {
-		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
+	if desired.ko.Spec.BacktrackWindow != nil && delta.DifferentAt("Spec.BacktrackWindow") {
+		res.SetBacktrackWindow(*desired.ko.Spec.BacktrackWindow)
 	}
-	if r.ko.Spec.BackupRetentionPeriod != nil && delta.DifferentAt("Spec.BackupRetentionPeriod") {
-		res.SetBackupRetentionPeriod(*r.ko.Spec.BackupRetentionPeriod)
+	if desired.ko.Spec.BackupRetentionPeriod != nil && delta.DifferentAt("Spec.BackupRetentionPeriod") {
+		res.SetBackupRetentionPeriod(*desired.ko.Spec.BackupRetentionPeriod)
 	}
-	if r.ko.Spec.CopyTagsToSnapshot != nil && delta.DifferentAt("Spec.CopyTagsToSnapshot") {
-		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+	if desired.ko.Spec.CopyTagsToSnapshot != nil && delta.DifferentAt("Spec.CopyTagsToSnapshot") {
+		res.SetCopyTagsToSnapshot(*desired.ko.Spec.CopyTagsToSnapshot)
 	}
 	// NOTE(jaypipes): This is a required field in the input shape. If not set,
 	// we get back a cryptic error message "1 Validation error(s) found."
-	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+	if desired.ko.Spec.DBClusterIdentifier != nil {
+		res.SetDBClusterIdentifier(*desired.ko.Spec.DBClusterIdentifier)
 	}
-	if r.ko.Spec.DBClusterParameterGroupName != nil && delta.DifferentAt("Spec.DBClusterParameterGroupName") {
-		res.SetDBClusterParameterGroupName(*r.ko.Spec.DBClusterParameterGroupName)
+	if desired.ko.Spec.DBClusterParameterGroupName != nil && delta.DifferentAt("Spec.DBClusterParameterGroupName") {
+		res.SetDBClusterParameterGroupName(*desired.ko.Spec.DBClusterParameterGroupName)
 	}
-	if r.ko.Spec.DeletionProtection != nil && delta.DifferentAt("Spec.DeletionProtection") {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+	if desired.ko.Spec.DeletionProtection != nil && delta.DifferentAt("Spec.DeletionProtection") {
+		res.SetDeletionProtection(*desired.ko.Spec.DeletionProtection)
 	}
-	if r.ko.Spec.Domain != nil && delta.DifferentAt("Spec.Domain") {
-		res.SetDomain(*r.ko.Spec.Domain)
+	if desired.ko.Spec.Domain != nil && delta.DifferentAt("Spec.Domain") {
+		res.SetDomain(*desired.ko.Spec.Domain)
 	}
-	if r.ko.Spec.DomainIAMRoleName != nil && delta.DifferentAt("Spec.DomainIAMRoleName") {
-		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+	if desired.ko.Spec.DomainIAMRoleName != nil && delta.DifferentAt("Spec.DomainIAMRoleName") {
+		res.SetDomainIAMRoleName(*desired.ko.Spec.DomainIAMRoleName)
 	}
-	if r.ko.Spec.EnableGlobalWriteForwarding != nil && delta.DifferentAt("Spec.EnableGlobalWriteForwarding") {
-		res.SetEnableGlobalWriteForwarding(*r.ko.Spec.EnableGlobalWriteForwarding)
+	if desired.ko.Spec.EnableGlobalWriteForwarding != nil && delta.DifferentAt("Spec.EnableGlobalWriteForwarding") {
+		res.SetEnableGlobalWriteForwarding(*desired.ko.Spec.EnableGlobalWriteForwarding)
 	}
-	if r.ko.Spec.EnableHTTPEndpoint != nil && delta.DifferentAt("Spec.EnableHTTPEndpoint") {
-		res.SetEnableHttpEndpoint(*r.ko.Spec.EnableHTTPEndpoint)
+	if desired.ko.Spec.EnableHTTPEndpoint != nil && delta.DifferentAt("Spec.EnableHTTPEndpoint") {
+		res.SetEnableHttpEndpoint(*desired.ko.Spec.EnableHTTPEndpoint)
 	}
-	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil && delta.DifferentAt("Spec.EnableIAMDatabaseAuthentication") {
-		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+	if desired.ko.Spec.EnableIAMDatabaseAuthentication != nil && delta.DifferentAt("Spec.EnableIAMDatabaseAuthentication") {
+		res.SetEnableIAMDatabaseAuthentication(*desired.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
-	if r.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
+		res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
 	}
-	if r.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
-		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
+	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
+		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.MasterUserPassword)
 		if err != nil {
 			return nil, err
 		}
@@ -570,40 +572,40 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 			res.SetMasterUserPassword(tmpSecret)
 		}
 	}
-	if r.ko.Spec.OptionGroupName != nil && delta.DifferentAt("Spec.OptionGroupName") {
-		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+	if desired.ko.Spec.OptionGroupName != nil && delta.DifferentAt("Spec.OptionGroupName") {
+		res.SetOptionGroupName(*desired.ko.Spec.OptionGroupName)
 	}
-	if r.ko.Spec.Port != nil && delta.DifferentAt("Spec.Port") {
-		res.SetPort(*r.ko.Spec.Port)
+	if desired.ko.Spec.Port != nil && delta.DifferentAt("Spec.Port") {
+		res.SetPort(*desired.ko.Spec.Port)
 	}
-	if r.ko.Spec.PreferredBackupWindow != nil && delta.DifferentAt("Spec.PreferredBackupkWindow") {
-		res.SetPreferredBackupWindow(*r.ko.Spec.PreferredBackupWindow)
+	if desired.ko.Spec.PreferredBackupWindow != nil && delta.DifferentAt("Spec.PreferredBackupkWindow") {
+		res.SetPreferredBackupWindow(*desired.ko.Spec.PreferredBackupWindow)
 	}
-	if r.ko.Spec.PreferredMaintenanceWindow != nil && delta.DifferentAt("Spec.PreferredMaintenanceWindow") {
-		res.SetPreferredMaintenanceWindow(*r.ko.Spec.PreferredMaintenanceWindow)
+	if desired.ko.Spec.PreferredMaintenanceWindow != nil && delta.DifferentAt("Spec.PreferredMaintenanceWindow") {
+		res.SetPreferredMaintenanceWindow(*desired.ko.Spec.PreferredMaintenanceWindow)
 	}
-	if r.ko.Spec.ScalingConfiguration != nil && delta.DifferentAt("Spec.ScalingConfiguration") {
+	if desired.ko.Spec.ScalingConfiguration != nil && delta.DifferentAt("Spec.ScalingConfiguration") {
 		f22 := &svcsdk.ScalingConfiguration{}
-		if r.ko.Spec.ScalingConfiguration.AutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.AutoPause") {
-			f22.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+		if desired.ko.Spec.ScalingConfiguration.AutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.AutoPause") {
+			f22.SetAutoPause(*desired.ko.Spec.ScalingConfiguration.AutoPause)
 		}
-		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MaxCapacity") {
-			f22.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+		if desired.ko.Spec.ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MaxCapacity") {
+			f22.SetMaxCapacity(*desired.ko.Spec.ScalingConfiguration.MaxCapacity)
 		}
-		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MinCapacity") {
-			f22.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+		if desired.ko.Spec.ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MinCapacity") {
+			f22.SetMinCapacity(*desired.ko.Spec.ScalingConfiguration.MinCapacity)
 		}
-		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.SecondsUntilAutoPause") {
-			f22.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+		if desired.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.SecondsUntilAutoPause") {
+			f22.SetSecondsUntilAutoPause(*desired.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
 		}
-		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil && delta.DifferentAt("Spec.ScalingConfiguration.TimeoutAction") {
-			f22.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+		if desired.ko.Spec.ScalingConfiguration.TimeoutAction != nil && delta.DifferentAt("Spec.ScalingConfiguration.TimeoutAction") {
+			f22.SetTimeoutAction(*desired.ko.Spec.ScalingConfiguration.TimeoutAction)
 		}
 		res.SetScalingConfiguration(f22)
 	}
-	if r.ko.Spec.VPCSecurityGroupIDs != nil && delta.DifferentAt("Spec.VPCSecurityGroupIDs") {
+	if desired.ko.Spec.VPCSecurityGroupIDs != nil && delta.DifferentAt("Spec.VPCSecurityGroupIDs") {
 		f23 := []*string{}
-		for _, f23iter := range r.ko.Spec.VPCSecurityGroupIDs {
+		for _, f23iter := range desired.ko.Spec.VPCSecurityGroupIDs {
 			var f23elem string
 			f23elem = *f23iter
 			f23 = append(f23, &f23elem)
@@ -611,17 +613,46 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		res.SetVpcSecurityGroupIds(f23)
 	}
 	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to get ServerlessV2ScalingConfiguration modified
-	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
+	if desired.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
 		f23 := &svcsdk.ServerlessV2ScalingConfiguration{}
 		if delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") || delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
-			if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-				f23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+				f23.SetMaxCapacity(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
 			}
-			if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-				f23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+			if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+				f23.SetMinCapacity(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
 			}
 		}
 		res.SetServerlessV2ScalingConfiguration(f23)
 	}
+
+	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
+		cloudwatchLogExportsConfigDesired := desired.ko.Spec.EnableCloudwatchLogsExports
+		//Latest log types config
+		cloudwatchLogExportsConfigLatest := latest.ko.Spec.EnableCloudwatchLogsExports
+		logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired, cloudwatchLogExportsConfigLatest)
+		f24 := &svcsdk.CloudwatchLogsExportConfiguration{
+			EnableLogTypes:  logsTypesToEnable,
+			DisableLogTypes: logsTypesToDisable,
+		}
+		res.SetCloudwatchLogsExportConfiguration(f24)
+	}
 	return res, nil
+}
+
+func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired []*string, cloudwatchLogExportsConfigLatest []*string) ([]*string, []*string) {
+	logsTypesToEnable := []*string{}
+	logsTypesToDisable := []*string{}
+
+	for _, config := range cloudwatchLogExportsConfigDesired {
+		if !slices.Contains(cloudwatchLogExportsConfigLatest, config) {
+			logsTypesToEnable = append(logsTypesToEnable, config)
+		}
+	}
+	for _, config := range cloudwatchLogExportsConfigLatest {
+		if !slices.Contains(cloudwatchLogExportsConfigDesired, config) {
+			logsTypesToDisable = append(logsTypesToDisable, config)
+		}
+	}
+	return logsTypesToEnable, logsTypesToDisable
 }
