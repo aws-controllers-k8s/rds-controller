@@ -1,270 +1,28 @@
-apiVersion: rbac.authorization.k8s.io/v1
+{{ $labels := .Values.role.labels }}
+{{ $rules := include "controller-role-rules" . }}
 {{ if eq .Values.installScope "cluster" }}
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: ack-rds-controller
   labels:
-  {{- range $key, $value := .Values.role.labels }}
+  {{- range $key, $value := $labels }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
-{{ else }}
+{{- $rules }}
+{{ else if .Values.watchNamespace }}
+{{ $namespaces := split "," .Values.watchNamespace }}
+{{ range $namespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  creationTimestamp: null
   name: ack-rds-controller
+  namespace: {{ . }}
   labels:
-  {{- range $key, $value := .Values.role.labels }}
+  {{- range $key, $value := $labels }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
-  namespace: {{ .Release.Namespace }}
+{{- $rules }}
 {{ end }}
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - get
-  - list
-  - patch
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - patch
-  - watch
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
-  - securitygroups
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
-  - securitygroups/status
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
-  - subnets
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
-  - subnets/status
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - kms.services.k8s.aws
-  resources:
-  - keys
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - kms.services.k8s.aws
-  resources:
-  - keys/status
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclusterparametergroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclusterparametergroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclusters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbinstances
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbinstances/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbparametergroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbparametergroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbproxies
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbproxies/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbsubnetgroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbsubnetgroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - globalclusters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - globalclusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - services.k8s.aws
-  resources:
-  - adoptedresources
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - services.k8s.aws
-  resources:
-  - adoptedresources/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - services.k8s.aws
-  resources:
-  - fieldexports
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - services.k8s.aws
-  resources:
-  - fieldexports/status
-  verbs:
-  - get
-  - patch
-  - update
+{{ end }}
