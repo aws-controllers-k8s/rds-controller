@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ack-namespaces-cache-rds-controller
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: ack-namespaces-cache-rds-controller
+subjects:
+- kind: ServiceAccount
+  name: ack-rds-controller
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ack-configmaps-cache-rds-controller
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  apiGroup: rbac.authorization.k8s.io
+  name: ack-configmaps-cache-rds-controller
+subjects:
+- kind: ServiceAccount
+  name: ack-rds-controller
+  namespace: {{ .Release.Namespace }}
