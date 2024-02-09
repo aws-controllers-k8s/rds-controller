@@ -16,6 +16,7 @@ package db_cluster
 import (
 	"context"
 	"slices"
+	"regexp"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -561,7 +562,12 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		res.SetEnableIAMDatabaseAuthentication(*desired.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
 	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
-		res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
+		r := regexp.MustCompile(`[0-9]*$`)
+		desiredMajorEngineVersion := r.ReplaceAllString(*desired.ko.Spec.EngineVersion, "${1}")
+		latestMajorEngineVersion := r.ReplaceAllString(*latest.ko.Spec.EngineVersion, "${1}")
+		if !*desired.ko.Spec.AutoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion {
+			res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
+		}
 	}
 	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
 		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.MasterUserPassword)
