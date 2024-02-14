@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "app.fullname" . }}
+  name: {{ include "ack-rds-controller.app.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "app.name" . }}
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-    k8s-app: {{ include "app.name" . }}
-    helm.sh/chart: {{ include "chart.name-version" . }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 spec:
   replicas: {{ .Values.deployment.replicas }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "app.name" . }}
+      app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
@@ -25,15 +25,15 @@ spec:
       {{- end }}
 {{- end }}
       labels:
-        app.kubernetes.io/name: {{ include "app.name" . }}
+        app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/managed-by: Helm
-        k8s-app: {{ include "app.name" . }}
+        k8s-app: {{ include "ack-rds-controller.app.name" . }}
 {{- range $key, $value := .Values.deployment.labels }}
         {{ $key }}: {{ $value | quote }}
 {{- end }}
     spec:
-      serviceAccountName: {{ include "service-account.name" . }}
+      serviceAccountName: {{ include "ack-rds-controller.service-account.name" . }}
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
       {{- range .Values.image.pullSecrets }}
@@ -90,7 +90,7 @@ spec:
         - name: AWS_ENDPOINT_URL
           value: {{ .Values.aws.endpoint_url | quote }}
         - name: ACK_WATCH_NAMESPACE
-          value: {{ include "watch-namespace" . }}
+          value: {{ include "ack-rds-controller.watch-namespace" . }}
         - name: DELETION_POLICY
           value: {{ .Values.deletionPolicy }}
         - name: LEADER_ELECTION_NAMESPACE
@@ -109,7 +109,7 @@ spec:
 {{- end }}
         {{- if .Values.aws.credentials.secretName }}
         - name: AWS_SHARED_CREDENTIALS_FILE
-          value: {{ include "aws.credentials.path" . }}
+          value: {{ include "ack-rds-controller.aws.credentials.path" . }}
         - name: AWS_PROFILE
           value: {{ .Values.aws.credentials.profile }}
         {{- end }}
@@ -119,7 +119,7 @@ spec:
         volumeMounts:
         {{- if .Values.aws.credentials.secretName }}
           - name: {{ .Values.aws.credentials.secretName }}
-            mountPath: {{ include "aws.credentials.secret_mount_path" . }}
+            mountPath: {{ include "ack-rds-controller.aws.credentials.secret_mount_path" . }}
             readOnly: true
         {{- end }}
         {{- if .Values.deployment.extraVolumeMounts -}}

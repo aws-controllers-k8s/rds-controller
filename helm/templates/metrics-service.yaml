@@ -5,18 +5,18 @@ metadata:
   name: {{ .Chart.Name | trimSuffix "-chart" | trunc 44 }}-controller-metrics
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "app.name" . }}
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-    k8s-app: {{ include "app.name" . }}
-    helm.sh/chart: {{ include "chart.name-version" . }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 spec:
   selector:
-    app.kubernetes.io/name: {{ include "app.name" . }}
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: Helm
-    k8s-app: {{ include "app.name" . }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
 {{- range $key, $value := .Values.deployment.labels }}
     {{ $key }}: {{ $value | quote }}
 {{- end }}
