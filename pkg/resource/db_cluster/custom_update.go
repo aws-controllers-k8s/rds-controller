@@ -15,8 +15,8 @@ package db_cluster
 
 import (
 	"context"
-	"slices"
 	"regexp"
+	"slices"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -28,6 +28,8 @@ import (
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
+
+var r = regexp.MustCompile(`[0-9]*$`)
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/917. The Input shape
@@ -562,10 +564,7 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		res.SetEnableIAMDatabaseAuthentication(*desired.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
 	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
-		r := regexp.MustCompile(`[0-9]*$`)
-		desiredMajorEngineVersion := r.ReplaceAllString(*desired.ko.Spec.EngineVersion, "${1}")
-		latestMajorEngineVersion := r.ReplaceAllString(*latest.ko.Spec.EngineVersion, "${1}")
-		if !*desired.ko.Spec.AutoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion {
+		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, *desired.ko.Spec.AutoMinorVersionUpgrade) {
 			res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
 		}
 	}
@@ -661,4 +660,10 @@ func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired 
 		}
 	}
 	return logsTypesToEnable, logsTypesToDisable
+}
+
+func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
+	desiredMajorEngineVersion := r.ReplaceAllString(*desiredEngineVersion, "${1}")
+	latestMajorEngineVersion := r.ReplaceAllString(*latestEngineVersion, "${1}")
+	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
 }
