@@ -7,7 +7,7 @@ toolchain go1.21.5
 require (
 	github.com/aws-controllers-k8s/ec2-controller v1.1.2
 	github.com/aws-controllers-k8s/kms-controller v1.0.8
-	github.com/aws-controllers-k8s/runtime v0.30.0
+	github.com/aws-controllers-k8s/runtime v0.31.0
 	github.com/aws/aws-sdk-go v1.49.0
 	github.com/go-logr/logr v1.4.1
 	github.com/samber/lo v1.37.0
@@ -15,7 +15,7 @@ require (
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/client-go v0.29.0
-	sigs.k8s.io/controller-runtime v0.17.0
+	sigs.k8s.io/controller-runtime v0.17.2
 )
 
 require (
