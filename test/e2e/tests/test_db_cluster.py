@@ -108,13 +108,12 @@ def aurora_mysql_cluster(k8s_secret):
 
     db_cluster.wait_until_deleted(db_cluster_id)
 
-
 @pytest.fixture(scope="module")
 def aurora_postgres_cluster(k8s_secret):
-    db_cluster_id = random_suffix_name("my-aurora-postgres", 20)
+    db_cluster_id = random_suffix_name("my-aurora-postgres", 32)
     secret = k8s_secret(
         MUP_NS,
-        f"{MUP_SEC_NAME}-postgres-{db_cluster_id}",
+        random_suffix_name("clustersecret", 32),
         MUP_SEC_KEY,
         MUP_SEC_VAL,
     )
@@ -135,14 +134,14 @@ def aurora_postgres_cluster(k8s_secret):
     )
     k8s.create_custom_resource(ref, resource_data)
     cr = k8s.wait_resource_consumed_by_controller(ref)
-
+    
     assert cr is not None
     assert 'status' in cr
     assert 'status' in cr['status']
     assert cr['status']['status'] == 'creating'
     condition.assert_not_synced(ref)
 
-    yield (ref, cr, db_cluster_id)
+    yield (ref, cr, db_cluster_id, secret.name)
 
     # Try to delete, if doesn't already exist
     try:
@@ -278,7 +277,7 @@ class TestDBCluster:
     def test_flip_enable_iam_db_authn(
             self, aurora_postgres_cluster,
     ):
-        ref, _, db_cluster_id = aurora_postgres_cluster
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
         db_cluster.wait_until(
             db_cluster_id,
             db_cluster.status_matches('available'),
@@ -304,7 +303,7 @@ class TestDBCluster:
     def test_enable_cloudwatch_logs_exports(
             self, aurora_postgres_cluster,
     ):
-        ref, _, db_cluster_id = aurora_postgres_cluster
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
         db_cluster.wait_until(
             db_cluster_id,
             db_cluster.status_matches('available'),
@@ -355,3 +354,48 @@ class TestDBCluster:
         assert latest is not None
         enabledCloudwatchLogsExportsLatest = latest.get("EnabledCloudwatchLogsExports",None)
         assert enabledCloudwatchLogsExportsLatest is None
+
+    def test_update_dbcluster_password(
+            self, aurora_postgres_cluster, k8s_secret,
+    ):
+        ref, _, db_cluster_id, secret_name = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
+        assert lastAppliedSecretRef == f"{MUP_NS}/{secret_name}.{MUP_SEC_KEY}"
+        
+        new_secret = k8s_secret(
+            MUP_NS,
+            f"{MUP_SEC_NAME}-postgres-{db_cluster_id}-2",
+            MUP_SEC_KEY,
+            MUP_SEC_VAL,
+        )
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=20)
+
+        updates = {
+            "spec": {
+                "masterUserPassword": {
+                    "name": new_secret.name,
+                    "namespace": new_secret.ns,
+                    "key": new_secret.key,
+                },
+            },
+        }
+        
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(35)
+
+        condition.assert_synced(ref)
+        cr = k8s.get_resource(ref)
+        
+        assert cr is not None
+        assert 'status' in cr
+        assert 'status' in cr['status']
+        assert cr['status']['status'] == 'available'
+
+        lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
+        assert lastAppliedSecretRef == f"{new_secret.ns}/{new_secret.name}.{new_secret.key}"

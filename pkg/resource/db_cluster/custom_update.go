@@ -64,6 +64,16 @@ func (rm *resourceManager) customUpdate(
 		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
 	}
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	} else if !delta.DifferentExcept("Spec.Tags") {
+		// If the only difference between the desired and latest is in the
+		// Spec.Tags field, we can skip the modify db cluster call.
+		return desired, nil
+	}
+
 	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
 	if err != nil {
 		return nil, err
@@ -76,11 +86,6 @@ func (rm *resourceManager) customUpdate(
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBCluster", err)
 	if err != nil {
 		return nil, err
-	}
-	if delta.DifferentAt("Spec.Tags") {
-		if err = rm.syncTags(ctx, desired, latest); err != nil {
-			return nil, err
-		}
 	}
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
@@ -503,9 +508,20 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.VPCSecurityGroups = nil
 	}
-
 	rm.setStatusDefaults(ko)
-	return &resource{ko}, nil
+	// When ModifyDBInstance API is successful, it asynchronously
+	// updates the DBInstanceStatus. Requeue to find the current
+	// DBInstance status and set Synced condition accordingly
+	r := &resource{ko}
+	if err == nil {
+		// set the last-applied-secret-reference annotation on the DB instance
+		// resource.
+		setLastAppliedSecretReferenceAnnotation(r)
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(r, corev1.ConditionFalse, nil, nil)
+	}
+	return r, nil
 }
 
 // newCustomUpdateRequestPayload returns an SDK-specific struct for the HTTP
