@@ -79,6 +79,7 @@ func newResourceDelta(
 	// controller should treat them as same
 	reconcileEngineVersion(a, b)
 	compareTags(delta, a, b)
+	compareSecretReferenceChanges(delta, a, b)
 
 	if ackcompare.HasNilDifference(a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage) {
 		delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)

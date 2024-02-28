@@ -92,7 +92,7 @@ def postgres14_t3_micro_instance(k8s_secret):
     assert cr is not None
     assert k8s.get_resource_exists(ref)
 
-    yield (ref, cr)
+    yield (ref, cr, secret.name)
 
     # Try to delete, if doesn't already exist
     try:
@@ -101,7 +101,6 @@ def postgres14_t3_micro_instance(k8s_secret):
         pass
     db_instance.wait_until_deleted(db_instance_id)
 
-
 @service_marker
 @pytest.mark.canary
 class TestDBInstance:
@@ -109,7 +108,7 @@ class TestDBInstance:
             self,
             postgres14_t3_micro_instance,
     ):
-        (ref, cr) = postgres14_t3_micro_instance
+        (ref, cr, _) = postgres14_t3_micro_instance
         db_instance_id = cr["spec"]["dbInstanceIdentifier"]
 
         assert 'status' in cr
@@ -205,11 +204,77 @@ class TestDBInstance:
         ]
         assert latest_tags == after_update_expected_tags
 
+    def test_crud_postgres14_update_password(
+            self,
+            postgres14_t3_micro_instance,
+            k8s_secret,
+    ):
+        (ref, cr, secret_name) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] == 'creating'
+        condition.assert_not_synced(ref)
+
+        # Assert that the last-applied-secret-reference annotation is set
+        assert 'metadata' in cr
+        assert 'annotations' in cr['metadata']
+        assert 'rds.services.k8s.aws/last-applied-secret-reference' in cr['metadata']['annotations']
+        lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
+        assert lastAppliedSecretRef == f"{MUP_NS}/{secret_name}.{MUP_SEC_KEY}"
+
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After the resource is synced, assert that DBInstanceStatus is available
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['MultiAZ'] is False
+
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] != 'creating'
+        condition.assert_synced(ref)
+
+        # Let's now update the DBInstance secret and check that the CR's
+        # `Status.DBInstanceStatus` is updated to 'resetting-master-credentials'
+        new_secret = k8s_secret(
+            MUP_NS,
+            random_suffix_name(MUP_SEC_NAME_PREFIX, 32),
+            MUP_SEC_KEY,
+            MUP_SEC_VAL+"new",
+        )
+        updates = {
+            "spec": {
+                "masterUserPassword": {
+                    "name": new_secret.name,
+                    "namespace": new_secret.ns,
+                    "key": new_secret.key,
+                },
+            },
+        }
+
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(35)
+        condition.assert_not_synced(ref)
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] == 'resetting-master-credentials'
+
+        lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
+        assert lastAppliedSecretRef == f"{new_secret.ns}/{new_secret.name}.{new_secret.key}"
+
     def test_enable_pi_postgres14_t3_micro(
             self,
             postgres14_t3_micro_instance,
     ):
-        (ref, cr) = postgres14_t3_micro_instance
+        (ref, cr, _) = postgres14_t3_micro_instance
         db_instance_id = cr["spec"]["dbInstanceIdentifier"]
 
         assert 'status' in cr
@@ -266,7 +331,7 @@ class TestDBInstance:
         :see https://github.com/aws-controllers-k8s/community/issues/1650
         :see https://github.com/aws-controllers-k8s/community/issues/1376
         """
-        (ref, cr) = postgres14_t3_micro_instance
+        (ref, cr, _) = postgres14_t3_micro_instance
         db_instance_id = cr["spec"]["dbInstanceIdentifier"]
 
         # latest CR should have desired state set properly...

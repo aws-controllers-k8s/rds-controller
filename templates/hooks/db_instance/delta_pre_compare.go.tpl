@@ -35,3 +35,4 @@
 	// controller should treat them as same
 	reconcileEngineVersion(a, b)
     compareTags(delta, a, b)
+	compareSecretReferenceChanges(delta, a, b)
