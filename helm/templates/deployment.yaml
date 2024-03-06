@@ -64,13 +64,21 @@ spec:
         - --leader-election-namespace
         - "$(LEADER_ELECTION_NAMESPACE)"
 {{- end }}
-{{- if gt .Values.reconcile.defaultResyncPeriod 0.0 }}
+{{- if gt (int .Values.reconcile.defaultResyncPeriod) 0 }}
         - --reconcile-default-resync-seconds
         - "$(RECONCILE_DEFAULT_RESYNC_SECONDS)"
 {{- end }}
 {{- range $key, $value := .Values.reconcile.resourceResyncPeriods }}
         - --reconcile-resource-resync-seconds
         - "$(RECONCILE_RESOURCE_RESYNC_SECONDS_{{ $key | upper }})"
+{{- end }}
+{{- if gt (int .Values.reconcile.defaultMaxConcurrentSyncs) 0 }}
+        - --reconcile-default-max-concurrent-syncs
+        - "$(RECONCILE_DEFAULT_MAX_CONCURRENT_SYNCS)"
+{{- end }}
+{{- range $key, $value := .Values.reconcile.resourceMaxConcurrentSyncs }}
+        - --reconcile-resource-max-concurrent-syncs
+        - "$(RECONCILE_RESOURCE_MAX_CONCURRENT_SYNCS_{{ $key | upper }})"
 {{- end }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -99,12 +107,20 @@ spec:
           value: {{ .Values.log.level | quote }}
         - name: ACK_RESOURCE_TAGS
           value: {{ join "," .Values.resourceTags | quote }}
-{{- if gt .Values.reconcile.defaultResyncPeriod 0.0 }}
+{{- if gt (int .Values.reconcile.defaultResyncPeriod) 0 }}
         - name: RECONCILE_DEFAULT_RESYNC_SECONDS
           value: {{ .Values.reconcile.defaultResyncPeriod | quote }}
 {{- end }}
 {{- range $key, $value := .Values.reconcile.resourceResyncPeriods }}
         - name: RECONCILE_RESOURCE_RESYNC_SECONDS_{{ $key | upper }}
+          value: {{ $key }}={{ $value }}
+{{- end }}
+{{- if gt (int .Values.reconcile.defaultMaxConcurrentSyncs) 0 }}
+        - name: RECONCILE_DEFAULT_MAX_CONCURRENT_SYNCS
+          value: {{ .Values.reconcile.defaultMaxConcurrentSyncs | quote }}
+{{- end }}
+{{- range $key, $value := .Values.reconcile.resourceMaxConcurrentSyncs }}
+        - name: RECONCILE_RESOURCE_MAX_CONCURRENT_SYNCS_{{ $key | upper }}
           value: {{ $key }}={{ $value }}
 {{- end }}
         {{- if .Values.aws.credentials.secretName }}
@@ -132,6 +148,18 @@ spec:
           capabilities:
             drop:
               - ALL
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
       securityContext:
         seccompProfile:
           type: RuntimeDefault
