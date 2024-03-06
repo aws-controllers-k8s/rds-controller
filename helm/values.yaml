@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.2.1
+  tag: 1.2.2
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -127,6 +127,12 @@ reconcile:
   defaultResyncPeriod: 36000 # 10 Hours
   # An object representing the reconcile resync configuration for each specific resource.
   resourceResyncPeriods: {}
+
+  # The default number of concurrent syncs that a reconciler can perform.
+  defaultMaxConcurrentSyncs: 1
+  # An object representing the reconcile max concurrent syncs configuration for each specific
+  # resource.
+  resourceMaxConcurrentSyncs: {}
 
 serviceAccount:
   # Specifies whether a service account should be created
