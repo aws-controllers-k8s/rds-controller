@@ -32,6 +32,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrlrt "sigs.k8s.io/controller-runtime"
 	ctrlrtcache "sigs.k8s.io/controller-runtime/pkg/cache"
+	ctrlrthealthz "sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlrtmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	ctrlrtwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -126,6 +127,9 @@ func main() {
 		LeaderElection:          ackCfg.EnableLeaderElection,
 		LeaderElectionID:        "ack-" + awsServiceAPIGroup,
 		LeaderElectionNamespace: ackCfg.LeaderElectionNamespace,
+		HealthProbeBindAddress:  ackCfg.HealthzAddr,
+		LivenessEndpointName:    "/healthz",
+		ReadinessEndpointName:   "/readyz",
 	})
 	if err != nil {
 		setupLog.Error(
@@ -171,6 +175,21 @@ func main() {
 	if err = sc.BindControllerManager(mgr, ackCfg); err != nil {
 		setupLog.Error(
 			err, "unable bind to controller manager to service controller",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
+
+	if err = mgr.AddHealthzCheck("health", ctrlrthealthz.Ping); err != nil {
+		setupLog.Error(
+			err, "unable to set up health check",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
+	if err = mgr.AddReadyzCheck("check", ctrlrthealthz.Ping); err != nil {
+		setupLog.Error(
+			err, "unable to set up ready check",
 			"aws.service", awsServiceAlias,
 		)
 		os.Exit(1)
