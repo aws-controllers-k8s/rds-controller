@@ -580,7 +580,11 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		res.SetEnableIAMDatabaseAuthentication(*desired.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
 	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
-		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, *desired.ko.Spec.AutoMinorVersionUpgrade) {
+		autoMinorVersionUpgrade := true
+		if desired.ko.Spec.AutoMinorVersionUpgrade != nil {
+			autoMinorVersionUpgrade = *desired.ko.Spec.AutoMinorVersionUpgrade
+		}
+		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
 			res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
 		}
 	}
