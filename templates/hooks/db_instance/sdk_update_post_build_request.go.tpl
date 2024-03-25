@@ -18,7 +18,7 @@
         if !delta.DifferentAt("Spec.CACertificateIdentifier") {
 		input.CACertificateIdentifier = nil
 	}
-        if !delta.DifferentAt("Spec.MasterUserPassword.Name") {
+        if !delta.DifferentAt("Spec.MasterUserPassword") {
 		input.MasterUserPassword = nil
 	}
         if !delta.DifferentAt("Spec.NetworkType") {

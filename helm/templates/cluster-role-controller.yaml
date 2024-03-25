@@ -1,5 +1,5 @@
 {{ $labels := .Values.role.labels }}
-{{ $rules := include "controller-role-rules" . }}
+{{ $rbacRules := include "ack-rds-controller.rbac-rules" . }}
 {{ if eq .Values.installScope "cluster" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -9,9 +9,10 @@ metadata:
   {{- range $key, $value := $labels }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
-{{- $rules }}
-{{ else if .Values.watchNamespace }}
-{{ $namespaces := split "," .Values.watchNamespace }}
+{{$rbacRules }}
+{{ else if eq .Values.installScope "namespace" }}
+{{ $wn := include "ack-rds-controller.watch-namespace" . }}
+{{ $namespaces := split "," $wn }}
 {{ range $namespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -23,6 +24,6 @@ metadata:
   {{- range $key, $value := $labels }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
-{{- $rules }}
+{{ $rbacRules }}
 {{ end }}
 {{ end }}

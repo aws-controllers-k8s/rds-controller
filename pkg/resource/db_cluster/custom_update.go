@@ -15,6 +15,7 @@ package db_cluster
 
 import (
 	"context"
+	"regexp"
 	"slices"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -27,6 +28,8 @@ import (
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
+
+var r = regexp.MustCompile(`[0-9]*$`)
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/917. The Input shape
@@ -64,6 +67,16 @@ func (rm *resourceManager) customUpdate(
 		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
 	}
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	} else if !delta.DifferentExcept("Spec.Tags") {
+		// If the only difference between the desired and latest is in the
+		// Spec.Tags field, we can skip the modify db cluster call.
+		return desired, nil
+	}
+
 	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
 	if err != nil {
 		return nil, err
@@ -76,11 +89,6 @@ func (rm *resourceManager) customUpdate(
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBCluster", err)
 	if err != nil {
 		return nil, err
-	}
-	if delta.DifferentAt("Spec.Tags") {
-		if err = rm.syncTags(ctx, desired, latest); err != nil {
-			return nil, err
-		}
 	}
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
@@ -503,9 +511,20 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.VPCSecurityGroups = nil
 	}
-
 	rm.setStatusDefaults(ko)
-	return &resource{ko}, nil
+	// When ModifyDBInstance API is successful, it asynchronously
+	// updates the DBInstanceStatus. Requeue to find the current
+	// DBInstance status and set Synced condition accordingly
+	r := &resource{ko}
+	if err == nil {
+		// set the last-applied-secret-reference annotation on the DB instance
+		// resource.
+		setLastAppliedSecretReferenceAnnotation(r)
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(r, corev1.ConditionFalse, nil, nil)
+	}
+	return r, nil
 }
 
 // newCustomUpdateRequestPayload returns an SDK-specific struct for the HTTP
@@ -561,7 +580,13 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		res.SetEnableIAMDatabaseAuthentication(*desired.ko.Spec.EnableIAMDatabaseAuthentication)
 	}
 	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
-		res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
+		autoMinorVersionUpgrade := true
+		if desired.ko.Spec.AutoMinorVersionUpgrade != nil {
+			autoMinorVersionUpgrade = *desired.ko.Spec.AutoMinorVersionUpgrade
+		}
+		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
+			res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
+		}
 	}
 	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
 		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, desired.ko.Spec.MasterUserPassword)
@@ -655,4 +680,10 @@ func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired 
 		}
 	}
 	return logsTypesToEnable, logsTypesToDisable
+}
+
+func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
+	desiredMajorEngineVersion := r.ReplaceAllString(*desiredEngineVersion, "${1}")
+	latestMajorEngineVersion := r.ReplaceAllString(*latestEngineVersion, "${1}")
+	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
 }

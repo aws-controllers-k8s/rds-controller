@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	"github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
@@ -522,4 +523,45 @@ func sdkTagsFromResourceTags(
 		}
 	}
 	return tags
+}
+
+// TODO(a-hilaly): generate this code.
+
+// getLastAppliedSecretReferenceString returns a string representation of the
+// last-applied secret reference.
+func getLastAppliedSecretReferenceString(r *v1alpha1.SecretKeyReference) string {
+	if r == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s/%s.%s", r.Namespace, r.Name, r.Key)
+}
+
+// setLastAppliedSecretReferenceAnnotation sets the last-applied secret reference
+// annotation on the supplied resource.
+func setLastAppliedSecretReferenceAnnotation(r *resource) {
+	if r.ko.Annotations == nil {
+		r.ko.Annotations = make(map[string]string)
+	}
+	r.ko.Annotations[svcapitypes.LastAppliedSecretAnnotation] = getLastAppliedSecretReferenceString(r.ko.Spec.MasterUserPassword)
+}
+
+// getLastAppliedSecretReferenceAnnotation returns the last-applied secret reference
+// annotation on the supplied resource.
+func getLastAppliedSecretReferenceAnnotation(r *resource) string {
+	if r.ko.Annotations == nil {
+		return ""
+	}
+	return r.ko.Annotations[svcapitypes.LastAppliedSecretAnnotation]
+}
+
+func compareSecretReferenceChanges(
+	delta *ackcompare.Delta,
+	desired *resource,
+	latest *resource,
+) {
+	oldRef := getLastAppliedSecretReferenceAnnotation(desired)
+	newRef := getLastAppliedSecretReferenceString(desired.ko.Spec.MasterUserPassword)
+	if oldRef != newRef {
+		delta.Add("Spec.MasterUserPassword", oldRef, newRef)
+	}
 }
