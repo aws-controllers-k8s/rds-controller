@@ -161,3 +161,29 @@ class TestDBClusterParameterGroup:
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_read_replica_read_committed': {tp}"
                 assert tp["ParameterValue"] == "ON", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
         assert found == 2, f"Did not find parameters with names 'aurora_binlog_read_buffer_size' and 'aurora_read_replica_read_committed': {test_params}"
+
+
+         # OK, now let's update the parameters that are not present at the cluster level. 
+        new_params = {
+            **db_cluster_parameter_group.get_parameters(resource_name),
+            "long_query_time": "1"
+        }
+        updates = {
+            "spec": {
+                "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
+                "parameterOverrides": new_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        condition.assert_not_synced(ref)
+
+        updates = {
+            "spec": {
+                "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
+                "parameterOverrides": db_cluster_parameter_group.get_parameters(resource_name),
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        condition.assert_synced(ref)
