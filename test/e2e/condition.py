@@ -96,6 +96,32 @@ def assert_synced_status(
     """
     assert_type_status(ref, CONDITION_TYPE_RESOURCE_SYNCED, cond_status_match)
 
+def assert_recoverable_status(
+    ref: k8s.CustomResourceReference,
+    cond_status_match: bool,
+):
+    """Asserts that the supplied resource has a condition of type
+    ACK.ResourceSynced and that the Status of this condition is True.
+
+    Usage:
+        from acktest.k8s import resource as k8s
+
+        from e2e import condition
+
+        ref = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+            db_cluster_id, namespace="default",
+        )
+        k8s.create_custom_resource(ref, resource_data)
+        k8s.wait_resource_consumed_by_controller(ref)
+        condition.assert_synced_status(ref, False)
+
+    Raises:
+        pytest.fail when ACK.ResourceSynced condition is not found or is not in
+        a True status.
+    """
+    assert_type_status(ref, CONDITION_TYPE_RECOVERABLE, cond_status_match)
+
 
 def assert_synced(ref: k8s.CustomResourceReference):
     """Asserts that the supplied resource has a condition of type
@@ -143,3 +169,26 @@ def assert_not_synced(ref: k8s.CustomResourceReference):
         a False status.
     """
     return assert_synced_status(ref, False)
+
+def assert_recoverable(ref: k8s.CustomResourceReference):
+    """Asserts that the supplied resource has a condition of type
+    ACK.ResourceSynced and that the Status of this condition is False.
+
+    Usage:
+        from acktest.k8s import resource as k8s
+
+        from e2e import condition
+
+        ref = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+            db_cluster_id, namespace="default",
+        )
+        k8s.create_custom_resource(ref, resource_data)
+        k8s.wait_resource_consumed_by_controller(ref)
+        condition.assert_not_synced(ref)
+
+    Raises:
+        pytest.fail when ACK.ResourceSynced condition is not found or is not in
+        a False status.
+    """
+    return assert_recoverable_status(ref, True)
