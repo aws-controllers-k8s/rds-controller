@@ -165,7 +165,7 @@ class TestDBClusterParameterGroup:
 
          # OK, now let's update the parameters that are not present at the cluster level. 
         new_params = {
-            **db_cluster_parameter_group.get_parameters(resource_name),
+            **{d['key']: d['value'] for d in params},
             "long_query_time": "1"
         }
         updates = {
