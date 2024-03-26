@@ -18,6 +18,8 @@
 # actually assert anything. It returns true or false and logs messages.
 
 import pytest
+import logging
+
 
 from acktest.k8s import resource as k8s
 
@@ -58,6 +60,7 @@ def assert_type_status(
         in the supplied status.
     """
     cond = k8s.get_resource_condition(ref, cond_type_match)
+    logging.debug(cond)
     if cond is None:
         msg = (f"Failed to find {cond_type_match} condition in "
                f"resource {ref}")
