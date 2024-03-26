@@ -192,4 +192,6 @@ class TestDBClusterParameterGroup:
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        logging.debug(db_cluster_parameter_group.get_parameters(resource_name))
+        logging.debug(db_cluster_parameter_group.get_tags(arn))
         condition.assert_synced(ref)
