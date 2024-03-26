@@ -165,8 +165,8 @@ class TestDBClusterParameterGroup:
 
          # OK, now let's update the parameters that are not present at the cluster level. 
         new_params = {
-            "aurora_read_replica_read_committed": "ON",
-            "aurora_binlog_read_buffer_size": "5242880",
+            "aurora_read_replica_read_committed": "OFF",
+            "aurora_binlog_read_buffer_size": "8192",
             "long_query_time": "1"
         }
         updates = {
@@ -177,12 +177,17 @@ class TestDBClusterParameterGroup:
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
-        condition.assert_not_synced(ref)
+        condition.assert_recoverable(ref)
+
+        new_params = {
+            "aurora_read_replica_read_committed": "OFF",
+            "aurora_binlog_read_buffer_size": "8192"
+        }
 
         updates = {
             "spec": {
                 "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
-                "parameterOverrides": db_cluster_parameter_group.get_parameters(resource_name),
+                "parameterOverrides": new_params,
             },
         }
         k8s.patch_custom_resource(ref, updates)
