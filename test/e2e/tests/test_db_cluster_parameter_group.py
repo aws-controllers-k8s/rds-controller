@@ -165,7 +165,8 @@ class TestDBClusterParameterGroup:
 
          # OK, now let's update the parameters that are not present at the cluster level. 
         new_params = {
-            **{d['key']: d['value'] for d in params},
+            "aurora_read_replica_read_committed": "ON",
+            "aurora_binlog_read_buffer_size": "5242880",
             "long_query_time": "1"
         }
         updates = {
