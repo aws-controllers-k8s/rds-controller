@@ -17,15 +17,12 @@
 import time
 
 import pytest
-
 from acktest.k8s import resource as k8s
 from acktest.resources import random_suffix_name
-from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
-from e2e.replacement_values import REPLACEMENT_VALUES
-from e2e import condition
-from e2e import db_cluster
+from e2e import (CRD_GROUP, CRD_VERSION, condition, db_cluster,
+                 load_rds_resource, service_marker, tag)
 from e2e.fixtures import k8s_secret
-from e2e import tag
+from e2e.replacement_values import REPLACEMENT_VALUES
 
 RESOURCE_PLURAL = 'dbclusters'
 
@@ -301,7 +298,7 @@ class TestDBCluster:
         assert latest["IAMDatabaseAuthenticationEnabled"] == True
 
     def test_enable_cloudwatch_logs_exports(
-            self, aurora_postgres_cluster,
+        self, aurora_postgres_cluster,
     ):
         ref, _, db_cluster_id, _ = aurora_postgres_cluster
         db_cluster.wait_until(
@@ -328,7 +325,7 @@ class TestDBCluster:
         assert latest["EnabledCloudwatchLogsExports"] == ["postgresql"]
 
     def test_disable_cloudwatch_logs_exports(
-            self, aurora_postgres_cluster_log_exports,
+        self, aurora_postgres_cluster_log_exports,
     ):
         ref, _, db_cluster_id = aurora_postgres_cluster_log_exports
         db_cluster.wait_until(
@@ -338,11 +335,14 @@ class TestDBCluster:
 
         current = db_cluster.get(db_cluster_id)
         assert current is not None
-        enabledCloudwatchLogsExports = current.get("EnabledCloudwatchLogsExports",None)
+
+        enabledCloudwatchLogsExports = current.get("EnabledCloudwatchLogsExports", None)
         assert enabledCloudwatchLogsExports is not None
+        assert enabledCloudwatchLogsExports == ["postgresql"]
+        
         k8s.patch_custom_resource(
             ref,
-            {"spec": {"enableCloudwatchLogsExports": None}},
+            {"spec": {"enableCloudwatchLogsExports": []}},
         )
 
         db_cluster.wait_until(
@@ -350,9 +350,12 @@ class TestDBCluster:
             db_cluster.status_matches("available"),
         )
 
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
         latest = db_cluster.get(db_cluster_id)
         assert latest is not None
-        enabledCloudwatchLogsExportsLatest = latest.get("EnabledCloudwatchLogsExports",None)
+
+        enabledCloudwatchLogsExportsLatest = latest.get("EnabledCloudwatchLogsExports", None)
         assert enabledCloudwatchLogsExportsLatest is None
 
     def test_update_dbcluster_password(
