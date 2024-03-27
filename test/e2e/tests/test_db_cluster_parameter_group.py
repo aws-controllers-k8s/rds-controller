@@ -140,7 +140,7 @@ class TestDBClusterParameterGroup:
         test_params = list(filter(lambda x: x["ParameterName"] in [
             "aurora_read_replica_read_committed"
         ], params))
-        assert len(test_params) == 2, f"test_params of wrong length: {test_params}"
+        assert len(test_params) == 1, f"test_params of wrong length: {test_params}"
 
         found = 0
         for tp in test_params:
