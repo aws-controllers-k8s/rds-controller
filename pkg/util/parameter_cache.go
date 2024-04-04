@@ -70,7 +70,7 @@ func (c *ParamMetaCache) Get(
 	}
 	meta, found = metas[name]
 	if !found {
-		return nil, NewErrUnknownParameter(name)
+		return nil, ErrUnknownParameter
 	}
 	c.Hits++
 	return &meta, nil

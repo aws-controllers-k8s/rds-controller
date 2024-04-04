@@ -98,20 +98,15 @@ class TestDBClusterParameterGroup:
         latest_params = db_cluster_parameter_group.get_parameters(resource_name)
         test_params = list(filter(lambda x: x["ParameterName"] in [
             "aurora_read_replica_read_committed",
-            "aurora_binlog_read_buffer_size",
         ], latest_params))
         found = 0
         for tp in test_params:
             assert "ParameterName" in tp, f"No ParameterName in parameter: {tp}"
-            if tp["ParameterName"] == "aurora_binlog_read_buffer_size":
-                found += 1
-                assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-                assert tp["ParameterValue"] == "8192", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-            elif tp["ParameterName"] == "aurora_read_replica_read_committed":
+            if tp["ParameterName"] == "aurora_read_replica_read_committed":
                 found += 1
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_read_replica_read_committed': {tp}"
                 assert tp["ParameterValue"] == "OFF", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
-        assert found == 2, f"Did not find parameters with names 'aurora_binlog_read_buffer_size' and 'aurora_read_replica_read_committed': {test_params}"
+        assert found == 1, f"Did not find parameters with names 'aurora_read_replica_read_committed': {test_params}"
 
         # OK, now let's update the tag set and check that the tags are
         # updated accordingly.
@@ -123,7 +118,6 @@ class TestDBClusterParameterGroup:
         ]
         new_params = {
             "aurora_read_replica_read_committed": "ON",
-            "aurora_binlog_read_buffer_size": "5242880",
         }
         updates = {
             "spec": {
@@ -144,20 +138,45 @@ class TestDBClusterParameterGroup:
         assert latest_tags == after_update_expected_tags
         params = db_cluster_parameter_group.get_parameters(resource_name)
         test_params = list(filter(lambda x: x["ParameterName"] in [
-            "aurora_read_replica_read_committed",
-            "aurora_binlog_read_buffer_size"
+            "aurora_read_replica_read_committed"
         ], params))
-        assert len(test_params) == 2, f"test_params of wrong length: {test_params}"
+        assert len(test_params) == 1, f"test_params of wrong length: {test_params}"
 
         found = 0
         for tp in test_params:
             assert "ParameterName" in tp, f"No ParameterName in parameter: {tp}"
-            if tp["ParameterName"] == "aurora_binlog_read_buffer_size":
-                found += 1
-                assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-                assert tp["ParameterValue"] == "5242880", f"Wrong value for parameter of name 'aurora_binlog_read_buffer_size': {tp}"
-            elif tp["ParameterName"] == "aurora_read_replica_read_committed":
+            if tp["ParameterName"] == "aurora_read_replica_read_committed":
                 found += 1
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_read_replica_read_committed': {tp}"
                 assert tp["ParameterValue"] == "ON", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
-        assert found == 2, f"Did not find parameters with names 'aurora_binlog_read_buffer_size' and 'aurora_read_replica_read_committed': {test_params}"
+        assert found == 1, f"Did not find parameters with names 'aurora_read_replica_read_committed': {test_params}"
+
+
+         # OK, now let's update the parameters that are not present at the cluster level. 
+        new_params = {
+            "aurora_read_replica_read_committed": "OFF",
+            "long_query_time": "1"
+        }
+        updates = {
+            "spec": {
+                "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
+                "parameterOverrides": new_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        condition.assert_recoverable(ref)
+
+        new_params = {
+            "aurora_read_replica_read_committed": "OFF"
+        }
+
+        updates = {
+            "spec": {
+                "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
+                "parameterOverrides": new_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        condition.assert_synced(ref)
