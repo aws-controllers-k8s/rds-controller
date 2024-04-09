@@ -6,7 +6,7 @@ ignore:
     #- DBCluster
     - DBClusterEndpoint
     #- DBClusterParameterGroup
-    - DBClusterSnapshot
+    # DBClusterSnapshot
     #- DBInstance
     - DBInstanceReadReplica
     #- DBParameterGroup
@@ -27,6 +27,7 @@ ignore:
     # support them for the moment. They require some code-generator modifications.
     - "CreateDBSnapshotOutput.DBSnapshot.EngineVersion"
     - "CreateDBSnapshotOutput.DBSnapshot.OptionGroupName"
+    - "DescribeDBClusterSnapshotsOutput.DBClusterSnapshots.TagList"
 operations:
   ModifyDBCluster:
     override_values:
@@ -477,3 +478,18 @@ resources:
         template_path: hooks/db_snapshot/sdk_read_many_post_set_output.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/db_snapshot/sdk_update_pre_build_request.go.tpl
+  DBClusterSnapshot:
+    fields:
+      DBClusterSnapshotIdentifier:
+        is_primary_key: true
+      DBClusterIdentifier:
+        references:
+          resource: DBCluster
+          path: Spec.DBClusterIdentifier
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/db_cluster_snapshot/sdk_create_post_set_output.go.tpl
+      sdk_read_many_post_set_output:
+        template_path: hooks/db_cluster_snapshot/sdk_read_many_post_set_output.go.tpl
+    update_operation:
+      custom_method_name: customUpdateDBClusterSnapshot

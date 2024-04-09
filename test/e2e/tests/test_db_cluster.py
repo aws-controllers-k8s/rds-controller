@@ -54,6 +54,7 @@ MUP_NS = "default"
 MUP_SEC_NAME = "dbclustersecrets"
 MUP_SEC_KEY = "master_user_password"
 MUP_SEC_VAL = "secretpass123456"
+MUP_SEC_CLUSTER_NAME_PREFIX = "dbclustersecrets"
 
 
 @pytest.fixture
@@ -62,7 +63,7 @@ def aurora_mysql_cluster(k8s_secret):
     db_name = "mydb"
     secret = k8s_secret(
         MUP_NS,
-        f"{MUP_SEC_NAME}-mysql",
+        random_suffix_name(MUP_SEC_CLUSTER_NAME_PREFIX, 24),
         MUP_SEC_KEY,
         MUP_SEC_VAL,
     )
