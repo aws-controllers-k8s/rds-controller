@@ -815,10 +815,29 @@ type DBSecurityGroupMembership struct {
 	Status              *string `json:"status,omitempty"`
 }
 
+// Contains the name and values of a manual DB snapshot attribute
+//
+// Manual DB snapshot attributes are used to authorize other Amazon Web Services
+// accounts to restore a manual DB snapshot. For more information, see the ModifyDBSnapshotAttribute
+// API.
+type DBSnapshotAttribute struct {
+	AttributeName *string `json:"attributeName,omitempty"`
+}
+
+// Contains the results of a successful call to the DescribeDBSnapshotAttributes
+// API action.
+//
+// Manual DB snapshot attributes are used to authorize other Amazon Web Services
+// accounts to copy or restore a manual DB snapshot. For more information, see
+// the ModifyDBSnapshotAttribute API action.
+type DBSnapshotAttributesResult struct {
+	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier,omitempty"`
+}
+
 // Contains the details of an Amazon RDS DB snapshot.
 //
 // This data type is used as a response element in the DescribeDBSnapshots action.
-type DBSnapshot struct {
+type DBSnapshot_SDK struct {
 	AllocatedStorage                 *int64              `json:"allocatedStorage,omitempty"`
 	AvailabilityZone                 *string             `json:"availabilityZone,omitempty"`
 	DBInstanceIdentifier             *string             `json:"dbInstanceIdentifier,omitempty"`
@@ -827,14 +846,12 @@ type DBSnapshot struct {
 	DBIResourceID                    *string             `json:"dbiResourceID,omitempty"`
 	Encrypted                        *bool               `json:"encrypted,omitempty"`
 	Engine                           *string             `json:"engine,omitempty"`
-	EngineVersion                    *string             `json:"engineVersion,omitempty"`
 	IAMDatabaseAuthenticationEnabled *bool               `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	InstanceCreateTime               *metav1.Time        `json:"instanceCreateTime,omitempty"`
 	IOPS                             *int64              `json:"iops,omitempty"`
 	KMSKeyID                         *string             `json:"kmsKeyID,omitempty"`
 	LicenseModel                     *string             `json:"licenseModel,omitempty"`
 	MasterUsername                   *string             `json:"masterUsername,omitempty"`
-	OptionGroupName                  *string             `json:"optionGroupName,omitempty"`
 	OriginalSnapshotCreateTime       *metav1.Time        `json:"originalSnapshotCreateTime,omitempty"`
 	PercentProgress                  *int64              `json:"percentProgress,omitempty"`
 	Port                             *int64              `json:"port,omitempty"`
@@ -854,25 +871,6 @@ type DBSnapshot struct {
 	TDECredentialARN *string `json:"tdeCredentialARN,omitempty"`
 	Timezone         *string `json:"timezone,omitempty"`
 	VPCID            *string `json:"vpcID,omitempty"`
-}
-
-// Contains the name and values of a manual DB snapshot attribute
-//
-// Manual DB snapshot attributes are used to authorize other Amazon Web Services
-// accounts to restore a manual DB snapshot. For more information, see the ModifyDBSnapshotAttribute
-// API.
-type DBSnapshotAttribute struct {
-	AttributeName *string `json:"attributeName,omitempty"`
-}
-
-// Contains the results of a successful call to the DescribeDBSnapshotAttributes
-// API action.
-//
-// Manual DB snapshot attributes are used to authorize other Amazon Web Services
-// accounts to copy or restore a manual DB snapshot. For more information, see
-// the ModifyDBSnapshotAttribute API action.
-type DBSnapshotAttributesResult struct {
-	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier,omitempty"`
 }
 
 // Contains the details of an Amazon RDS DB subnet group.
