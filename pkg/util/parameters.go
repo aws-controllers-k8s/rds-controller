@@ -54,6 +54,9 @@ func NewErrUnmodifiableParameter(name string) error {
 // GetParametersDifference compares two Parameters maps and returns the
 // parameters to add & update, the unchanged parameters, and
 // the parameters to remove
+// GetParametersDifference compares two Parameters maps and returns the
+// parameters to add & update, the unchanged parameters, and
+// the parameters to remove
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
@@ -64,8 +67,15 @@ func GetParametersDifference(
 	left, right := lo.Difference(fromPairs, toPairs)
 	middle := lo.Intersect(fromPairs, toPairs)
 
-	removed = lo.FromPairs(left)
+	removed_common := lo.FromPairs(left)
 	added = lo.FromPairs(right)
+
+	left_map := lo.Keys(removed_common)
+	right_map := lo.Keys(added)
+	result := lo.Interleave(left_map, right_map)
+	common := lo.FindDuplicates(result)
+	removed = lo.OmitByKeys(removed_common, common)
+
 	unchanged = lo.FromPairs(middle)
 
 	return added, unchanged, removed
