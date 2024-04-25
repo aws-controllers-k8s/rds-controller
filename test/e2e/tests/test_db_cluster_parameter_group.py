@@ -178,5 +178,5 @@ class TestDBClusterParameterGroup:
             },
         }
         k8s.patch_custom_resource(ref, updates)
-        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        time.sleep(300)
         condition.assert_synced(ref)
