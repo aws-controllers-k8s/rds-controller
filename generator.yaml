@@ -13,7 +13,7 @@ ignore:
     #- DBProxy
     - DBProxyEndpoint
     - DBSecurityGroup
-    - DBSnapshot
+    # DBSnapshot
     #- DBSubnetGroup
     - EventSubscription
     #- GlobalCluster
@@ -23,6 +23,10 @@ ignore:
     - DBInstance.DBSecurityGroups
     # We handle Spec.Tags separately...
     - "DescribeDBInstancesOutput.DBInstances.DBInstance.TagList"
+    # These fields are also supported for DBSnapshot updates but we can't
+    # support them for the moment. They require some code-generator modifications.
+    - "CreateDBSnapshotOutput.DBSnapshot.EngineVersion"
+    - "CreateDBSnapshotOutput.DBSnapshot.OptionGroupName"
 operations:
   ModifyDBCluster:
     override_values:
@@ -454,3 +458,22 @@ resources:
         template_path: hooks/db_proxy/sdk_update_post_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_proxy/sdk_delete_pre_build_request.go.tpl
+  DBSnapshot:
+    fields:
+      DBSnapshotIdentifier:
+        is_primary_key: true
+      DBInstanceIdentifier:
+        references:
+          resource: DBInstance
+          path: Spec.DBInstanceIdentifier
+      # EngineVersion:
+      #   is_read_only: false
+      # OptionGroupName:
+      #   is_read_only: false
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/db_snapshot/sdk_create_post_set_output.go.tpl
+      sdk_read_many_post_set_output:
+        template_path: hooks/db_snapshot/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/db_snapshot/sdk_update_pre_build_request.go.tpl

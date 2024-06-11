@@ -222,6 +222,26 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbsnapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbsnapshots/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
   - dbsubnetgroups
   verbs:
   - create

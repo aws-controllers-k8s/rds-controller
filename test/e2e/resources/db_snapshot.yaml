@@ -1,0 +1,10 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBSnapshot
+metadata:
+  name: $DB_SNAPSHOT_ID
+spec:
+  dbInstanceIdentifier: $DB_INSTANCE_ID
+  dbSnapshotIdentifier: $DB_SNAPSHOT_ID
+  tags:
+  - key: environment
+    value: dev
