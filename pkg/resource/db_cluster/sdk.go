@@ -1531,6 +1531,11 @@ func (rm *resourceManager) sdkDelete(
 	if err != nil {
 		return nil, err
 	}
+	err = setDeleteDBClusterInput(r, input)
+	if err != nil {
+		return nil, err
+	}
+
 	var resp *svcsdk.DeleteDBClusterOutput
 	_ = resp
 	resp, err = rm.sdkapi.DeleteDBClusterWithContext(ctx, input)
@@ -1548,7 +1553,6 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	if r.ko.Spec.DBClusterIdentifier != nil {
 		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
 	}
-	res.SetSkipFinalSnapshot(true)
 
 	return res, nil
 }

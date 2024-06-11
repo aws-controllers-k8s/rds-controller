@@ -27,4 +27,19 @@ var (
 	// compute the "reference" delta, and can result in the rds-controller making unnecessary password
 	// updates to the DBInstance or DBCluster.
 	LastAppliedSecretAnnotation = fmt.Sprintf("%s/last-applied-secret-reference", GroupVersion.Group)
+	// SkipFinalSnapshot is the annotation key used to skip the final snapshot when deleting a DBInstance
+	// or DBCluster. If this annotation is set to "true", the final snapshot will be skipped. The default
+	// value is "true" - meaning that when the annotation is not present, the final snapshot will be skipped.
+	SkipFinalSnapshotAnnotation = fmt.Sprintf("%s/skip-final-snapshot", GroupVersion.Group)
+	// FinalDBSnapshotIdentifier is the annotation key used to specify the final snapshot identifier when
+	// deleting a DBInstance or DBCluster. If this annotation is set, the final snapshot will be created with
+	// the specified identifier.
+	//
+	// If the SkipFinalSnapshot annotation is set to "true", this annotation will be ignored.
+	FinalDBSnapshotIdentifierAnnotation = fmt.Sprintf("%s/final-db-snapshot-identifier", GroupVersion.Group)
+	// DeleteAutomatedBackups is the annotation key used to specify whether automated backups should be
+	// deleted when deleting a DBInstance or DBCluster. If this annotation is set to "true", automated backups
+	// will be deleted. The default value is "false" - meaning that when the annotation is not present, automated
+	// backups will not be deleted.
+	DeleteAutomatedBackupsAnnotation = fmt.Sprintf("%s/delete-automated-backups", GroupVersion.Group)
 )

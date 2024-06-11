@@ -2971,6 +2971,11 @@ func (rm *resourceManager) sdkDelete(
 	if err != nil {
 		return nil, err
 	}
+	err = setDeleteDBInstanceInput(r, input)
+	if err != nil {
+		return nil, err
+	}
+
 	var resp *svcsdk.DeleteDBInstanceOutput
 	_ = resp
 	resp, err = rm.sdkapi.DeleteDBInstanceWithContext(ctx, input)
@@ -2988,7 +2993,6 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	if r.ko.Spec.DBInstanceIdentifier != nil {
 		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
 	}
-	res.SetSkipFinalSnapshot(true)
 
 	return res, nil
 }
