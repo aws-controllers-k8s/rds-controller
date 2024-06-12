@@ -350,3 +350,19 @@ func compareSecretReferenceChanges(
 		delta.Add("Spec.MasterUserPassword", oldRef, newRef)
 	}
 }
+
+// setDeleteDBClusterInput uses the resource annotations to complete
+// the input for the DeleteDBCluster API call.
+func setDeleteDBClusterInput(
+	r *resource,
+	input *svcsdk.DeleteDBClusterInput,
+) error {
+	params, err := util.ParseDeletionAnnotations(r.ko.GetAnnotations())
+	if err != nil {
+		return err
+	}
+	input.SkipFinalSnapshot = params.SkipFinalSnapshot
+	input.FinalDBSnapshotIdentifier = params.FinalDBSnapshotIdentifier
+	input.DeleteAutomatedBackups = params.DeleteAutomatedBackup
+	return nil
+}

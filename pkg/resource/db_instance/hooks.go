@@ -565,3 +565,19 @@ func compareSecretReferenceChanges(
 		delta.Add("Spec.MasterUserPassword", oldRef, newRef)
 	}
 }
+
+// setDeleteDBInstanceInput uses the resource annotations to complete
+// the input for the DeleteDBInstance API call.
+func setDeleteDBInstanceInput(
+	r *resource,
+	input *svcsdk.DeleteDBInstanceInput,
+) error {
+	params, err := util.ParseDeletionAnnotations(r.ko.GetAnnotations())
+	if err != nil {
+		return err
+	}
+	input.SkipFinalSnapshot = params.SkipFinalSnapshot
+	input.FinalDBSnapshotIdentifier = params.FinalDBSnapshotIdentifier
+	input.DeleteAutomatedBackups = params.DeleteAutomatedBackup
+	return nil
+}
