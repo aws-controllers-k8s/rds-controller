@@ -1,0 +1,10 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBClusterSnapshot
+metadata:
+  name: $DB_CLUSTER_SNAPSHOT_ID
+spec:
+  dbClusterIdentifier: $DB_CLUSTER_ID
+  dbClusterSnapshotIdentifier: $DB_CLUSTER_SNAPSHOT_ID
+  tags:
+  - key: environment
+    value: dev

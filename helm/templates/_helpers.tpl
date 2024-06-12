@@ -162,6 +162,26 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbclustersnapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbclustersnapshots/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
   - dbinstances
   verbs:
   - create

@@ -306,11 +306,30 @@ type DBClusterRole struct {
 	Status      *string `json:"status,omitempty"`
 }
 
+// Contains the name and values of a manual DB cluster snapshot attribute.
+//
+// Manual DB cluster snapshot attributes are used to authorize other Amazon
+// Web Services accounts to restore a manual DB cluster snapshot. For more information,
+// see the ModifyDBClusterSnapshotAttribute API action.
+type DBClusterSnapshotAttribute struct {
+	AttributeName *string `json:"attributeName,omitempty"`
+}
+
+// Contains the results of a successful call to the DescribeDBClusterSnapshotAttributes
+// API action.
+//
+// Manual DB cluster snapshot attributes are used to authorize other Amazon
+// Web Services accounts to copy or restore a manual DB cluster snapshot. For
+// more information, see the ModifyDBClusterSnapshotAttribute API action.
+type DBClusterSnapshotAttributesResult struct {
+	DBClusterSnapshotIdentifier *string `json:"dbClusterSnapshotIdentifier,omitempty"`
+}
+
 // Contains the details for an Amazon RDS DB cluster snapshot
 //
 // This data type is used as a response element in the DescribeDBClusterSnapshots
 // action.
-type DBClusterSnapshot struct {
+type DBClusterSnapshot_SDK struct {
 	AllocatedStorage                 *int64       `json:"allocatedStorage,omitempty"`
 	AvailabilityZones                []*string    `json:"availabilityZones,omitempty"`
 	ClusterCreateTime                *metav1.Time `json:"clusterCreateTime,omitempty"`
@@ -336,25 +355,6 @@ type DBClusterSnapshot struct {
 	// in the Amazon RDS User Guide.
 	TagList []*Tag  `json:"tagList,omitempty"`
 	VPCID   *string `json:"vpcID,omitempty"`
-}
-
-// Contains the name and values of a manual DB cluster snapshot attribute.
-//
-// Manual DB cluster snapshot attributes are used to authorize other Amazon
-// Web Services accounts to restore a manual DB cluster snapshot. For more information,
-// see the ModifyDBClusterSnapshotAttribute API action.
-type DBClusterSnapshotAttribute struct {
-	AttributeName *string `json:"attributeName,omitempty"`
-}
-
-// Contains the results of a successful call to the DescribeDBClusterSnapshotAttributes
-// API action.
-//
-// Manual DB cluster snapshot attributes are used to authorize other Amazon
-// Web Services accounts to copy or restore a manual DB cluster snapshot. For
-// more information, see the ModifyDBClusterSnapshotAttribute API action.
-type DBClusterSnapshotAttributesResult struct {
-	DBClusterSnapshotIdentifier *string `json:"dbClusterSnapshotIdentifier,omitempty"`
 }
 
 // Contains the details of an Amazon Aurora DB cluster or Multi-AZ DB cluster.

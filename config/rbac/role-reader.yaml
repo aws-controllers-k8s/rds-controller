@@ -11,6 +11,7 @@ rules:
   resources:
   - dbclusters
   - dbclusterparametergroups
+  - dbclustersnapshots
   - dbinstances
   - dbparametergroups
   - dbproxies
