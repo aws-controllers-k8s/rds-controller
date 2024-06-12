@@ -21,6 +21,23 @@ The ACK service controller for Amazon RDS provides a set of Kubernetes [custom r
 
 To learn how to [get started with the ACK service controller for Amazon RDS](https://aws-controllers-k8s.github.io/community/docs/tutorials/rds-example/), please see the [tutorial](https://aws-controllers-k8s.github.io/community/docs/tutorials/rds-example/).
 
+## Annotations
+
+
+For some resources, `rds-controller` supports annotations to provide additional control over
+the behavior of the controller. The following annotations are supported:
+
+- For **DBInstance** and **DBCluster** CRDs:
+    - `rds.services.k8s.aws/skip-final-snapshot`: When set to `true`, the final snapshot will
+    not be created when the resource is deleted. Default value is `true`, when not set, the
+    final snapshot is NOT created.
+    - `rds.services.k8s.aws/final-db-snapshot-identifier`: When set, the final snapshot will
+    be created with the provided identifier. Default value is empty, when not set, the controller
+    delegates the identifier generation to the RDS service.
+    - `rds.services.k8s.aws/delete-automated-backups`: When set to `true`, automated backups
+    will be deleted when the resource is deleted. Default value is `false`, when not set, the
+    automated backups are NOT deleted.
+
 ## Help & Feedback
 
 The ACK service controller for Amazon RDS is based on the [Amazon RDS API](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/). To get a full understanding of how all of the APIs work, please review the [Amazon RDS API documentation](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/).
