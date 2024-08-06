@@ -56,12 +56,11 @@ func (rm *resourceManager) ResolveReferences(
 	apiReader client.Reader,
 	res acktypes.AWSResource,
 ) (acktypes.AWSResource, bool, error) {
-	namespace := res.MetaObject().GetNamespace()
 	ko := rm.concreteResource(res).ko
 
 	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if fieldHasReferences, err := rm.resolveReferenceForDBInstanceIdentifier(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForDBInstanceIdentifier(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
@@ -90,7 +89,6 @@ func validateReferenceFields(ko *svcapitypes.DBSnapshot) error {
 func (rm *resourceManager) resolveReferenceForDBInstanceIdentifier(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.DBSnapshot,
 ) (hasReferences bool, err error) {
 	if ko.Spec.DBInstanceIdentifierRef != nil && ko.Spec.DBInstanceIdentifierRef.From != nil {
@@ -98,6 +96,10 @@ func (rm *resourceManager) resolveReferenceForDBInstanceIdentifier(
 		arr := ko.Spec.DBInstanceIdentifierRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: DBInstanceIdentifierRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &svcapitypes.DBInstance{}
 		if err := getReferencedResourceState_DBInstance(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
