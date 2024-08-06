@@ -74,6 +74,8 @@ spec:
                     properties:
                       name:
                         type: string
+                      namespace:
+                        type: string
                     type: object
                 type: object
               dbClusterSnapshotIdentifier:
