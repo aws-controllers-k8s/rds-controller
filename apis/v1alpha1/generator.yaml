@@ -131,6 +131,22 @@ resources:
         from:
           operation: RestoreDBClusterFromSnapshot
           path: SnapshotIdentifier
+      SourceDBClusterIdentifier:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: SourceDBClusterIdentifier
+      RestoreType:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: RestoreType
+      RestoreToTime:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: RestoreToTime
+      UseLatestRestorableTime:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: UseLatestRestorableTime
       Tags:
         compare:
           # We have a custom comparison function...
@@ -180,7 +196,7 @@ resources:
         from:
           operation: ModifyDBClusterParameterGroup
           path: Parameters
-        documentation:  DEPRECATED - do not use.  Prefer ParameterOverrides instead.
+        documentation: DEPRECATED - do not use.  Prefer ParameterOverrides instead.
       ParameterOverrides:
         custom_field:
           # Map keys are the parameter name and the values are the parameter value.
@@ -399,7 +415,7 @@ resources:
         - DBSubnetGroupDoesNotCoverEnoughAZs
         - InvalidSubnet
         - InvalidParameter
-        - SubnetAlreadyInUse 
+        - SubnetAlreadyInUse
     hooks:
       sdk_read_many_post_set_output:
         template_path: hooks/db_subnet_group/sdk_read_many_post_set_output.go.tpl

@@ -652,6 +652,41 @@ type DBClusterSpec struct {
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	ReplicationSourceIdentifier *string `json:"replicationSourceIdentifier,omitempty"`
+	// The date and time to restore the DB cluster to.
+	//
+	// Valid Values: Value must be a time in Universal Coordinated Time (UTC) format
+	//
+	// Constraints:
+	//
+	//   - Must be before the latest restorable time for the DB instance
+	//
+	//   - Must be specified if UseLatestRestorableTime parameter isn't provided
+	//
+	//   - Can't be specified if the UseLatestRestorableTime parameter is enabled
+	//
+	//   - Can't be specified if the RestoreType parameter is copy-on-write
+	//
+	// Example: 2015-03-07T23:45:00Z
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	RestoreToTime *metav1.Time `json:"restoreToTime,omitempty"`
+	// The type of restore to be performed. You can specify one of the following
+	// values:
+	//
+	//   - full-copy - The new DB cluster is restored as a full copy of the source
+	//     DB cluster.
+	//
+	//   - copy-on-write - The new DB cluster is restored as a clone of the source
+	//     DB cluster.
+	//
+	// Constraints: You can't specify copy-on-write if the engine version of the
+	// source DB cluster is earlier than 1.11.
+	//
+	// If you don't specify a RestoreType value, then the new DB cluster is restored
+	// as a full copy of the source DB cluster.
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	RestoreType *string `json:"restoreType,omitempty"`
 	// For DB clusters in serverless DB engine mode, the scaling properties of the
 	// DB cluster.
 	//
@@ -670,6 +705,14 @@ type DBClusterSpec struct {
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	SnapshotIdentifier *string `json:"snapshotIdentifier,omitempty"`
+	// The identifier of the source DB cluster from which to restore.
+	//
+	// Constraints:
+	//
+	//   - Must match the identifier of an existing DBCluster.
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	SourceDBClusterIdentifier *string `json:"sourceDBClusterIdentifier,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
 	// sent over the wire and is only used for presigning. This value should always
 	// have the same region as the source ARN.
@@ -694,6 +737,14 @@ type DBClusterSpec struct {
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	Tags []*Tag `json:"tags,omitempty"`
+	// A value that indicates whether to restore the DB cluster to the latest restorable
+	// backup time. By default, the DB cluster isn't restored to the latest restorable
+	// backup time.
+	//
+	// Constraints: Can't be specified if RestoreToTime parameter is provided.
+	//
+	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	UseLatestRestorableTime *bool `json:"useLatestRestorableTime,omitempty"`
 	// A list of EC2 VPC security groups to associate with this DB cluster.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
