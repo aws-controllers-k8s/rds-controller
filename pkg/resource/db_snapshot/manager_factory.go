@@ -53,8 +53,12 @@ func (f *resourceManagerFactory) ManagerFor(
 	sess *session.Session,
 	id ackv1alpha1.AWSAccountID,
 	region ackv1alpha1.AWSRegion,
+	roleARN ackv1alpha1.AWSResourceName,
 ) (acktypes.AWSResourceManager, error) {
-	rmId := fmt.Sprintf("%s/%s", id, region)
+	// We use the account ID, region, and role ARN to uniquely identify a
+	// resource manager. This helps us to avoid creating multiple resource
+	// managers for the same account/region/roleARN combination.
+	rmId := fmt.Sprintf("%s/%s/%s", id, region, roleARN)
 	f.RLock()
 	rm, found := f.rmCache[rmId]
 	f.RUnlock()
