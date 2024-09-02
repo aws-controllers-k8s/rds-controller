@@ -61,6 +61,7 @@ deployment:
   #       key: username
   extraEnvVars: []
 
+
 # If "installScope: cluster" then these labels will be applied to ClusterRole
 role:
   labels: {}
@@ -138,8 +139,7 @@ serviceAccount:
   create: true
   # The name of the service account to use.
   name: ack-rds-controller
-  annotations:
-    {}
+  annotations: {}
     # eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
 
 # Configuration of the leader election. Required for running multiple instances of the
