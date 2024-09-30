@@ -403,3 +403,48 @@ class TestDBCluster:
 
         lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
         assert lastAppliedSecretRef == f"{new_secret.ns}/{new_secret.name}.{new_secret.key}"
+
+    def test_restore_cluster_to_latest_point_in_time(
+            self, k8s_secret
+    ):
+        source_db_cluster_id = random_suffix_name("my-aurora-postgres-clone", 32)
+        db_cluster_id = random_suffix_name("my-aurora-postgres-clone", 32)
+        secret = k8s_secret(
+            MUP_NS,
+            random_suffix_name("clustersecret", 32),
+            MUP_SEC_KEY,
+            MUP_SEC_VAL,
+        )
+        resource_data = load_rds_resource(
+            "db_cluster_aurora_postgres_clone",
+            additional_replacements={
+                    "DB_CLUSTER_ID": db_cluster_id,
+                    "MASTER_USER_PASS_SECRET_NAMESPACE": secret.ns,
+                    "MASTER_USER_PASS_SECRET_NAME": secret.name,
+                    "MASTER_USER_PASS_SECRET_KEY": secret.key,
+                    "SOURCE_DB_CLUSTER_ID": source_db_cluster_id,
+                    "RESTORE_TYPE": "copy-on-write",
+                    "USE_LATEST_RESTORABLE_TIME": "true",
+            },
+        )
+
+        ref = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+            db_cluster_id, namespace="default",
+        )
+        k8s.create_custom_resource(ref, resource_data)
+        cr = k8s.wait_resource_consumed_by_controller(ref)
+
+        assert cr is not None
+        assert 'status' in cr
+        assert 'conditions' in cr['status']
+        assert 'DBClusterNotFoundFault' in cr['status']['conditions'][0]['message']
+
+        try:
+            _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+            assert deleted
+            time.sleep(DELETE_WAIT_AFTER_SECONDS)
+        except:
+            pass
+
+        db_cluster.wait_until_deleted(db_cluster_id)

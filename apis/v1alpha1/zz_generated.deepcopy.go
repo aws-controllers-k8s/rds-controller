@@ -1544,6 +1544,15 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.RestoreToTime != nil {
+		in, out := &in.RestoreToTime, &out.RestoreToTime
+		*out = (*in).DeepCopy()
+	}
+	if in.RestoreType != nil {
+		in, out := &in.RestoreType, &out.RestoreType
+		*out = new(string)
+		**out = **in
+	}
 	if in.ScalingConfiguration != nil {
 		in, out := &in.ScalingConfiguration, &out.ScalingConfiguration
 		*out = new(ScalingConfiguration)
@@ -1556,6 +1565,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 	}
 	if in.SnapshotIdentifier != nil {
 		in, out := &in.SnapshotIdentifier, &out.SnapshotIdentifier
+		*out = new(string)
+		**out = **in
+	}
+	if in.SourceDBClusterIdentifier != nil {
+		in, out := &in.SourceDBClusterIdentifier, &out.SourceDBClusterIdentifier
 		*out = new(string)
 		**out = **in
 	}
@@ -1584,6 +1598,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 				(*in).DeepCopyInto(*out)
 			}
 		}
+	}
+	if in.UseLatestRestorableTime != nil {
+		in, out := &in.UseLatestRestorableTime, &out.UseLatestRestorableTime
+		*out = new(bool)
+		**out = **in
 	}
 	if in.VPCSecurityGroupIDs != nil {
 		in, out := &in.VPCSecurityGroupIDs, &out.VPCSecurityGroupIDs
