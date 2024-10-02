@@ -55,6 +55,7 @@ rules:
   - ""
   resources:
   - configmaps
+  - secrets
   verbs:
   - get
   - list
@@ -69,38 +70,11 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - patch
-  - watch
-- apiGroups:
   - ec2.services.k8s.aws
   resources:
   - securitygroups
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
   - securitygroups/status
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
   - subnets
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - ec2.services.k8s.aws
-  resources:
   - subnets/status
   verbs:
   - get
@@ -109,12 +83,6 @@ rules:
   - kms.services.k8s.aws
   resources:
   - keys
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - kms.services.k8s.aws
-  resources:
   - keys/status
   verbs:
   - get
@@ -123,165 +91,13 @@ rules:
   - rds.services.k8s.aws
   resources:
   - dbclusterparametergroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclusterparametergroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbclusters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbclustersnapshots
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbclustersnapshots/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbinstances
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbinstances/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbparametergroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbparametergroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbproxies
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbproxies/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbsnapshots
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbsnapshots/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - dbsubnetgroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
-  - dbsubnetgroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rds.services.k8s.aws
-  resources:
   - globalclusters
   verbs:
   - create
@@ -294,6 +110,14 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbclusterparametergroups/status
+  - dbclusters/status
+  - dbclustersnapshots/status
+  - dbinstances/status
+  - dbparametergroups/status
+  - dbproxies/status
+  - dbsnapshots/status
+  - dbsubnetgroups/status
   - globalclusters/status
   verbs:
   - get
@@ -303,25 +127,6 @@ rules:
   - services.k8s.aws
   resources:
   - adoptedresources
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - services.k8s.aws
-  resources:
-  - adoptedresources/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - services.k8s.aws
-  resources:
   - fieldexports
   verbs:
   - create
@@ -334,6 +139,7 @@ rules:
 - apiGroups:
   - services.k8s.aws
   resources:
+  - adoptedresources/status
   - fieldexports/status
   verbs:
   - get
