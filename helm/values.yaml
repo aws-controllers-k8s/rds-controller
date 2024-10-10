@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.4.5
+  tag: 1.4.6
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -162,3 +162,5 @@ featureGates:
   ServiceLevelCARM: false
   # Enables the Team level granularity for CARM. See https://github.com/aws-controllers-k8s/community/issues/2031
   TeamLevelCARM: false
+  # Enable ReadOnlyResources feature/annotation. 
+  ReadOnlyResources: false
