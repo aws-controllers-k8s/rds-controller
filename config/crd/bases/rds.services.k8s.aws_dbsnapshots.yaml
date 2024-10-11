@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.16.2
   name: dbsnapshots.rds.services.k8s.aws
 spec:
   group: rds.services.k8s.aws
@@ -40,9 +40,7 @@ spec:
             description: |-
               DBSnapshotSpec defines the desired state of DBSnapshot.
 
-
               Contains the details of an Amazon RDS DB snapshot.
-
 
               This data type is used as a response element in the DescribeDBSnapshots action.
             properties:
@@ -50,16 +48,14 @@ spec:
                 description: |-
                   The identifier of the DB instance that you want to create the snapshot of.
 
-
                   Constraints:
-
 
                      * Must match the identifier of an existing DBInstance.
                 type: string
               dbInstanceIdentifierRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
-                  for references using 'from' field\nEx:\nAPIIDRef:\n\n\n\tfrom:\n\t
+                  for references using 'from' field\nEx:\nAPIIDRef:\n\n\tfrom:\n\t
                   \ name: my-api"
                 properties:
                   from:
@@ -77,21 +73,15 @@ spec:
                 description: |-
                   The identifier for the DB snapshot.
 
-
                   Constraints:
-
 
                      * Can't be null, empty, or blank
 
-
                      * Must contain from 1 to 255 letters, numbers, or hyphens
-
 
                      * First character must be a letter
 
-
                      * Can't end with a hyphen or contain two consecutive hyphens
-
 
                   Example: my-snapshot-id
                 type: string
@@ -99,7 +89,6 @@ spec:
                 items:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
-
 
                     For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
                     in the Amazon RDS User Guide.
@@ -130,7 +119,6 @@ spec:
                       when it has verified that an "adopted" resource (a resource where the
                       ARN annotation was set by the Kubernetes user on the CR) exists and
                       matches the supplied CR's Spec field values.
-                      TODO(vijat@): Find a better strategy for resources that do not have ARN in CreateOutputResponse
                       https://github.com/aws/aws-controllers-k8s/issues/270
                     type: string
                   ownerAccountID:
@@ -223,7 +211,6 @@ spec:
                   If Encrypted is true, the Amazon Web Services KMS key identifier for the
                   encrypted DB snapshot.
 
-
                   The Amazon Web Services KMS key identifier is the key ARN, key ID, alias
                   ARN, or alias name for the KMS key.
                 type: string
@@ -257,62 +244,45 @@ spec:
                   description: |-
                     Contains the processor features of a DB instance class.
 
-
                     To specify the number of CPU cores, use the coreCount feature name for the
                     Name parameter. To specify the number of threads per core, use the threadsPerCore
                     feature name for the Name parameter.
 
-
                     You can set the processor features of the DB instance class for a DB instance
                     when you call one of the following actions:
 
-
                        * CreateDBInstance
-
 
                        * ModifyDBInstance
 
-
                        * RestoreDBInstanceFromDBSnapshot
-
 
                        * RestoreDBInstanceFromS3
 
-
                        * RestoreDBInstanceToPointInTime
-
 
                     You can view the valid processor values for a particular instance class by
                     calling the DescribeOrderableDBInstanceOptions action and specifying the
                     instance class for the DBInstanceClass parameter.
 
-
                     In addition, you can use the following actions for DB instance class processor
                     information:
 
-
                        * DescribeDBInstances
-
 
                        * DescribeDBSnapshots
 
-
                        * DescribeValidDBInstanceModifications
-
 
                     If you call DescribeDBInstances, ProcessorFeature returns non-null values
                     only if the following conditions are met:
 
-
                        * You are accessing an Oracle DB instance.
-
 
                        * Your Oracle DB instance class supports configuring the number of CPU
                        cores and threads per core.
 
-
                        * The current number CPU cores and threads is set to a non-default value.
-
 
                     For more information, see Configuring the Processor of the DB Instance Class
                     (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html#USER_ConfigureProcessor)
@@ -336,7 +306,6 @@ spec:
                   you're backing up. Thus, if you restore a snapshot, SnapshotDatabaseTime
                   is the most recent transaction in the restored DB instance. In contrast,
                   originalSnapshotCreateTime specifies the system time that the snapshot completed.
-
 
                   If you back up a read replica, you can determine the replica lag by comparing
                   SnapshotDatabaseTime with originalSnapshotCreateTime. For example, if originalSnapshotCreateTime
@@ -377,7 +346,6 @@ spec:
                 items:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
-
 
                     For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
                     in the Amazon RDS User Guide.
