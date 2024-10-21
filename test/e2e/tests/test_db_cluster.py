@@ -15,6 +15,7 @@
 """
 
 import time
+import logging
 
 import pytest
 from acktest.k8s import resource as k8s
@@ -448,3 +449,39 @@ class TestDBCluster:
             pass
 
         db_cluster.wait_until_deleted(db_cluster_id)
+
+
+    def test_enable_performance_insight(
+        self, aurora_postgres_cluster_log_exports,
+    ):
+        ref, _, db_cluster_id = aurora_postgres_cluster_log_exports
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+
+        performanceInsightsEnabled = current.get("PerformanceInsightsEnabled", None)
+        assert performanceInsightsEnabled is None
+        
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"performanceInsightsEnabled": True}},
+        )
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches("available"),
+        )
+
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+
+        logging.info("+++++")
+        logging.info(latest)
+        performanceInsightsEnabled = current.get("PerformanceInsightsEnabled", None)
+        assert performanceInsightsEnabled == True
