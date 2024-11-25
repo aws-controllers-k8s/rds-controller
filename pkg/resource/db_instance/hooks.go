@@ -581,3 +581,12 @@ func setDeleteDBInstanceInput(
 	input.DeleteAutomatedBackups = params.DeleteAutomatedBackup
 	return nil
 }
+
+// needStorageUpdate
+func needStorageUpdate(
+	r *resource,
+	delta *ackcompare.Delta,
+) bool {
+	return strings.Contains(*r.ko.Status.DBInstanceStatus, "storage-full") &&
+		delta.DifferentAt("Spec.AllocatedStorage")
+}
