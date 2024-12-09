@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.4.6
+  tag: 1.4.7
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -164,3 +164,5 @@ featureGates:
   TeamLevelCARM: false
   # Enable ReadOnlyResources feature/annotation. 
   ReadOnlyResources: false
+  # Enable ResourceAdoption feature/annotation. 
+  ResourceAdoption: false
