@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	finalizerString = "finalizers.rds.services.k8s.aws/DBParameterGroup"
+	FinalizerString = "finalizers.rds.services.k8s.aws/DBParameterGroup"
 )
 
 var (
@@ -88,8 +88,8 @@ func (d *resourceDescriptor) IsManaged(
 	// https://github.com/kubernetes-sigs/controller-runtime/issues/994 is
 	// fixed. This should be able to be:
 	//
-	// return k8sctrlutil.ContainsFinalizer(obj, finalizerString)
-	return containsFinalizer(obj, finalizerString)
+	// return k8sctrlutil.ContainsFinalizer(obj, FinalizerString)
+	return containsFinalizer(obj, FinalizerString)
 }
 
 // Remove once https://github.com/kubernetes-sigs/controller-runtime/issues/994
@@ -118,7 +118,7 @@ func (d *resourceDescriptor) MarkManaged(
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
 	}
-	k8sctrlutil.AddFinalizer(obj, finalizerString)
+	k8sctrlutil.AddFinalizer(obj, FinalizerString)
 }
 
 // MarkUnmanaged removes the supplied resource from management by ACK.  What
@@ -133,7 +133,7 @@ func (d *resourceDescriptor) MarkUnmanaged(
 		// Should not happen. If it does, there is a bug in the code
 		panic("nil RuntimeMetaObject in AWSResource")
 	}
-	k8sctrlutil.RemoveFinalizer(obj, finalizerString)
+	k8sctrlutil.RemoveFinalizer(obj, FinalizerString)
 }
 
 // MarkAdopted places descriptors on the custom resource that indicate the

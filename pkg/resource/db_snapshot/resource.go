@@ -106,6 +106,30 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 	return nil
 }
 
+// PopulateResourceFromAnnotation populates the fields passed from adoption annotation
+func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
+	tmp, ok := fields["dbSnapshotIdentifier"]
+	if !ok {
+		return ackerrors.MissingNameIdentifier
+	}
+	r.ko.Spec.DBSnapshotIdentifier = &tmp
+
+	f0, f0ok := fields["dbInstanceIdentifier"]
+	if f0ok {
+		r.ko.Spec.DBInstanceIdentifier = &f0
+	}
+	f2, f2ok := fields["dbiResourceID"]
+	if f2ok {
+		r.ko.Status.DBIResourceID = &f2
+	}
+	f8, f8ok := fields["snapshotType"]
+	if f8ok {
+		r.ko.Status.SnapshotType = &f8
+	}
+
+	return nil
+}
+
 // DeepCopy will return a copy of the resource
 func (r *resource) DeepCopy() acktypes.AWSResource {
 	koCopy := r.ko.DeepCopy()
