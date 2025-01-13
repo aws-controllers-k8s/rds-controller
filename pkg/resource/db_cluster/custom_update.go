@@ -662,6 +662,16 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.SetCloudwatchLogsExportConfiguration(f24)
 	}
+	if delta.DifferentAt("Spec.PerformanceInsightsEnabled") && desired.ko.Spec.EnablePerformanceInsights != nil {
+		res.SetEnablePerformanceInsights(*desired.ko.Spec.EnablePerformanceInsights)
+	}
+	if delta.DifferentAt("Spec.PerformanceInsightsKMSKeyID") && desired.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+		res.SetPerformanceInsightsKMSKeyId(*desired.ko.Spec.PerformanceInsightsKMSKeyID)
+	}
+	if delta.DifferentAt("Spec.PerformanceInsightsRetentionPeriod") && desired.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+		res.SetPerformanceInsightsRetentionPeriod(*desired.ko.Spec.PerformanceInsightsRetentionPeriod)
+	}
+
 	return res, nil
 }
 
