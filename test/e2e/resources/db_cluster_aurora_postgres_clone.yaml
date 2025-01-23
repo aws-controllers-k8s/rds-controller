@@ -9,7 +9,7 @@ spec:
   enableIAMDatabaseAuthentication: false
   engine: aurora-postgresql
   engineMode: provisioned
-  engineVersion: "14.9"
+  engineVersion: "14.15"
   masterUsername: root
   masterUserPassword:
     namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
