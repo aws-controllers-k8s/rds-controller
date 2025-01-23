@@ -7,7 +7,7 @@ spec:
   dbClusterIdentifier: $DB_CLUSTER_ID
   databaseName: $DB_NAME
   engine: aurora-mysql
-  engineMode: serverless
+  engineMode: provisioned
   masterUsername: root
   masterUserPassword:
     namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
