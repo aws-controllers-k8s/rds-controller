@@ -11,9 +11,11 @@ rules:
   resources:
   - dbclusters
   - dbclusterparametergroups
+  - dbclustersnapshots
   - dbinstances
   - dbparametergroups
   - dbproxies
+  - dbsnapshots
   - dbsubnetgroups
   - globalclusters
   verbs:
@@ -29,9 +31,11 @@ rules:
   resources:
   - dbclusters
   - dbclusterparametergroups
+  - dbclustersnapshots
   - dbinstances
   - dbparametergroups
   - dbproxies
+  - dbsnapshots
   - dbsubnetgroups
   - globalclusters
   verbs:

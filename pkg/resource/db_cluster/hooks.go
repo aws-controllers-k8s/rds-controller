@@ -74,23 +74,19 @@ const (
 	StatusArchived                          = "archived"
 )
 
-var (
-	// TerminalStatuses are the status strings that are terminal states for a
-	// DB cluster.
-	TerminalStatuses = []string{
-		StatusDeleting,
-		StatusInaccessibleEncryptionCredentials,
-		StatusIncompatibleNetwork,
-		StatusIncompatibleRestore,
-		StatusFailed,
-	}
-)
+// TerminalStatuses are the status strings that are terminal states for a
+// DB cluster.
+var TerminalStatuses = []string{
+	StatusDeleting,
+	StatusInaccessibleEncryptionCredentials,
+	StatusIncompatibleNetwork,
+	StatusIncompatibleRestore,
+	StatusFailed,
+}
 
-var (
-	requeueWaitWhileDeleting = ackrequeue.NeededAfter(
-		errors.New("DB cluster in 'deleting' state, cannot be modified or deleted."),
-		ackrequeue.DefaultRequeueAfterDuration,
-	)
+var requeueWaitWhileDeleting = ackrequeue.NeededAfter(
+	errors.New("DB cluster in 'deleting' state, cannot be modified or deleted."),
+	ackrequeue.DefaultRequeueAfterDuration,
 )
 
 // requeueWaitUntilCanModify returns a `ackrequeue.RequeueNeededAfter` struct
@@ -310,6 +306,35 @@ func (rm *resourceManager) restoreDbClusterFromSnapshot(
 	return &resource{r.ko}, nil
 }
 
+// function to create restoreDbClusterToPointInTime payload and call restoreDbClusterToPointInTime API
+func (rm *resourceManager) restoreDbClusterToPointInTime(
+	ctx context.Context,
+	r *resource,
+) (created *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.restoreDbClusterToPointInTime")
+	defer func(err error) { exit(err) }(err)
+
+	resp, respErr := rm.sdkapi.RestoreDBClusterToPointInTimeWithContext(ctx, rm.newRestoreDBClusterToPointInTimeInput(r))
+	rm.metrics.RecordAPICall("CREATE", "restoreDbClusterToPointInTime", respErr)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	rm.setResourceFromRestoreDBClusterToPointInTimeOutput(r, resp)
+	rm.setStatusDefaults(r.ko)
+
+	// We expect the DB cluster to be in 'creating' status since we just
+	// issued the call to create it, but I suppose it doesn't hurt to check
+	// here.
+	if clusterCreating(&resource{r.ko}) {
+		// Setting resource synced condition to false will trigger a requeue of
+		// the resource. No need to return a requeue error here.
+		ackcondition.SetSynced(&resource{r.ko}, corev1.ConditionFalse, nil, nil)
+	}
+	return &resource{r.ko}, nil
+}
+
 // TODO(a-hilaly): generate this code.
 
 // getLastAppliedSecretReferenceString returns a string representation of the
@@ -349,4 +374,20 @@ func compareSecretReferenceChanges(
 	if oldRef != newRef {
 		delta.Add("Spec.MasterUserPassword", oldRef, newRef)
 	}
+}
+
+// setDeleteDBClusterInput uses the resource annotations to complete
+// the input for the DeleteDBCluster API call.
+func setDeleteDBClusterInput(
+	r *resource,
+	input *svcsdk.DeleteDBClusterInput,
+) error {
+	params, err := util.ParseDeletionAnnotations(r.ko.GetAnnotations())
+	if err != nil {
+		return err
+	}
+	input.SkipFinalSnapshot = params.SkipFinalSnapshot
+	input.FinalDBSnapshotIdentifier = params.FinalDBSnapshotIdentifier
+	input.DeleteAutomatedBackups = params.DeleteAutomatedBackup
+	return nil
 }

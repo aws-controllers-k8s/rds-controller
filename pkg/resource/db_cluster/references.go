@@ -83,36 +83,35 @@ func (rm *resourceManager) ResolveReferences(
 	apiReader client.Reader,
 	res acktypes.AWSResource,
 ) (acktypes.AWSResource, bool, error) {
-	namespace := res.MetaObject().GetNamespace()
 	ko := rm.concreteResource(res).ko
 
 	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if fieldHasReferences, err := rm.resolveReferenceForDBClusterParameterGroupName(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForDBClusterParameterGroupName(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	if fieldHasReferences, err := rm.resolveReferenceForDBSubnetGroupName(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForDBSubnetGroupName(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	if fieldHasReferences, err := rm.resolveReferenceForKMSKeyID(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForKMSKeyID(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	if fieldHasReferences, err := rm.resolveReferenceForMasterUserSecretKMSKeyID(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForMasterUserSecretKMSKeyID(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	if fieldHasReferences, err := rm.resolveReferenceForVPCSecurityGroupIDs(ctx, apiReader, namespace, ko); err != nil {
+	if fieldHasReferences, err := rm.resolveReferenceForVPCSecurityGroupIDs(ctx, apiReader, ko); err != nil {
 		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
 	} else {
 		resourceHasReferences = resourceHasReferences || fieldHasReferences
@@ -154,7 +153,6 @@ func validateReferenceFields(ko *svcapitypes.DBCluster) error {
 func (rm *resourceManager) resolveReferenceForDBClusterParameterGroupName(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.DBCluster,
 ) (hasReferences bool, err error) {
 	if ko.Spec.DBClusterParameterGroupRef != nil && ko.Spec.DBClusterParameterGroupRef.From != nil {
@@ -162,6 +160,10 @@ func (rm *resourceManager) resolveReferenceForDBClusterParameterGroupName(
 		arr := ko.Spec.DBClusterParameterGroupRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: DBClusterParameterGroupRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &svcapitypes.DBClusterParameterGroup{}
 		if err := getReferencedResourceState_DBClusterParameterGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -192,12 +194,8 @@ func getReferencedResourceState_DBClusterParameterGroup(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -209,6 +207,13 @@ func getReferencedResourceState_DBClusterParameterGroup(
 		return ackerr.ResourceReferenceTerminalFor(
 			"DBClusterParameterGroup",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -231,7 +236,6 @@ func getReferencedResourceState_DBClusterParameterGroup(
 func (rm *resourceManager) resolveReferenceForDBSubnetGroupName(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.DBCluster,
 ) (hasReferences bool, err error) {
 	if ko.Spec.DBSubnetGroupRef != nil && ko.Spec.DBSubnetGroupRef.From != nil {
@@ -239,6 +243,10 @@ func (rm *resourceManager) resolveReferenceForDBSubnetGroupName(
 		arr := ko.Spec.DBSubnetGroupRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: DBSubnetGroupRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &svcapitypes.DBSubnetGroup{}
 		if err := getReferencedResourceState_DBSubnetGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -269,12 +277,8 @@ func getReferencedResourceState_DBSubnetGroup(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -286,6 +290,13 @@ func getReferencedResourceState_DBSubnetGroup(
 		return ackerr.ResourceReferenceTerminalFor(
 			"DBSubnetGroup",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -308,7 +319,6 @@ func getReferencedResourceState_DBSubnetGroup(
 func (rm *resourceManager) resolveReferenceForKMSKeyID(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.DBCluster,
 ) (hasReferences bool, err error) {
 	if ko.Spec.KMSKeyRef != nil && ko.Spec.KMSKeyRef.From != nil {
@@ -316,6 +326,10 @@ func (rm *resourceManager) resolveReferenceForKMSKeyID(
 		arr := ko.Spec.KMSKeyRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: KMSKeyRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &kmsapitypes.Key{}
 		if err := getReferencedResourceState_Key(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -346,12 +360,8 @@ func getReferencedResourceState_Key(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -363,6 +373,13 @@ func getReferencedResourceState_Key(
 		return ackerr.ResourceReferenceTerminalFor(
 			"Key",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -385,7 +402,6 @@ func getReferencedResourceState_Key(
 func (rm *resourceManager) resolveReferenceForMasterUserSecretKMSKeyID(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.DBCluster,
 ) (hasReferences bool, err error) {
 	if ko.Spec.MasterUserSecretKMSKeyRef != nil && ko.Spec.MasterUserSecretKMSKeyRef.From != nil {
@@ -393,6 +409,10 @@ func (rm *resourceManager) resolveReferenceForMasterUserSecretKMSKeyID(
 		arr := ko.Spec.MasterUserSecretKMSKeyRef.From
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: MasterUserSecretKMSKeyRef")
+		}
+		namespace := ko.ObjectMeta.GetNamespace()
+		if arr.Namespace != nil && *arr.Namespace != "" {
+			namespace = *arr.Namespace
 		}
 		obj := &kmsapitypes.Key{}
 		if err := getReferencedResourceState_Key(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -411,7 +431,6 @@ func (rm *resourceManager) resolveReferenceForMasterUserSecretKMSKeyID(
 func (rm *resourceManager) resolveReferenceForVPCSecurityGroupIDs(
 	ctx context.Context,
 	apiReader client.Reader,
-	namespace string,
 	ko *svcapitypes.DBCluster,
 ) (hasReferences bool, err error) {
 	for _, f0iter := range ko.Spec.VPCSecurityGroupRefs {
@@ -420,6 +439,10 @@ func (rm *resourceManager) resolveReferenceForVPCSecurityGroupIDs(
 			arr := f0iter.From
 			if arr.Name == nil || *arr.Name == "" {
 				return hasReferences, fmt.Errorf("provided resource reference is nil or empty: VPCSecurityGroupRefs")
+			}
+			namespace := ko.ObjectMeta.GetNamespace()
+			if arr.Namespace != nil && *arr.Namespace != "" {
+				namespace = *arr.Namespace
 			}
 			obj := &ec2apitypes.SecurityGroup{}
 			if err := getReferencedResourceState_SecurityGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -454,12 +477,8 @@ func getReferencedResourceState_SecurityGroup(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -471,6 +490,13 @@ func getReferencedResourceState_SecurityGroup(
 		return ackerr.ResourceReferenceTerminalFor(
 			"SecurityGroup",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(

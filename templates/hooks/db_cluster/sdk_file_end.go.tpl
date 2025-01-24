@@ -2,7 +2,7 @@
 {{ $SDKAPI := .SDKAPI }}
 
 {{/* Maintain operations here */}}
-{{ range $operationName := Each "RestoreDBClusterFromSnapshot" }}
+{{ range $operationName := Each "RestoreDBClusterFromSnapshot" "RestoreDBClusterToPointInTime" }}
 
 {{- $operation := (index $SDKAPI.API.Operations $operationName)}}
 
@@ -14,7 +14,7 @@
 
 
 {{/* Some operations have custom structure */}}
-{{- if (eq $operationName "RestoreDBClusterFromSnapshot") }}
+{{- if (eq $operationName "RestoreDBClusterFromSnapshot" "RestoreDBClusterToPointInTime") }}
 
 // new{{ $inputShapeName }} returns a {{ $inputShapeName }} object 
 // with each the field set by the corresponding configuration's fields.

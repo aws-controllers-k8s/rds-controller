@@ -1930,7 +1930,7 @@ func (rm *resourceManager) sdkUpdate(
 		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
 		return desired, nil
 	}
-	if !instanceAvailable(latest) {
+	if !instanceAvailable(latest) && !needStorageUpdate(latest, delta) {
 		msg := "DB instance cannot be modifed while in '" + *latest.ko.Status.DBInstanceStatus + "' status"
 		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
 		return desired, requeueWaitUntilCanModify(latest)
@@ -2971,6 +2971,11 @@ func (rm *resourceManager) sdkDelete(
 	if err != nil {
 		return nil, err
 	}
+	err = setDeleteDBInstanceInput(r, input)
+	if err != nil {
+		return nil, err
+	}
+
 	var resp *svcsdk.DeleteDBInstanceOutput
 	_ = resp
 	resp, err = rm.sdkapi.DeleteDBInstanceWithContext(ctx, input)
@@ -2988,7 +2993,6 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	if r.ko.Spec.DBInstanceIdentifier != nil {
 		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
 	}
-	res.SetSkipFinalSnapshot(true)
 
 	return res, nil
 }

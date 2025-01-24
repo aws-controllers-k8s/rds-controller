@@ -41,6 +41,8 @@ spec:
         - "$(LEADER_ELECTION_NAMESPACE)"
         - --reconcile-default-max-concurrent-syncs
         - "$(RECONCILE_DEFAULT_MAX_CONCURRENT_SYNCS)"
+        - --feature-gates
+        - "$(FEATURE_GATES)"
         image: controller:latest
         name: controller
         ports:
@@ -76,6 +78,8 @@ spec:
           value: "ack-system"
         - name: "RECONCILE_DEFAULT_MAX_CONCURRENT_SYNCS"
           value: "1"
+        - name: "FEATURE_GATES"
+          value: ""
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false

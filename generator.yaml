@@ -6,14 +6,14 @@ ignore:
     #- DBCluster
     - DBClusterEndpoint
     #- DBClusterParameterGroup
-    - DBClusterSnapshot
+    # DBClusterSnapshot
     #- DBInstance
     - DBInstanceReadReplica
     #- DBParameterGroup
     #- DBProxy
     - DBProxyEndpoint
     - DBSecurityGroup
-    - DBSnapshot
+    # DBSnapshot
     #- DBSubnetGroup
     - EventSubscription
     #- GlobalCluster
@@ -23,6 +23,11 @@ ignore:
     - DBInstance.DBSecurityGroups
     # We handle Spec.Tags separately...
     - "DescribeDBInstancesOutput.DBInstances.DBInstance.TagList"
+    # These fields are also supported for DBSnapshot updates but we can't
+    # support them for the moment. They require some code-generator modifications.
+    - "CreateDBSnapshotOutput.DBSnapshot.EngineVersion"
+    - "CreateDBSnapshotOutput.DBSnapshot.OptionGroupName"
+    - "DescribeDBClusterSnapshotsOutput.DBClusterSnapshots.TagList"
 operations:
   ModifyDBCluster:
     override_values:
@@ -43,12 +48,6 @@ operations:
       # This flag was designed as a protect flag but not necessary in controller
       # side when customer need to make the engine version change
       AllowMajorVersionUpgrade: true
-  DeleteDBCluster:
-    override_values:
-      # Clearly this is not ideal, but will suffice until we add custom hook
-      # points to the build_request methods to enable a genmeration of the
-      # final snapshot identifier to use.
-      SkipFinalSnapshot: true
   ModifyDBInstance:
     override_values:
       # The whole concept of a "maintenance window" isn't aligned with the
@@ -68,12 +67,6 @@ operations:
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
       AllowMajorVersionUpgrade: true
-  DeleteDBInstance:
-    override_values:
-      # Clearly this is not ideal, but will suffice until we add custom hook
-      # points to the build_request methods to enable a genmeration of the
-      # final snapshot identifier to use.
-      SkipFinalSnapshot: true
 resources:
   DBCluster:
     update_operation:
@@ -92,6 +85,8 @@ resources:
         template_path: hooks/db_cluster/sdk_read_many_post_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_cluster/sdk_delete_pre_build_request.go.tpl
+      sdk_delete_post_build_request:
+        template_path: hooks/db_cluster/sdk_delete_post_build_request.go.tpl
       sdk_file_end:
         template_path: hooks/db_cluster/sdk_file_end.go.tpl
     exceptions:
@@ -136,6 +131,22 @@ resources:
         from:
           operation: RestoreDBClusterFromSnapshot
           path: SnapshotIdentifier
+      SourceDBClusterIdentifier:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: SourceDBClusterIdentifier
+      RestoreType:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: RestoreType
+      RestoreToTime:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: RestoreToTime
+      UseLatestRestorableTime:
+        from:
+          operation: RestoreDBClusterToPointInTime
+          path: UseLatestRestorableTime
       Tags:
         compare:
           # We have a custom comparison function...
@@ -185,7 +196,7 @@ resources:
         from:
           operation: ModifyDBClusterParameterGroup
           path: Parameters
-        documentation:  DEPRECATED - do not use.  Prefer ParameterOverrides instead.
+        documentation: DEPRECATED - do not use.  Prefer ParameterOverrides instead.
       ParameterOverrides:
         custom_field:
           # Map keys are the parameter name and the values are the parameter value.
@@ -223,6 +234,8 @@ resources:
         template_path: hooks/db_instance/sdk_update_post_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
+      sdk_delete_post_build_request:
+        template_path: hooks/db_instance/sdk_delete_post_build_request.go.tpl
       sdk_file_end:
         template_path: hooks/db_instance/sdk_file_end.go.tpl
     exceptions:
@@ -402,7 +415,7 @@ resources:
         - DBSubnetGroupDoesNotCoverEnoughAZs
         - InvalidSubnet
         - InvalidParameter
-        - SubnetAlreadyInUse 
+        - SubnetAlreadyInUse
     hooks:
       sdk_read_many_post_set_output:
         template_path: hooks/db_subnet_group/sdk_read_many_post_set_output.go.tpl
@@ -454,3 +467,37 @@ resources:
         template_path: hooks/db_proxy/sdk_update_post_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_proxy/sdk_delete_pre_build_request.go.tpl
+  DBSnapshot:
+    fields:
+      DBSnapshotIdentifier:
+        is_primary_key: true
+      DBInstanceIdentifier:
+        references:
+          resource: DBInstance
+          path: Spec.DBInstanceIdentifier
+      # EngineVersion:
+      #   is_read_only: false
+      # OptionGroupName:
+      #   is_read_only: false
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/db_snapshot/sdk_create_post_set_output.go.tpl
+      sdk_read_many_post_set_output:
+        template_path: hooks/db_snapshot/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/db_snapshot/sdk_update_pre_build_request.go.tpl
+  DBClusterSnapshot:
+    fields:
+      DBClusterSnapshotIdentifier:
+        is_primary_key: true
+      DBClusterIdentifier:
+        references:
+          resource: DBCluster
+          path: Spec.DBClusterIdentifier
+    hooks:
+      sdk_create_post_set_output:
+        template_path: hooks/db_cluster_snapshot/sdk_create_post_set_output.go.tpl
+      sdk_read_many_post_set_output:
+        template_path: hooks/db_cluster_snapshot/sdk_read_many_post_set_output.go.tpl
+    update_operation:
+      custom_method_name: customUpdateDBClusterSnapshot

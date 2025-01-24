@@ -365,6 +365,20 @@ func newResourceDelta(
 			delta.Add("Spec.ReplicationSourceIdentifier", a.ko.Spec.ReplicationSourceIdentifier, b.ko.Spec.ReplicationSourceIdentifier)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.RestoreToTime, b.ko.Spec.RestoreToTime) {
+		delta.Add("Spec.RestoreToTime", a.ko.Spec.RestoreToTime, b.ko.Spec.RestoreToTime)
+	} else if a.ko.Spec.RestoreToTime != nil && b.ko.Spec.RestoreToTime != nil {
+		if !a.ko.Spec.RestoreToTime.Equal(b.ko.Spec.RestoreToTime) {
+			delta.Add("Spec.RestoreToTime", a.ko.Spec.RestoreToTime, b.ko.Spec.RestoreToTime)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.RestoreType, b.ko.Spec.RestoreType) {
+		delta.Add("Spec.RestoreType", a.ko.Spec.RestoreType, b.ko.Spec.RestoreType)
+	} else if a.ko.Spec.RestoreType != nil && b.ko.Spec.RestoreType != nil {
+		if *a.ko.Spec.RestoreType != *b.ko.Spec.RestoreType {
+			delta.Add("Spec.RestoreType", a.ko.Spec.RestoreType, b.ko.Spec.RestoreType)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.ScalingConfiguration, b.ko.Spec.ScalingConfiguration) {
 		delta.Add("Spec.ScalingConfiguration", a.ko.Spec.ScalingConfiguration, b.ko.Spec.ScalingConfiguration)
 	} else if a.ko.Spec.ScalingConfiguration != nil && b.ko.Spec.ScalingConfiguration != nil {
@@ -436,6 +450,13 @@ func newResourceDelta(
 			delta.Add("Spec.SnapshotIdentifier", a.ko.Spec.SnapshotIdentifier, b.ko.Spec.SnapshotIdentifier)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.SourceDBClusterIdentifier, b.ko.Spec.SourceDBClusterIdentifier) {
+		delta.Add("Spec.SourceDBClusterIdentifier", a.ko.Spec.SourceDBClusterIdentifier, b.ko.Spec.SourceDBClusterIdentifier)
+	} else if a.ko.Spec.SourceDBClusterIdentifier != nil && b.ko.Spec.SourceDBClusterIdentifier != nil {
+		if *a.ko.Spec.SourceDBClusterIdentifier != *b.ko.Spec.SourceDBClusterIdentifier {
+			delta.Add("Spec.SourceDBClusterIdentifier", a.ko.Spec.SourceDBClusterIdentifier, b.ko.Spec.SourceDBClusterIdentifier)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion) {
 		delta.Add("Spec.SourceRegion", a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion)
 	} else if a.ko.Spec.SourceRegion != nil && b.ko.Spec.SourceRegion != nil {
@@ -455,6 +476,13 @@ func newResourceDelta(
 	} else if a.ko.Spec.StorageType != nil && b.ko.Spec.StorageType != nil {
 		if *a.ko.Spec.StorageType != *b.ko.Spec.StorageType {
 			delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.UseLatestRestorableTime, b.ko.Spec.UseLatestRestorableTime) {
+		delta.Add("Spec.UseLatestRestorableTime", a.ko.Spec.UseLatestRestorableTime, b.ko.Spec.UseLatestRestorableTime)
+	} else if a.ko.Spec.UseLatestRestorableTime != nil && b.ko.Spec.UseLatestRestorableTime != nil {
+		if *a.ko.Spec.UseLatestRestorableTime != *b.ko.Spec.UseLatestRestorableTime {
+			delta.Add("Spec.UseLatestRestorableTime", a.ko.Spec.UseLatestRestorableTime, b.ko.Spec.UseLatestRestorableTime)
 		}
 	}
 	if len(a.ko.Spec.VPCSecurityGroupIDs) != len(b.ko.Spec.VPCSecurityGroupIDs) {

@@ -4,8 +4,10 @@ resources:
   - common
   - bases/rds.services.k8s.aws_dbclusters.yaml
   - bases/rds.services.k8s.aws_dbclusterparametergroups.yaml
+  - bases/rds.services.k8s.aws_dbclustersnapshots.yaml
   - bases/rds.services.k8s.aws_dbinstances.yaml
   - bases/rds.services.k8s.aws_dbparametergroups.yaml
   - bases/rds.services.k8s.aws_dbproxies.yaml
+  - bases/rds.services.k8s.aws_dbsnapshots.yaml
   - bases/rds.services.k8s.aws_dbsubnetgroups.yaml
   - bases/rds.services.k8s.aws_globalclusters.yaml

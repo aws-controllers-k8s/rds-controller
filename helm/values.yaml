@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.2.5
+  tag: 1.4.7
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -153,3 +153,16 @@ leaderElection:
   # will attempt to use the namespace of the service account mounted to the Controller
   # pod.
   namespace: ""
+
+# Configuration for feature gates.  These are optional controller features that
+# can be individually enabled ("true") or disabled ("false") by adding key/value
+# pairs below.
+featureGates:
+  # Enables the Service level granularity for CARM. See https://github.com/aws-controllers-k8s/community/issues/2031
+  ServiceLevelCARM: false
+  # Enables the Team level granularity for CARM. See https://github.com/aws-controllers-k8s/community/issues/2031
+  TeamLevelCARM: false
+  # Enable ReadOnlyResources feature/annotation. 
+  ReadOnlyResources: false
+  # Enable ResourceAdoption feature/annotation. 
+  ResourceAdoption: false
