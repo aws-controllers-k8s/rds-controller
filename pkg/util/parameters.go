@@ -57,16 +57,30 @@ func NewErrUnmodifiableParameter(name string) error {
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
-	// we need to convert the tag tuples to a comparable interface type
-	fromPairs := lo.ToPairs(from)
-	toPairs := lo.ToPairs(to)
+	added = Parameters{}
+	unchanged = Parameters{}
+	removed = Parameters{}
 
-	left, right := lo.Difference(fromPairs, toPairs)
-	middle := lo.Intersect(fromPairs, toPairs)
+	// Find added and unchanged parameters
+	for toKey, toVal := range to {
+		if fromVal, exists := from[toKey]; exists {
+			// Parameter exists in both maps
+			if (toVal == nil && fromVal == nil) || (toVal != nil && fromVal != nil && *toVal == *fromVal) {
+				unchanged[toKey] = toVal
+			} else {
+				added[toKey] = toVal // Different values = modified parameter
+			}
+		} else {
+			added[toKey] = toVal // Not in 'from' = new parameter
+		}
+	}
 
-	removed = lo.FromPairs(left)
-	added = lo.FromPairs(right)
-	unchanged = lo.FromPairs(middle)
+	// Find removed parameters
+	for fromKey, fromVal := range from {
+		if _, exists := to[fromKey]; !exists {
+			removed[fromKey] = fromVal
+		}
+	}
 
 	return added, unchanged, removed
 }
