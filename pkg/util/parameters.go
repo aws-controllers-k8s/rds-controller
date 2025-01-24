@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	"github.com/samber/lo"
 )
 
 var (
