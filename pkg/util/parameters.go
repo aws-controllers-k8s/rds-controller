@@ -54,29 +54,33 @@ func NewErrUnmodifiableParameter(name string) error {
 // GetParametersDifference compares two Parameters maps and returns the
 // parameters to add & update, the unchanged parameters, and
 // the parameters to remove
-// GetParametersDifference compares two Parameters maps and returns the
-// parameters to add & update, the unchanged parameters, and
-// the parameters to remove
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
-	// we need to convert the tag tuples to a comparable interface type
-	fromPairs := lo.ToPairs(from)
-	toPairs := lo.ToPairs(to)
+	added = Parameters{}
+	unchanged = Parameters{}
+	removed = Parameters{}
 
-	left, right := lo.Difference(fromPairs, toPairs)
-	middle := lo.Intersect(fromPairs, toPairs)
+	// Find added and unchanged parameters
+	for toKey, toVal := range to {
+		if fromVal, exists := from[toKey]; exists {
+			// Parameter exists in both maps
+			if (toVal == nil && fromVal == nil) || (toVal != nil && fromVal != nil && *toVal == *fromVal) {
+				unchanged[toKey] = toVal
+			} else {
+				added[toKey] = toVal // Different values = modified parameter
+			}
+		} else {
+			added[toKey] = toVal // Not in 'from' = new parameter
+		}
+	}
 
-	removed_common := lo.FromPairs(left)
-	added = lo.FromPairs(right)
-
-	left_map := lo.Keys(removed_common)
-	right_map := lo.Keys(added)
-	result := lo.Interleave(left_map, right_map)
-	common := lo.FindDuplicates(result)
-	removed = lo.OmitByKeys(removed_common, common)
-
-	unchanged = lo.FromPairs(middle)
+	// Find removed parameters
+	for fromKey, fromVal := range from {
+		if _, exists := to[fromKey]; !exists {
+			removed[fromKey] = fromVal
+		}
+	}
 
 	return added, unchanged, removed
 }
