@@ -151,11 +151,10 @@ class TestDBClusterParameterGroup:
                 assert tp["ParameterValue"] == "ON", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
         assert found == 1, f"Did not find parameters with names 'aurora_read_replica_read_committed': {test_params}"
 
-
-         # OK, now let's update the parameters that are not present at the cluster level. 
+        # Test updating with an invalid parameter to verify error handling
         new_params = {
             "aurora_read_replica_read_committed": "OFF",
-            "long_query_time": "1"
+            "long_query_time": "1"  # This parameter isn't supported at cluster level
         }
         updates = {
             "spec": {
@@ -165,12 +164,13 @@ class TestDBClusterParameterGroup:
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        # Verify the resource enters recoverable error state
         condition.assert_recoverable(ref)
 
+        # Update with valid parameters and verify sync
         new_params = {
             "aurora_read_replica_read_committed": "OFF"
         }
-
         updates = {
             "spec": {
                 "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
@@ -178,5 +178,15 @@ class TestDBClusterParameterGroup:
             },
         }
         k8s.patch_custom_resource(ref, updates)
-        time.sleep(300)
-        condition.assert_synced(ref)
+        
+        # Retry sync check with timeout
+        max_retries = 5
+        for i in range(max_retries):
+            time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+            try:
+                condition.assert_synced(ref)
+                break
+            except AssertionError:
+                if i == max_retries - 1:
+                    raise
+                continue
