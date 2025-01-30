@@ -442,6 +442,13 @@ func newResourceDelta(
 				delta.Add("Spec.ServerlessV2ScalingConfiguration.MinCapacity", a.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity, b.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
 			}
 		}
+		if ackcompare.HasNilDifference(a.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause) {
+			delta.Add("Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause", a.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause)
+		} else if a.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil && b.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			if *a.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != *b.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause {
+				delta.Add("Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause", a.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause, b.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause)
+			}
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SnapshotIdentifier, b.ko.Spec.SnapshotIdentifier) {
 		delta.Add("Spec.SnapshotIdentifier", a.ko.Spec.SnapshotIdentifier, b.ko.Spec.SnapshotIdentifier)

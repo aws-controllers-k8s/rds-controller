@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.DBParameterGroup{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeDBParameterGroupsOutput
-	resp, err = rm.sdkapi.DescribeDBParameterGroupsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeDBParameterGroups(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBParameterGroups", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBParameterGroupNotFound" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "DBParameterGroupNotFound" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -157,7 +160,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeDBParameterGroupsInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetDBParameterGroupName(*r.ko.Spec.Name)
+		res.DBParameterGroupName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -182,7 +185,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateDBParameterGroupOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateDBParameterGroupWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateDBParameterGroup(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateDBParameterGroup", err)
 	if err != nil {
 		return nil, err
@@ -231,27 +234,27 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateDBParameterGroupInput{}
 
 	if r.ko.Spec.Family != nil {
-		res.SetDBParameterGroupFamily(*r.ko.Spec.Family)
+		res.DBParameterGroupFamily = r.ko.Spec.Family
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetDBParameterGroupName(*r.ko.Spec.Name)
+		res.DBParameterGroupName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Description != nil {
-		res.SetDescription(*r.ko.Spec.Description)
+		res.Description = r.ko.Spec.Description
 	}
 	if r.ko.Spec.Tags != nil {
-		f3 := []*svcsdk.Tag{}
+		f3 := []svcsdktypes.Tag{}
 		for _, f3iter := range r.ko.Spec.Tags {
-			f3elem := &svcsdk.Tag{}
+			f3elem := &svcsdktypes.Tag{}
 			if f3iter.Key != nil {
-				f3elem.SetKey(*f3iter.Key)
+				f3elem.Key = f3iter.Key
 			}
 			if f3iter.Value != nil {
-				f3elem.SetValue(*f3iter.Value)
+				f3elem.Value = f3iter.Value
 			}
-			f3 = append(f3, f3elem)
+			f3 = append(f3, *f3elem)
 		}
-		res.SetTags(f3)
+		res.Tags = f3
 	}
 
 	return res, nil
@@ -284,7 +287,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteDBParameterGroupOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteDBParameterGroupWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteDBParameterGroup(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBParameterGroup", err)
 	return nil, err
 }
@@ -297,7 +300,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteDBParameterGroupInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetDBParameterGroupName(*r.ko.Spec.Name)
+		res.DBParameterGroupName = r.ko.Spec.Name
 	}
 
 	return res, nil

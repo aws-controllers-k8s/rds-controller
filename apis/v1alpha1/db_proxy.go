@@ -30,9 +30,9 @@ type DBProxySpec struct {
 	// The authorization mechanism that the proxy uses.
 	// +kubebuilder:validation:Required
 	Auth []*UserAuthConfig `json:"auth"`
-	// Whether the proxy includes detailed information about SQL statements in its
-	// logs. This information helps you to debug issues involving SQL behavior or
-	// the performance and scalability of the proxy connections. The debug information
+	// Specifies whether the proxy includes detailed information about SQL statements
+	// in its logs. This information helps you to debug issues involving SQL behavior
+	// or the performance and scalability of the proxy connections. The debug information
 	// includes the text of SQL statements that you submit through the proxy. Thus,
 	// only enable this setting when needed for debugging, and only when you have
 	// security measures in place to safeguard any sensitive information that appears
@@ -57,9 +57,9 @@ type DBProxySpec struct {
 	// hyphens.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
-	// A Boolean parameter that specifies whether Transport Layer Security (TLS)
-	// encryption is required for connections to the proxy. By enabling this setting,
-	// you can enforce encrypted TLS connections to the proxy.
+	// Specifies whether Transport Layer Security (TLS) encryption is required for
+	// connections to the proxy. By enabling this setting, you can enforce encrypted
+	// TLS connections to the proxy.
 	RequireTLS *bool `json:"requireTLS,omitempty"`
 	// The Amazon Resource Name (ARN) of the IAM role that the proxy uses to access
 	// secrets in Amazon Web Services Secrets Manager.

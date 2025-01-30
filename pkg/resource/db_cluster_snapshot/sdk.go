@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.DBClusterSnapshot{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeDBClusterSnapshotsOutput
-	resp, err = rm.sdkapi.DescribeDBClusterSnapshotsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeDBClusterSnapshots(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBClusterSnapshots", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBClusterSnapshotNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "DBClusterSnapshotNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -89,18 +92,13 @@ func (rm *resourceManager) sdkFind(
 	found := false
 	for _, elem := range resp.DBClusterSnapshots {
 		if elem.AllocatedStorage != nil {
-			ko.Status.AllocatedStorage = elem.AllocatedStorage
+			allocatedStorageCopy := int64(*elem.AllocatedStorage)
+			ko.Status.AllocatedStorage = &allocatedStorageCopy
 		} else {
 			ko.Status.AllocatedStorage = nil
 		}
 		if elem.AvailabilityZones != nil {
-			f1 := []*string{}
-			for _, f1iter := range elem.AvailabilityZones {
-				var f1elem string
-				f1elem = *f1iter
-				f1 = append(f1, &f1elem)
-			}
-			ko.Status.AvailabilityZones = f1
+			ko.Status.AvailabilityZones = aws.StringSlice(elem.AvailabilityZones)
 		} else {
 			ko.Status.AvailabilityZones = nil
 		}
@@ -167,12 +165,14 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.MasterUsername = nil
 		}
 		if elem.PercentProgress != nil {
-			ko.Status.PercentProgress = elem.PercentProgress
+			percentProgressCopy := int64(*elem.PercentProgress)
+			ko.Status.PercentProgress = &percentProgressCopy
 		} else {
 			ko.Status.PercentProgress = nil
 		}
 		if elem.Port != nil {
-			ko.Status.Port = elem.Port
+			portCopy := int64(*elem.Port)
+			ko.Status.Port = &portCopy
 		} else {
 			ko.Status.Port = nil
 		}
@@ -264,13 +264,13 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeDBClusterSnapshotsInput{}
 
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 	if r.ko.Spec.DBClusterSnapshotIdentifier != nil {
-		res.SetDBClusterSnapshotIdentifier(*r.ko.Spec.DBClusterSnapshotIdentifier)
+		res.DBClusterSnapshotIdentifier = r.ko.Spec.DBClusterSnapshotIdentifier
 	}
 	if r.ko.Status.SnapshotType != nil {
-		res.SetSnapshotType(*r.ko.Status.SnapshotType)
+		res.SnapshotType = r.ko.Status.SnapshotType
 	}
 
 	return res, nil
@@ -295,7 +295,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateDBClusterSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateDBClusterSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateDBClusterSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateDBClusterSnapshot", err)
 	if err != nil {
 		return nil, err
@@ -305,18 +305,13 @@ func (rm *resourceManager) sdkCreate(
 	ko := desired.ko.DeepCopy()
 
 	if resp.DBClusterSnapshot.AllocatedStorage != nil {
-		ko.Status.AllocatedStorage = resp.DBClusterSnapshot.AllocatedStorage
+		allocatedStorageCopy := int64(*resp.DBClusterSnapshot.AllocatedStorage)
+		ko.Status.AllocatedStorage = &allocatedStorageCopy
 	} else {
 		ko.Status.AllocatedStorage = nil
 	}
 	if resp.DBClusterSnapshot.AvailabilityZones != nil {
-		f1 := []*string{}
-		for _, f1iter := range resp.DBClusterSnapshot.AvailabilityZones {
-			var f1elem string
-			f1elem = *f1iter
-			f1 = append(f1, &f1elem)
-		}
-		ko.Status.AvailabilityZones = f1
+		ko.Status.AvailabilityZones = aws.StringSlice(resp.DBClusterSnapshot.AvailabilityZones)
 	} else {
 		ko.Status.AvailabilityZones = nil
 	}
@@ -383,12 +378,14 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.MasterUsername = nil
 	}
 	if resp.DBClusterSnapshot.PercentProgress != nil {
-		ko.Status.PercentProgress = resp.DBClusterSnapshot.PercentProgress
+		percentProgressCopy := int64(*resp.DBClusterSnapshot.PercentProgress)
+		ko.Status.PercentProgress = &percentProgressCopy
 	} else {
 		ko.Status.PercentProgress = nil
 	}
 	if resp.DBClusterSnapshot.Port != nil {
-		ko.Status.Port = resp.DBClusterSnapshot.Port
+		portCopy := int64(*resp.DBClusterSnapshot.Port)
+		ko.Status.Port = &portCopy
 	} else {
 		ko.Status.Port = nil
 	}
@@ -461,24 +458,24 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateDBClusterSnapshotInput{}
 
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 	if r.ko.Spec.DBClusterSnapshotIdentifier != nil {
-		res.SetDBClusterSnapshotIdentifier(*r.ko.Spec.DBClusterSnapshotIdentifier)
+		res.DBClusterSnapshotIdentifier = r.ko.Spec.DBClusterSnapshotIdentifier
 	}
 	if r.ko.Spec.Tags != nil {
-		f2 := []*svcsdk.Tag{}
+		f2 := []svcsdktypes.Tag{}
 		for _, f2iter := range r.ko.Spec.Tags {
-			f2elem := &svcsdk.Tag{}
+			f2elem := &svcsdktypes.Tag{}
 			if f2iter.Key != nil {
-				f2elem.SetKey(*f2iter.Key)
+				f2elem.Key = f2iter.Key
 			}
 			if f2iter.Value != nil {
-				f2elem.SetValue(*f2iter.Value)
+				f2elem.Value = f2iter.Value
 			}
-			f2 = append(f2, f2elem)
+			f2 = append(f2, *f2elem)
 		}
-		res.SetTags(f2)
+		res.Tags = f2
 	}
 
 	return res, nil
@@ -511,7 +508,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteDBClusterSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteDBClusterSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteDBClusterSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBClusterSnapshot", err)
 	return nil, err
 }
@@ -524,7 +521,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteDBClusterSnapshotInput{}
 
 	if r.ko.Spec.DBClusterSnapshotIdentifier != nil {
-		res.SetDBClusterSnapshotIdentifier(*r.ko.Spec.DBClusterSnapshotIdentifier)
+		res.DBClusterSnapshotIdentifier = r.ko.Spec.DBClusterSnapshotIdentifier
 	}
 
 	return res, nil

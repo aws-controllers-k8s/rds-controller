@@ -90,8 +90,10 @@ spec:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
 
-                    For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
-                    in the Amazon RDS User Guide.
+                    For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+                    (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+                    in the Amazon Aurora User Guide.
                   properties:
                     key:
                       type: string
@@ -184,15 +186,15 @@ spec:
                   is unique to an Amazon Web Services Region.
                 type: string
               encrypted:
-                description: Specifies whether the DB snapshot is encrypted.
+                description: Indicates whether the DB snapshot is encrypted.
                 type: boolean
               engine:
                 description: Specifies the name of the database engine.
                 type: string
               iamDatabaseAuthenticationEnabled:
                 description: |-
-                  True if mapping of Amazon Web Services Identity and Access Management (IAM)
-                  accounts to database accounts is enabled, and otherwise false.
+                  Indicates whether mapping of Amazon Web Services Identity and Access Management
+                  (IAM) accounts to database accounts is enabled.
                 type: boolean
               instanceCreateTime:
                 description: |-
@@ -284,8 +286,8 @@ spec:
 
                        * The current number CPU cores and threads is set to a non-default value.
 
-                    For more information, see Configuring the Processor of the DB Instance Class
-                    (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html#USER_ConfigureProcessor)
+                    For more information, see Configuring the processor for a DB instance class
+                    in RDS for Oracle (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html#USER_ConfigureProcessor)
                     in the Amazon RDS User Guide.
                   properties:
                     name:
@@ -347,8 +349,10 @@ spec:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
 
-                    For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
-                    in the Amazon RDS User Guide.
+                    For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+                    (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+                    in the Amazon Aurora User Guide.
                   properties:
                     key:
                       type: string

@@ -20,11 +20,11 @@
 // with each the field set by the corresponding configuration's fields.
 func (rm *resourceManager) new{{ $inputShapeName }}(
     r *resource,
-) *svcsdk.{{ $inputShapeName }} {
+) (*svcsdk.{{ $inputShapeName }}, error) {
     res := &svcsdk.{{ $inputShapeName }}{}
 
 {{ GoCodeSetSDKForStruct $CRD "" "res" $inputRef "" "r.ko.Spec" 1 }}
-    return res
+    return res, nil
 }
 {{ end }}
 

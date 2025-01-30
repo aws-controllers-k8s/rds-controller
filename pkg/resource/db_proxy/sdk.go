@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
@@ -28,8 +29,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +43,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.DBProxy{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +51,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +76,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeDBProxiesOutput
-	resp, err = rm.sdkapi.DescribeDBProxiesWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeDBProxies(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBProxies", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBProxyNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "DBProxyNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -92,17 +96,17 @@ func (rm *resourceManager) sdkFind(
 			f0 := []*svcapitypes.UserAuthConfig{}
 			for _, f0iter := range elem.Auth {
 				f0elem := &svcapitypes.UserAuthConfig{}
-				if f0iter.AuthScheme != nil {
-					f0elem.AuthScheme = f0iter.AuthScheme
+				if f0iter.AuthScheme != "" {
+					f0elem.AuthScheme = aws.String(string(f0iter.AuthScheme))
 				}
-				if f0iter.ClientPasswordAuthType != nil {
-					f0elem.ClientPasswordAuthType = f0iter.ClientPasswordAuthType
+				if f0iter.ClientPasswordAuthType != "" {
+					f0elem.ClientPasswordAuthType = aws.String(string(f0iter.ClientPasswordAuthType))
 				}
 				if f0iter.Description != nil {
 					f0elem.Description = f0iter.Description
 				}
-				if f0iter.IAMAuth != nil {
-					f0elem.IAMAuth = f0iter.IAMAuth
+				if f0iter.IAMAuth != "" {
+					f0elem.IAMAuth = aws.String(string(f0iter.IAMAuth))
 				}
 				if f0iter.SecretArn != nil {
 					f0elem.SecretARN = f0iter.SecretArn
@@ -149,7 +153,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.EngineFamily = nil
 		}
 		if elem.IdleClientTimeout != nil {
-			ko.Spec.IdleClientTimeout = elem.IdleClientTimeout
+			idleClientTimeoutCopy := int64(*elem.IdleClientTimeout)
+			ko.Spec.IdleClientTimeout = &idleClientTimeoutCopy
 		} else {
 			ko.Spec.IdleClientTimeout = nil
 		}
@@ -163,8 +168,8 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.RoleARN = nil
 		}
-		if elem.Status != nil {
-			ko.Status.Status = elem.Status
+		if elem.Status != "" {
+			ko.Status.Status = aws.String(string(elem.Status))
 		} else {
 			ko.Status.Status = nil
 		}
@@ -179,24 +184,12 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.VPCID = nil
 		}
 		if elem.VpcSecurityGroupIds != nil {
-			f13 := []*string{}
-			for _, f13iter := range elem.VpcSecurityGroupIds {
-				var f13elem string
-				f13elem = *f13iter
-				f13 = append(f13, &f13elem)
-			}
-			ko.Spec.VPCSecurityGroupIDs = f13
+			ko.Spec.VPCSecurityGroupIDs = aws.StringSlice(elem.VpcSecurityGroupIds)
 		} else {
 			ko.Spec.VPCSecurityGroupIDs = nil
 		}
 		if elem.VpcSubnetIds != nil {
-			f14 := []*string{}
-			for _, f14iter := range elem.VpcSubnetIds {
-				var f14elem string
-				f14elem = *f14iter
-				f14 = append(f14, &f14elem)
-			}
-			ko.Spec.VPCSubnetIDs = f14
+			ko.Spec.VPCSubnetIDs = aws.StringSlice(elem.VpcSubnetIds)
 		} else {
 			ko.Spec.VPCSubnetIDs = nil
 		}
@@ -234,7 +227,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeDBProxiesInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetDBProxyName(*r.ko.Spec.Name)
+		res.DBProxyName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -259,7 +252,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateDBProxyOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateDBProxyWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateDBProxy(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateDBProxy", err)
 	if err != nil {
 		return nil, err
@@ -272,17 +265,17 @@ func (rm *resourceManager) sdkCreate(
 		f0 := []*svcapitypes.UserAuthConfig{}
 		for _, f0iter := range resp.DBProxy.Auth {
 			f0elem := &svcapitypes.UserAuthConfig{}
-			if f0iter.AuthScheme != nil {
-				f0elem.AuthScheme = f0iter.AuthScheme
+			if f0iter.AuthScheme != "" {
+				f0elem.AuthScheme = aws.String(string(f0iter.AuthScheme))
 			}
-			if f0iter.ClientPasswordAuthType != nil {
-				f0elem.ClientPasswordAuthType = f0iter.ClientPasswordAuthType
+			if f0iter.ClientPasswordAuthType != "" {
+				f0elem.ClientPasswordAuthType = aws.String(string(f0iter.ClientPasswordAuthType))
 			}
 			if f0iter.Description != nil {
 				f0elem.Description = f0iter.Description
 			}
-			if f0iter.IAMAuth != nil {
-				f0elem.IAMAuth = f0iter.IAMAuth
+			if f0iter.IAMAuth != "" {
+				f0elem.IAMAuth = aws.String(string(f0iter.IAMAuth))
 			}
 			if f0iter.SecretArn != nil {
 				f0elem.SecretARN = f0iter.SecretArn
@@ -329,7 +322,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.EngineFamily = nil
 	}
 	if resp.DBProxy.IdleClientTimeout != nil {
-		ko.Spec.IdleClientTimeout = resp.DBProxy.IdleClientTimeout
+		idleClientTimeoutCopy := int64(*resp.DBProxy.IdleClientTimeout)
+		ko.Spec.IdleClientTimeout = &idleClientTimeoutCopy
 	} else {
 		ko.Spec.IdleClientTimeout = nil
 	}
@@ -343,8 +337,8 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.RoleARN = nil
 	}
-	if resp.DBProxy.Status != nil {
-		ko.Status.Status = resp.DBProxy.Status
+	if resp.DBProxy.Status != "" {
+		ko.Status.Status = aws.String(string(resp.DBProxy.Status))
 	} else {
 		ko.Status.Status = nil
 	}
@@ -359,24 +353,12 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.VPCID = nil
 	}
 	if resp.DBProxy.VpcSecurityGroupIds != nil {
-		f13 := []*string{}
-		for _, f13iter := range resp.DBProxy.VpcSecurityGroupIds {
-			var f13elem string
-			f13elem = *f13iter
-			f13 = append(f13, &f13elem)
-		}
-		ko.Spec.VPCSecurityGroupIDs = f13
+		ko.Spec.VPCSecurityGroupIDs = aws.StringSlice(resp.DBProxy.VpcSecurityGroupIds)
 	} else {
 		ko.Spec.VPCSecurityGroupIDs = nil
 	}
 	if resp.DBProxy.VpcSubnetIds != nil {
-		f14 := []*string{}
-		for _, f14iter := range resp.DBProxy.VpcSubnetIds {
-			var f14elem string
-			f14elem = *f14iter
-			f14 = append(f14, &f14elem)
-		}
-		ko.Spec.VPCSubnetIDs = f14
+		ko.Spec.VPCSubnetIDs = aws.StringSlice(resp.DBProxy.VpcSubnetIds)
 	} else {
 		ko.Spec.VPCSubnetIDs = nil
 	}
@@ -404,80 +386,73 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateDBProxyInput{}
 
 	if r.ko.Spec.Auth != nil {
-		f0 := []*svcsdk.UserAuthConfig{}
+		f0 := []svcsdktypes.UserAuthConfig{}
 		for _, f0iter := range r.ko.Spec.Auth {
-			f0elem := &svcsdk.UserAuthConfig{}
+			f0elem := &svcsdktypes.UserAuthConfig{}
 			if f0iter.AuthScheme != nil {
-				f0elem.SetAuthScheme(*f0iter.AuthScheme)
+				f0elem.AuthScheme = svcsdktypes.AuthScheme(*f0iter.AuthScheme)
 			}
 			if f0iter.ClientPasswordAuthType != nil {
-				f0elem.SetClientPasswordAuthType(*f0iter.ClientPasswordAuthType)
+				f0elem.ClientPasswordAuthType = svcsdktypes.ClientPasswordAuthType(*f0iter.ClientPasswordAuthType)
 			}
 			if f0iter.Description != nil {
-				f0elem.SetDescription(*f0iter.Description)
+				f0elem.Description = f0iter.Description
 			}
 			if f0iter.IAMAuth != nil {
-				f0elem.SetIAMAuth(*f0iter.IAMAuth)
+				f0elem.IAMAuth = svcsdktypes.IAMAuthMode(*f0iter.IAMAuth)
 			}
 			if f0iter.SecretARN != nil {
-				f0elem.SetSecretArn(*f0iter.SecretARN)
+				f0elem.SecretArn = f0iter.SecretARN
 			}
 			if f0iter.UserName != nil {
-				f0elem.SetUserName(*f0iter.UserName)
+				f0elem.UserName = f0iter.UserName
 			}
-			f0 = append(f0, f0elem)
+			f0 = append(f0, *f0elem)
 		}
-		res.SetAuth(f0)
+		res.Auth = f0
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetDBProxyName(*r.ko.Spec.Name)
+		res.DBProxyName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.DebugLogging != nil {
-		res.SetDebugLogging(*r.ko.Spec.DebugLogging)
+		res.DebugLogging = r.ko.Spec.DebugLogging
 	}
 	if r.ko.Spec.EngineFamily != nil {
-		res.SetEngineFamily(*r.ko.Spec.EngineFamily)
+		res.EngineFamily = svcsdktypes.EngineFamily(*r.ko.Spec.EngineFamily)
 	}
 	if r.ko.Spec.IdleClientTimeout != nil {
-		res.SetIdleClientTimeout(*r.ko.Spec.IdleClientTimeout)
+		idleClientTimeoutCopy0 := *r.ko.Spec.IdleClientTimeout
+		if idleClientTimeoutCopy0 > math.MaxInt32 || idleClientTimeoutCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field IdleClientTimeout is of type int32")
+		}
+		idleClientTimeoutCopy := int32(idleClientTimeoutCopy0)
+		res.IdleClientTimeout = &idleClientTimeoutCopy
 	}
 	if r.ko.Spec.RequireTLS != nil {
-		res.SetRequireTLS(*r.ko.Spec.RequireTLS)
+		res.RequireTLS = r.ko.Spec.RequireTLS
 	}
 	if r.ko.Spec.RoleARN != nil {
-		res.SetRoleArn(*r.ko.Spec.RoleARN)
+		res.RoleArn = r.ko.Spec.RoleARN
 	}
 	if r.ko.Spec.Tags != nil {
-		f7 := []*svcsdk.Tag{}
+		f7 := []svcsdktypes.Tag{}
 		for _, f7iter := range r.ko.Spec.Tags {
-			f7elem := &svcsdk.Tag{}
+			f7elem := &svcsdktypes.Tag{}
 			if f7iter.Key != nil {
-				f7elem.SetKey(*f7iter.Key)
+				f7elem.Key = f7iter.Key
 			}
 			if f7iter.Value != nil {
-				f7elem.SetValue(*f7iter.Value)
+				f7elem.Value = f7iter.Value
 			}
-			f7 = append(f7, f7elem)
+			f7 = append(f7, *f7elem)
 		}
-		res.SetTags(f7)
+		res.Tags = f7
 	}
 	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		f8 := []*string{}
-		for _, f8iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var f8elem string
-			f8elem = *f8iter
-			f8 = append(f8, &f8elem)
-		}
-		res.SetVpcSecurityGroupIds(f8)
+		res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
 	}
 	if r.ko.Spec.VPCSubnetIDs != nil {
-		f9 := []*string{}
-		for _, f9iter := range r.ko.Spec.VPCSubnetIDs {
-			var f9elem string
-			f9elem = *f9iter
-			f9 = append(f9, &f9elem)
-		}
-		res.SetVpcSubnetIds(f9)
+		res.VpcSubnetIds = aws.ToStringSlice(r.ko.Spec.VPCSubnetIDs)
 	}
 
 	return res, nil
@@ -524,7 +499,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.ModifyDBProxyOutput
 	_ = resp
-	resp, err = rm.sdkapi.ModifyDBProxyWithContext(ctx, input)
+	resp, err = rm.sdkapi.ModifyDBProxy(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBProxy", err)
 	if err != nil {
 		return nil, err
@@ -537,17 +512,17 @@ func (rm *resourceManager) sdkUpdate(
 		f0 := []*svcapitypes.UserAuthConfig{}
 		for _, f0iter := range resp.DBProxy.Auth {
 			f0elem := &svcapitypes.UserAuthConfig{}
-			if f0iter.AuthScheme != nil {
-				f0elem.AuthScheme = f0iter.AuthScheme
+			if f0iter.AuthScheme != "" {
+				f0elem.AuthScheme = aws.String(string(f0iter.AuthScheme))
 			}
-			if f0iter.ClientPasswordAuthType != nil {
-				f0elem.ClientPasswordAuthType = f0iter.ClientPasswordAuthType
+			if f0iter.ClientPasswordAuthType != "" {
+				f0elem.ClientPasswordAuthType = aws.String(string(f0iter.ClientPasswordAuthType))
 			}
 			if f0iter.Description != nil {
 				f0elem.Description = f0iter.Description
 			}
-			if f0iter.IAMAuth != nil {
-				f0elem.IAMAuth = f0iter.IAMAuth
+			if f0iter.IAMAuth != "" {
+				f0elem.IAMAuth = aws.String(string(f0iter.IAMAuth))
 			}
 			if f0iter.SecretArn != nil {
 				f0elem.SecretARN = f0iter.SecretArn
@@ -594,7 +569,8 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.EngineFamily = nil
 	}
 	if resp.DBProxy.IdleClientTimeout != nil {
-		ko.Spec.IdleClientTimeout = resp.DBProxy.IdleClientTimeout
+		idleClientTimeoutCopy := int64(*resp.DBProxy.IdleClientTimeout)
+		ko.Spec.IdleClientTimeout = &idleClientTimeoutCopy
 	} else {
 		ko.Spec.IdleClientTimeout = nil
 	}
@@ -608,8 +584,8 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.RoleARN = nil
 	}
-	if resp.DBProxy.Status != nil {
-		ko.Status.Status = resp.DBProxy.Status
+	if resp.DBProxy.Status != "" {
+		ko.Status.Status = aws.String(string(resp.DBProxy.Status))
 	} else {
 		ko.Status.Status = nil
 	}
@@ -624,24 +600,12 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.VPCID = nil
 	}
 	if resp.DBProxy.VpcSecurityGroupIds != nil {
-		f13 := []*string{}
-		for _, f13iter := range resp.DBProxy.VpcSecurityGroupIds {
-			var f13elem string
-			f13elem = *f13iter
-			f13 = append(f13, &f13elem)
-		}
-		ko.Spec.VPCSecurityGroupIDs = f13
+		ko.Spec.VPCSecurityGroupIDs = aws.StringSlice(resp.DBProxy.VpcSecurityGroupIds)
 	} else {
 		ko.Spec.VPCSecurityGroupIDs = nil
 	}
 	if resp.DBProxy.VpcSubnetIds != nil {
-		f14 := []*string{}
-		for _, f14iter := range resp.DBProxy.VpcSubnetIds {
-			var f14elem string
-			f14elem = *f14iter
-			f14 = append(f14, &f14elem)
-		}
-		ko.Spec.VPCSubnetIDs = f14
+		ko.Spec.VPCSubnetIDs = aws.StringSlice(resp.DBProxy.VpcSubnetIds)
 	} else {
 		ko.Spec.VPCSubnetIDs = nil
 	}
@@ -668,45 +632,50 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.ModifyDBProxyInput{}
 
 	if r.ko.Spec.Auth != nil {
-		f0 := []*svcsdk.UserAuthConfig{}
+		f0 := []svcsdktypes.UserAuthConfig{}
 		for _, f0iter := range r.ko.Spec.Auth {
-			f0elem := &svcsdk.UserAuthConfig{}
+			f0elem := &svcsdktypes.UserAuthConfig{}
 			if f0iter.AuthScheme != nil {
-				f0elem.SetAuthScheme(*f0iter.AuthScheme)
+				f0elem.AuthScheme = svcsdktypes.AuthScheme(*f0iter.AuthScheme)
 			}
 			if f0iter.ClientPasswordAuthType != nil {
-				f0elem.SetClientPasswordAuthType(*f0iter.ClientPasswordAuthType)
+				f0elem.ClientPasswordAuthType = svcsdktypes.ClientPasswordAuthType(*f0iter.ClientPasswordAuthType)
 			}
 			if f0iter.Description != nil {
-				f0elem.SetDescription(*f0iter.Description)
+				f0elem.Description = f0iter.Description
 			}
 			if f0iter.IAMAuth != nil {
-				f0elem.SetIAMAuth(*f0iter.IAMAuth)
+				f0elem.IAMAuth = svcsdktypes.IAMAuthMode(*f0iter.IAMAuth)
 			}
 			if f0iter.SecretARN != nil {
-				f0elem.SetSecretArn(*f0iter.SecretARN)
+				f0elem.SecretArn = f0iter.SecretARN
 			}
 			if f0iter.UserName != nil {
-				f0elem.SetUserName(*f0iter.UserName)
+				f0elem.UserName = f0iter.UserName
 			}
-			f0 = append(f0, f0elem)
+			f0 = append(f0, *f0elem)
 		}
-		res.SetAuth(f0)
+		res.Auth = f0
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetDBProxyName(*r.ko.Spec.Name)
+		res.DBProxyName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.DebugLogging != nil {
-		res.SetDebugLogging(*r.ko.Spec.DebugLogging)
+		res.DebugLogging = r.ko.Spec.DebugLogging
 	}
 	if r.ko.Spec.IdleClientTimeout != nil {
-		res.SetIdleClientTimeout(*r.ko.Spec.IdleClientTimeout)
+		idleClientTimeoutCopy0 := *r.ko.Spec.IdleClientTimeout
+		if idleClientTimeoutCopy0 > math.MaxInt32 || idleClientTimeoutCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field IdleClientTimeout is of type int32")
+		}
+		idleClientTimeoutCopy := int32(idleClientTimeoutCopy0)
+		res.IdleClientTimeout = &idleClientTimeoutCopy
 	}
 	if r.ko.Spec.RequireTLS != nil {
-		res.SetRequireTLS(*r.ko.Spec.RequireTLS)
+		res.RequireTLS = r.ko.Spec.RequireTLS
 	}
 	if r.ko.Spec.RoleARN != nil {
-		res.SetRoleArn(*r.ko.Spec.RoleARN)
+		res.RoleArn = r.ko.Spec.RoleARN
 	}
 
 	return res, nil
@@ -732,7 +701,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteDBProxyOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteDBProxyWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteDBProxy(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBProxy", err)
 	return nil, err
 }
@@ -745,7 +714,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteDBProxyInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetDBProxyName(*r.ko.Spec.Name)
+		res.DBProxyName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -853,11 +822,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "InvalidSubnet":
 		return true
 	default:

@@ -69,31 +69,30 @@ type DBClusterSnapshotStatus struct {
 	// resource
 	// +kubebuilder:validation:Optional
 	Conditions []*ackv1alpha1.Condition `json:"conditions"`
-	// Specifies the allocated storage size in gibibytes (GiB).
+	// The allocated storage size of the DB cluster snapshot in gibibytes (GiB).
 	// +kubebuilder:validation:Optional
 	AllocatedStorage *int64 `json:"allocatedStorage,omitempty"`
-	// Provides the list of Availability Zones (AZs) where instances in the DB cluster
-	// snapshot can be restored.
+	// The list of Availability Zones (AZs) where instances in the DB cluster snapshot
+	// can be restored.
 	// +kubebuilder:validation:Optional
 	AvailabilityZones []*string `json:"availabilityZones,omitempty"`
-	// Specifies the time when the DB cluster was created, in Universal Coordinated
-	// Time (UTC).
+	// The time when the DB cluster was created, in Universal Coordinated Time (UTC).
 	// +kubebuilder:validation:Optional
 	ClusterCreateTime *metav1.Time `json:"clusterCreateTime,omitempty"`
 	// Reserved for future use.
 	// +kubebuilder:validation:Optional
 	DBSystemID *string `json:"dbSystemID,omitempty"`
-	// Specifies the name of the database engine for this DB cluster snapshot.
+	// The name of the database engine for this DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	Engine *string `json:"engine,omitempty"`
-	// Provides the engine mode of the database engine for this DB cluster snapshot.
+	// The engine mode of the database engine for this DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	EngineMode *string `json:"engineMode,omitempty"`
-	// Provides the version of the database engine for this DB cluster snapshot.
+	// The version of the database engine for this DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	EngineVersion *string `json:"engineVersion,omitempty"`
-	// True if mapping of Amazon Web Services Identity and Access Management (IAM)
-	// accounts to database accounts is enabled, and otherwise false.
+	// Indicates whether mapping of Amazon Web Services Identity and Access Management
+	// (IAM) accounts to database accounts is enabled.
 	// +kubebuilder:validation:Optional
 	IAMDatabaseAuthenticationEnabled *bool `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	// If StorageEncrypted is true, the Amazon Web Services KMS key identifier for
@@ -103,24 +102,22 @@ type DBClusterSnapshotStatus struct {
 	// ARN, or alias name for the KMS key.
 	// +kubebuilder:validation:Optional
 	KMSKeyID *string `json:"kmsKeyID,omitempty"`
-	// Provides the license model information for this DB cluster snapshot.
+	// The license model information for this DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	LicenseModel *string `json:"licenseModel,omitempty"`
-	// Provides the master username for this DB cluster snapshot.
+	// The master username for this DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	MasterUsername *string `json:"masterUsername,omitempty"`
-	// Specifies the percentage of the estimated data that has been transferred.
+	// The percentage of the estimated data that has been transferred.
 	// +kubebuilder:validation:Optional
 	PercentProgress *int64 `json:"percentProgress,omitempty"`
-	// Specifies the port that the DB cluster was listening on at the time of the
-	// snapshot.
+	// The port that the DB cluster was listening on at the time of the snapshot.
 	// +kubebuilder:validation:Optional
 	Port *int64 `json:"port,omitempty"`
-	// Provides the time when the snapshot was taken, in Universal Coordinated Time
-	// (UTC).
+	// The time when the snapshot was taken, in Universal Coordinated Time (UTC).
 	// +kubebuilder:validation:Optional
 	SnapshotCreateTime *metav1.Time `json:"snapshotCreateTime,omitempty"`
-	// Provides the type of the DB cluster snapshot.
+	// The type of the DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	SnapshotType *string `json:"snapshotType,omitempty"`
 	// If the DB cluster snapshot was copied from a source DB cluster snapshot,
@@ -128,8 +125,7 @@ type DBClusterSnapshotStatus struct {
 	// a null value.
 	// +kubebuilder:validation:Optional
 	SourceDBClusterSnapshotARN *string `json:"sourceDBClusterSnapshotARN,omitempty"`
-	// Specifies the status of this DB cluster snapshot. Valid statuses are the
-	// following:
+	// The status of this DB cluster snapshot. Valid statuses are the following:
 	//
 	//    * available
 	//
@@ -138,12 +134,12 @@ type DBClusterSnapshotStatus struct {
 	//    * creating
 	// +kubebuilder:validation:Optional
 	Status *string `json:"status,omitempty"`
-	// Specifies whether the DB cluster snapshot is encrypted.
+	// Indicates whether the DB cluster snapshot is encrypted.
 	// +kubebuilder:validation:Optional
 	StorageEncrypted *bool `json:"storageEncrypted,omitempty"`
 	// +kubebuilder:validation:Optional
 	TagList []*Tag `json:"tagList,omitempty"`
-	// Provides the VPC ID associated with the DB cluster snapshot.
+	// The VPC ID associated with the DB cluster snapshot.
 	// +kubebuilder:validation:Optional
 	VPCID *string `json:"vpcID,omitempty"`
 }

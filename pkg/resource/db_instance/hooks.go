@@ -25,7 +25,9 @@ import (
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
@@ -181,7 +183,11 @@ func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 	exit := rlog.Trace("rm.restoreDbInstanceFromDbSnapshot")
 	defer func(err error) { exit(err) }(err)
 
-	resp, respErr := rm.sdkapi.RestoreDBInstanceFromDBSnapshotWithContext(ctx, rm.newRestoreDBInstanceFromDBSnapshotInput(r))
+	input, err := rm.newRestoreDBInstanceFromDBSnapshotInput(r)
+	if err != nil {
+		return nil, err
+	}
+	resp, respErr := rm.sdkapi.RestoreDBInstanceFromDBSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "RestoreDbInstanceFromDbSnapshot", respErr)
 	if respErr != nil {
 		return nil, respErr
@@ -213,146 +219,135 @@ func newCreateDBInstanceReadReplicaInput(
 	res := &svcsdk.CreateDBInstanceReadReplicaInput{}
 
 	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
-		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+		res.AutoMinorVersionUpgrade = r.ko.Spec.AutoMinorVersionUpgrade
 	}
 	if r.ko.Spec.AvailabilityZone != nil {
-		res.SetAvailabilityZone(*r.ko.Spec.AvailabilityZone)
+		res.AvailabilityZone = r.ko.Spec.AvailabilityZone
 	}
 	if r.ko.Spec.CopyTagsToSnapshot != nil {
-		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+		res.CopyTagsToSnapshot = r.ko.Spec.CopyTagsToSnapshot
 	}
 	if r.ko.Spec.CustomIAMInstanceProfile != nil {
-		res.SetCustomIamInstanceProfile(*r.ko.Spec.CustomIAMInstanceProfile)
+		res.CustomIamInstanceProfile = r.ko.Spec.CustomIAMInstanceProfile
 	}
 	if r.ko.Spec.DBInstanceClass != nil {
-		res.SetDBInstanceClass(*r.ko.Spec.DBInstanceClass)
+		res.DBInstanceClass = r.ko.Spec.DBInstanceClass
 	}
 	if r.ko.Spec.DBInstanceIdentifier != nil {
-		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
+		res.DBInstanceIdentifier = r.ko.Spec.DBInstanceIdentifier
 	}
 	if r.ko.Spec.DBParameterGroupName != nil {
-		res.SetDBParameterGroupName(*r.ko.Spec.DBParameterGroupName)
+		res.DBParameterGroupName = r.ko.Spec.DBParameterGroupName
 	}
 	if r.ko.Spec.DBSubnetGroupName != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+		res.DBSubnetGroupName = r.ko.Spec.DBSubnetGroupName
 	}
 	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+		res.DeletionProtection = r.ko.Spec.DeletionProtection
 	}
-	if r.ko.Spec.DestinationRegion != nil {
-		res.SetDestinationRegion(*r.ko.Spec.DestinationRegion)
-	}
+	// TODO: michaelhtm Unsure what to do with this field
+	// if r.ko.Spec.DestinationRegion != nil {
+	// 	res.destinationRegion = r.ko.Spec.DestinationRegion
+	// }
 	if r.ko.Spec.Domain != nil {
-		res.SetDomain(*r.ko.Spec.Domain)
+		res.Domain = r.ko.Spec.Domain
 	}
 	if r.ko.Spec.DomainIAMRoleName != nil {
-		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+		res.DomainIAMRoleName = r.ko.Spec.DomainIAMRoleName
 	}
 	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
-		resf12 := []*string{}
-		for _, resf12iter := range r.ko.Spec.EnableCloudwatchLogsExports {
-			var resf12elem string
-			resf12elem = *resf12iter
-			resf12 = append(resf12, &resf12elem)
-		}
-		res.SetEnableCloudwatchLogsExports(resf12)
+		res.EnableCloudwatchLogsExports = aws.ToStringSlice(r.ko.Spec.EnableCloudwatchLogsExports)
 	}
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
-		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+		res.EnableIAMDatabaseAuthentication = r.ko.Spec.EnableIAMDatabaseAuthentication
 	}
 	if r.ko.Spec.PerformanceInsightsEnabled != nil {
-		res.SetEnablePerformanceInsights(*r.ko.Spec.PerformanceInsightsEnabled)
+		res.EnablePerformanceInsights = r.ko.Spec.PerformanceInsightsEnabled
 	}
 	if r.ko.Spec.IOPS != nil {
-		res.SetIops(*r.ko.Spec.IOPS)
+		res.Iops = aws.Int32(int32(*r.ko.Spec.IOPS))
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
 	}
 	if r.ko.Spec.MaxAllocatedStorage != nil {
-		res.SetMaxAllocatedStorage(*r.ko.Spec.MaxAllocatedStorage)
+		res.MaxAllocatedStorage = aws.Int32(int32(*r.ko.Spec.MaxAllocatedStorage))
 	}
 	if r.ko.Spec.MonitoringInterval != nil {
-		res.SetMonitoringInterval(*r.ko.Spec.MonitoringInterval)
+		res.MonitoringInterval = aws.Int32(int32(*r.ko.Spec.MonitoringInterval))
 	}
 	if r.ko.Spec.MonitoringRoleARN != nil {
-		res.SetMonitoringRoleArn(*r.ko.Spec.MonitoringRoleARN)
+		res.MonitoringRoleArn = r.ko.Spec.MonitoringRoleARN
 	}
 	if r.ko.Spec.MultiAZ != nil {
-		res.SetMultiAZ(*r.ko.Spec.MultiAZ)
+		res.MultiAZ = r.ko.Spec.MultiAZ
 	}
 	if r.ko.Spec.NetworkType != nil {
-		res.SetNetworkType(*r.ko.Spec.NetworkType)
+		res.NetworkType = r.ko.Spec.NetworkType
 	}
 	if r.ko.Spec.OptionGroupName != nil {
-		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+		res.OptionGroupName = r.ko.Spec.OptionGroupName
 	}
 	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
-		res.SetPerformanceInsightsKMSKeyId(*r.ko.Spec.PerformanceInsightsKMSKeyID)
+		res.PerformanceInsightsKMSKeyId = r.ko.Spec.PerformanceInsightsKMSKeyID
 	}
 	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
-		res.SetPerformanceInsightsRetentionPeriod(*r.ko.Spec.PerformanceInsightsRetentionPeriod)
+		res.PerformanceInsightsRetentionPeriod = aws.Int32(int32(*r.ko.Spec.PerformanceInsightsRetentionPeriod))
 	}
 	if r.ko.Spec.Port != nil {
-		res.SetPort(*r.ko.Spec.Port)
+		res.Port = aws.Int32(int32(*r.ko.Spec.Port))
 	}
 	if r.ko.Spec.PreSignedURL != nil {
-		res.SetPreSignedUrl(*r.ko.Spec.PreSignedURL)
+		res.PreSignedUrl = r.ko.Spec.PreSignedURL
 	}
 	if r.ko.Spec.ProcessorFeatures != nil {
-		resf27 := []*svcsdk.ProcessorFeature{}
+		resf27 := []svcsdktypes.ProcessorFeature{}
 		for _, resf27iter := range r.ko.Spec.ProcessorFeatures {
-			resf27elem := &svcsdk.ProcessorFeature{}
+			resf27elem := svcsdktypes.ProcessorFeature{}
 			if resf27iter.Name != nil {
-				resf27elem.SetName(*resf27iter.Name)
+				resf27elem.Name = resf27iter.Name
 			}
 			if resf27iter.Value != nil {
-				resf27elem.SetValue(*resf27iter.Value)
+				resf27elem.Value = resf27iter.Value
 			}
 			resf27 = append(resf27, resf27elem)
 		}
-		res.SetProcessorFeatures(resf27)
+		res.ProcessorFeatures = resf27
 	}
 	if r.ko.Spec.PubliclyAccessible != nil {
-		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+		res.PubliclyAccessible = r.ko.Spec.PubliclyAccessible
 	}
 	if r.ko.Spec.ReplicaMode != nil {
-		res.SetReplicaMode(*r.ko.Spec.ReplicaMode)
+		res.ReplicaMode = svcsdktypes.ReplicaMode(*r.ko.Spec.ReplicaMode)
 	}
 	if r.ko.Spec.SourceDBInstanceIdentifier != nil {
-		res.SetSourceDBInstanceIdentifier(*r.ko.Spec.SourceDBInstanceIdentifier)
+		res.SourceDBInstanceIdentifier = r.ko.Spec.SourceDBInstanceIdentifier
 	}
 	if r.ko.Spec.SourceRegion != nil {
-		res.SetSourceRegion(*r.ko.Spec.SourceRegion)
+		res.SourceRegion = r.ko.Spec.SourceRegion
 	}
 	if r.ko.Spec.StorageType != nil {
-		res.SetStorageType(*r.ko.Spec.StorageType)
+		res.StorageType = r.ko.Spec.StorageType
 	}
 	if r.ko.Spec.Tags != nil {
-		resf33 := []*svcsdk.Tag{}
+		resf33 := []svcsdktypes.Tag{}
 		for _, resf33iter := range r.ko.Spec.Tags {
-			resf33elem := &svcsdk.Tag{}
+			resf33elem := svcsdktypes.Tag{}
 			if resf33iter.Key != nil {
-				resf33elem.SetKey(*resf33iter.Key)
+				resf33elem.Key = resf33iter.Key
 			}
 			if resf33iter.Value != nil {
-				resf33elem.SetValue(*resf33iter.Value)
+				resf33elem.Value = resf33iter.Value
 			}
 			resf33 = append(resf33, resf33elem)
 		}
-		res.SetTags(resf33)
+		res.Tags = resf33
 	}
 	if r.ko.Spec.UseDefaultProcessorFeatures != nil {
-		res.SetUseDefaultProcessorFeatures(*r.ko.Spec.UseDefaultProcessorFeatures)
+		res.UseDefaultProcessorFeatures = r.ko.Spec.UseDefaultProcessorFeatures
 	}
 	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		resf35 := []*string{}
-		for _, resf35iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var resf35elem string
-			resf35elem = *resf35iter
-			resf35 = append(resf35, &resf35elem)
-		}
-		res.SetVpcSecurityGroupIds(resf35)
+		res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
 	}
 
 	return res
@@ -367,7 +362,7 @@ func (rm *resourceManager) createDBInstanceReadReplica(
 	exit := rlog.Trace("rm.createDBInstanceReadReplica")
 	defer func(err error) { exit(err) }(err)
 
-	resp, respErr := rm.sdkapi.CreateDBInstanceReadReplicaWithContext(ctx, newCreateDBInstanceReadReplicaInput(r))
+	resp, respErr := rm.sdkapi.CreateDBInstanceReadReplica(ctx, newCreateDBInstanceReadReplicaInput(r))
 	rm.metrics.RecordAPICall("CREATE", "CreateDBInstanceReadReplica", respErr)
 	if respErr != nil {
 		return nil, respErr
@@ -435,7 +430,7 @@ func (rm *resourceManager) syncTags(
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from instance", "tags", toDelete)
-		_, err = rm.sdkapi.RemoveTagsFromResourceWithContext(
+		_, err = rm.sdkapi.RemoveTagsFromResource(
 			ctx,
 			&svcsdk.RemoveTagsFromResourceInput{
 				ResourceName: arn,
@@ -454,7 +449,7 @@ func (rm *resourceManager) syncTags(
 	// AddTagsToResource call is enough.
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to instance", "tags", toAdd)
-		_, err = rm.sdkapi.AddTagsToResourceWithContext(
+		_, err = rm.sdkapi.AddTagsToResource(
 			ctx,
 			&svcsdk.AddTagsToResourceInput{
 				ResourceName: arn,
@@ -474,7 +469,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsForResourceWithContext(
+	resp, err := rm.sdkapi.ListTagsForResource(
 		ctx,
 		&svcsdk.ListTagsForResourceInput{
 			ResourceName: &resourceARN,
@@ -514,10 +509,10 @@ func compareTags(
 // array.
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
