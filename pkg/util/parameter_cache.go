@@ -15,6 +15,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"sync"
 )
 
@@ -70,7 +71,7 @@ func (c *ParamMetaCache) Get(
 	}
 	meta, found = metas[name]
 	if !found {
-		return nil, ErrUnknownParameter
+		return nil, fmt.Errorf("parameter %s not found in family %s", name, family)
 	}
 	c.Hits++
 	return &meta, nil
