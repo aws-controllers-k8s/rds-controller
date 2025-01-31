@@ -11,7 +11,7 @@ spec:
   dbInstanceClass: db.t3.micro
   dbInstanceIdentifier: $DB_INSTANCE_ID
   engine: postgres
-  engineVersion: "14.9"
+  engineVersion: "14.15"
   masterUsername: root
   masterUserPassword:
     namespace: $MASTER_USER_PASS_SECRET_NAMESPACE

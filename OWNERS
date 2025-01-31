@@ -2,4 +2,3 @@
 
 approvers:
   - core-ack-team
-  - service-team
