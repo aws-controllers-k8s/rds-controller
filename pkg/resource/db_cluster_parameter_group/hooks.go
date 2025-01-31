@@ -219,9 +219,15 @@ func (rm *resourceManager) syncParameters(
 	// If there are no parameter overrides in the desired spec, we can return
 	// early since there's nothing to sync
 	if len(desired.ko.Spec.ParameterOverrides) == 0 {
-		// Clear any existing parameter statuses since all parameters have been removed
-		latest.ko.Status.ParameterOverrideStatuses = nil
-		latest.ko.Status.Conditions = nil // Clear existing conditions
+		// Only try to clear status if latest exists
+		if latest != nil {
+			latest.ko.Status.ParameterOverrideStatuses = nil
+		}
+		return nil
+	}
+
+	// During creation, latest will be nil
+	if latest == nil {
 		return nil
 	}
 
@@ -242,7 +248,6 @@ func (rm *resourceManager) syncParameters(
 			}
 		}
 		latest.ko.Status.ParameterOverrideStatuses = newStatuses
-		latest.ko.Status.Conditions = nil // Clear existing conditions to indicate successful sync
 		return nil
 	}
 
