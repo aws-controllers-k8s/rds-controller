@@ -43,6 +43,13 @@ type ParamMetaCache struct {
 	Cache  map[string]map[string]ParamMeta
 }
 
+// NewParamMetaCache creates and returns a new initialized ParamMetaCache
+func NewParamMetaCache() *ParamMetaCache {
+	return &ParamMetaCache{
+		Cache: make(map[string]map[string]ParamMeta),
+	}
+}
+
 // Get retrieves the metadata for a named parameter group family and parameter
 // name.
 func (c *ParamMetaCache) Get(
@@ -56,8 +63,6 @@ func (c *ParamMetaCache) Get(
 	var metas map[string]ParamMeta
 	var meta ParamMeta
 
-	// We need to release the lock right after the read operation, because
-	// loadFamily might call a writeLock below
 	c.RLock()
 	metas, found = c.Cache[family]
 	c.RUnlock()
@@ -71,7 +76,8 @@ func (c *ParamMetaCache) Get(
 	}
 	meta, found = metas[name]
 	if !found {
-		return nil, fmt.Errorf("parameter %s not found in family %s", name, family)
+		// Return a specific error type for invalid parameters
+		return nil, NewErrUnknownParameter(fmt.Sprintf("parameter %q not found in family %q", name, family))
 	}
 	c.Hits++
 	return &meta, nil
@@ -84,12 +90,16 @@ func (c *ParamMetaCache) loadFamily(
 	family string,
 	fetcher MetaFetcher,
 ) (map[string]ParamMeta, error) {
-	familyMeta, err := fetcher(ctx, family)
+	metas, err := fetcher(ctx, family)
 	if err != nil {
 		return nil, err
 	}
+
 	c.Lock()
-	defer c.Unlock()
-	c.Cache[family] = familyMeta
-	return familyMeta, nil
+	// Clear any existing cache for this family before setting new values
+	delete(c.Cache, family)
+	c.Cache[family] = metas
+	c.Unlock()
+
+	return metas, nil
 }
