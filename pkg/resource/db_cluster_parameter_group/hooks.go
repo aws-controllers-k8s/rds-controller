@@ -68,9 +68,9 @@ func (rm *resourceManager) customUpdate(
 	if len(desired.ko.Spec.ParameterOverrides) == 0 && latest.ko.Spec.ParameterOverrides != nil {
 		latest.ko.Spec.ParameterOverrides = nil
 		latest.ko.Status.ParameterOverrideStatuses = nil
-		return latest, nil
 	}
 
+	// Handle parameter updates
 	if delta.DifferentAt("Spec.ParameterOverrides") {
 		err = rm.syncParameters(ctx, desired, latest)
 		if err != nil {
@@ -78,7 +78,97 @@ func (rm *resourceManager) customUpdate(
 		}
 	}
 
+	// Handle tag updates
+	if delta.DifferentAt("Spec.Tags") {
+		// Get the ARN for the DB cluster parameter group
+		arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
+
+		// Call AWS API to update tags
+		err = rm.updateTags(ctx, arn, desired.ko.Spec.Tags, latest.ko.Spec.Tags)
+		if err != nil {
+			return nil, err
+		}
+
+		// Update the tags in our local copy
+		latest.ko.Spec.Tags = desired.ko.Spec.Tags
+	}
+
 	return latest, nil
+}
+
+// updateTags handles updating the tags on the resource
+func (rm *resourceManager) updateTags(
+	ctx context.Context,
+	arn *string,
+	desiredTags []*svcapitypes.Tag,
+	latestTags []*svcapitypes.Tag,
+) error {
+	// Convert to AWS Tags
+	addTags := []*svcsdk.Tag{}
+	removeTags := []*string{}
+
+	// Find tags to add or update
+	for _, desiredTag := range desiredTags {
+		found := false
+		for _, latestTag := range latestTags {
+			if *desiredTag.Key == *latestTag.Key {
+				found = true
+				if *desiredTag.Value != *latestTag.Value {
+					// Tag exists but value is different - add to update
+					addTags = append(addTags, &svcsdk.Tag{
+						Key:   desiredTag.Key,
+						Value: desiredTag.Value,
+					})
+				}
+				break
+			}
+		}
+		if !found {
+			// Tag doesn't exist - add it
+			addTags = append(addTags, &svcsdk.Tag{
+				Key:   desiredTag.Key,
+				Value: desiredTag.Value,
+			})
+		}
+	}
+
+	// Find tags to remove
+	for _, latestTag := range latestTags {
+		found := false
+		for _, desiredTag := range desiredTags {
+			if *latestTag.Key == *desiredTag.Key {
+				found = true
+				break
+			}
+		}
+		if !found {
+			removeTags = append(removeTags, latestTag.Key)
+		}
+	}
+
+	// Add/Update tags
+	if len(addTags) > 0 {
+		_, err := rm.sdkapi.AddTagsToResourceWithContext(ctx, &svcsdk.AddTagsToResourceInput{
+			ResourceName: arn,
+			Tags:         addTags,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Remove tags
+	if len(removeTags) > 0 {
+		_, err := rm.sdkapi.RemoveTagsFromResourceWithContext(ctx, &svcsdk.RemoveTagsFromResourceInput{
+			ResourceName: arn,
+			TagKeys:      removeTags,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // syncTags keeps the resource's tags in sync
