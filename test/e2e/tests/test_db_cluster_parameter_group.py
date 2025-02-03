@@ -164,10 +164,13 @@ class TestDBClusterParameterGroup:
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
-        # Verify the resource enters recoverable error state
-        condition.assert_recoverable(ref)
 
-        # Update with valid parameters and verify sync
+        # First verify the resource enters recoverable error state
+        condition.assert_recoverable(ref)
+        # Then verify the sync status is Unknown
+        condition.assert_type_status(ref, condition.CONDITION_TYPE_RESOURCE_SYNCED, "Unknown")
+
+        # Update with valid parameters to verify recovery from Unknown state
         new_params = {
             "aurora_read_replica_read_committed": "OFF"
         }
@@ -179,7 +182,7 @@ class TestDBClusterParameterGroup:
         }
         k8s.patch_custom_resource(ref, updates)
         
-        # Retry sync check with timeout
+        # Retry sync check with timeout to verify recovery from Unknown state
         max_retries = 5
         for i in range(max_retries):
             time.sleep(MODIFY_WAIT_AFTER_SECONDS)
@@ -190,3 +193,9 @@ class TestDBClusterParameterGroup:
                 if i == max_retries - 1:
                     raise
                 continue
+
+        # Verify the parameter was actually updated
+        params = db_cluster_parameter_group.get_parameters(resource_name)
+        test_params = list(filter(lambda x: x["ParameterName"] == "aurora_read_replica_read_committed", params))
+        assert len(test_params) == 1
+        assert test_params[0]["ParameterValue"] == "OFF"
