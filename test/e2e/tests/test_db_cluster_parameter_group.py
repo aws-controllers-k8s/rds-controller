@@ -51,7 +51,6 @@ def test_crud_aurora_mysql5_7(self, aurora_mysql57_cluster_param_group):
         for condition in resource.get('status', {}).get('conditions', []):
             logging.info(f"    {condition['type']}: {condition['status']} ({condition.get('message', '')})")
 
-    # ... existing code ...
 
     # Test updating with an invalid parameter to verify error handling
     new_params = {
