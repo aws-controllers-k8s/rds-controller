@@ -24,7 +24,8 @@ import (
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
@@ -187,7 +188,7 @@ func (rm *resourceManager) syncTags(
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from cluster", "tags", toDelete)
-		_, err = rm.sdkapi.RemoveTagsFromResourceWithContext(
+		_, err = rm.sdkapi.RemoveTagsFromResource(
 			ctx,
 			&svcsdk.RemoveTagsFromResourceInput{
 				ResourceName: arn,
@@ -206,7 +207,7 @@ func (rm *resourceManager) syncTags(
 	// AddTagsToResource call is enough.
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to cluster", "tags", toAdd)
-		_, err = rm.sdkapi.AddTagsToResourceWithContext(
+		_, err = rm.sdkapi.AddTagsToResource(
 			ctx,
 			&svcsdk.AddTagsToResourceInput{
 				ResourceName: arn,
@@ -226,7 +227,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsForResourceWithContext(
+	resp, err := rm.sdkapi.ListTagsForResource(
 		ctx,
 		&svcsdk.ListTagsForResourceInput{
 			ResourceName: &resourceARN,
@@ -266,10 +267,10 @@ func compareTags(
 // array.
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -286,7 +287,11 @@ func (rm *resourceManager) restoreDbClusterFromSnapshot(
 	exit := rlog.Trace("rm.restoreDbClusterFromSnapshot")
 	defer func(err error) { exit(err) }(err)
 
-	resp, respErr := rm.sdkapi.RestoreDBClusterFromSnapshotWithContext(ctx, rm.newRestoreDBClusterFromSnapshotInput(r))
+	input, err := rm.newRestoreDBClusterFromSnapshotInput(r)
+	if err != nil {
+		return nil, err
+	}
+	resp, respErr := rm.sdkapi.RestoreDBClusterFromSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "RestoreDbClusterFromSnapshot", respErr)
 	if respErr != nil {
 		return nil, respErr
@@ -315,7 +320,11 @@ func (rm *resourceManager) restoreDbClusterToPointInTime(
 	exit := rlog.Trace("rm.restoreDbClusterToPointInTime")
 	defer func(err error) { exit(err) }(err)
 
-	resp, respErr := rm.sdkapi.RestoreDBClusterToPointInTimeWithContext(ctx, rm.newRestoreDBClusterToPointInTimeInput(r))
+	input, err := rm.newRestoreDBClusterToPointInTimeInput(r)
+	if err != nil {
+		return nil, err
+	}
+	resp, respErr := rm.sdkapi.RestoreDBClusterToPointInTime(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "restoreDbClusterToPointInTime", respErr)
 	if respErr != nil {
 		return nil, respErr

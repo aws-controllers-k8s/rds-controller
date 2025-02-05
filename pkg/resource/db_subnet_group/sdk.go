@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.DBSubnetGroup{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeDBSubnetGroupsOutput
-	resp, err = rm.sdkapi.DescribeDBSubnetGroupsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeDBSubnetGroups(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBSubnetGroups", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBSubnetGroupNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "DBSubnetGroupNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -141,13 +144,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.Subnets = nil
 		}
 		if elem.SupportedNetworkTypes != nil {
-			f5 := []*string{}
-			for _, f5iter := range elem.SupportedNetworkTypes {
-				var f5elem string
-				f5elem = *f5iter
-				f5 = append(f5, &f5elem)
-			}
-			ko.Status.SupportedNetworkTypes = f5
+			ko.Status.SupportedNetworkTypes = aws.StringSlice(elem.SupportedNetworkTypes)
 		} else {
 			ko.Status.SupportedNetworkTypes = nil
 		}
@@ -202,7 +199,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeDBSubnetGroupsInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
+		res.DBSubnetGroupName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -227,7 +224,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateDBSubnetGroupOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateDBSubnetGroupWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateDBSubnetGroup(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateDBSubnetGroup", err)
 	if err != nil {
 		return nil, err
@@ -289,13 +286,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Subnets = nil
 	}
 	if resp.DBSubnetGroup.SupportedNetworkTypes != nil {
-		f5 := []*string{}
-		for _, f5iter := range resp.DBSubnetGroup.SupportedNetworkTypes {
-			var f5elem string
-			f5elem = *f5iter
-			f5 = append(f5, &f5elem)
-		}
-		ko.Status.SupportedNetworkTypes = f5
+		ko.Status.SupportedNetworkTypes = aws.StringSlice(resp.DBSubnetGroup.SupportedNetworkTypes)
 	} else {
 		ko.Status.SupportedNetworkTypes = nil
 	}
@@ -318,33 +309,27 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateDBSubnetGroupInput{}
 
 	if r.ko.Spec.Description != nil {
-		res.SetDBSubnetGroupDescription(*r.ko.Spec.Description)
+		res.DBSubnetGroupDescription = r.ko.Spec.Description
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
+		res.DBSubnetGroupName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.SubnetIDs != nil {
-		f2 := []*string{}
-		for _, f2iter := range r.ko.Spec.SubnetIDs {
-			var f2elem string
-			f2elem = *f2iter
-			f2 = append(f2, &f2elem)
-		}
-		res.SetSubnetIds(f2)
+		res.SubnetIds = aws.ToStringSlice(r.ko.Spec.SubnetIDs)
 	}
 	if r.ko.Spec.Tags != nil {
-		f3 := []*svcsdk.Tag{}
+		f3 := []svcsdktypes.Tag{}
 		for _, f3iter := range r.ko.Spec.Tags {
-			f3elem := &svcsdk.Tag{}
+			f3elem := &svcsdktypes.Tag{}
 			if f3iter.Key != nil {
-				f3elem.SetKey(*f3iter.Key)
+				f3elem.Key = f3iter.Key
 			}
 			if f3iter.Value != nil {
-				f3elem.SetValue(*f3iter.Value)
+				f3elem.Value = f3iter.Value
 			}
-			f3 = append(f3, f3elem)
+			f3 = append(f3, *f3elem)
 		}
-		res.SetTags(f3)
+		res.Tags = f3
 	}
 
 	return res, nil
@@ -370,7 +355,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.ModifyDBSubnetGroupOutput
 	_ = resp
-	resp, err = rm.sdkapi.ModifyDBSubnetGroupWithContext(ctx, input)
+	resp, err = rm.sdkapi.ModifyDBSubnetGroup(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBSubnetGroup", err)
 	if err != nil {
 		return nil, err
@@ -437,13 +422,7 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.Subnets = nil
 	}
 	if resp.DBSubnetGroup.SupportedNetworkTypes != nil {
-		f5 := []*string{}
-		for _, f5iter := range resp.DBSubnetGroup.SupportedNetworkTypes {
-			var f5elem string
-			f5elem = *f5iter
-			f5 = append(f5, &f5elem)
-		}
-		ko.Status.SupportedNetworkTypes = f5
+		ko.Status.SupportedNetworkTypes = aws.StringSlice(resp.DBSubnetGroup.SupportedNetworkTypes)
 	} else {
 		ko.Status.SupportedNetworkTypes = nil
 	}
@@ -467,19 +446,13 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.ModifyDBSubnetGroupInput{}
 
 	if r.ko.Spec.Description != nil {
-		res.SetDBSubnetGroupDescription(*r.ko.Spec.Description)
+		res.DBSubnetGroupDescription = r.ko.Spec.Description
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
+		res.DBSubnetGroupName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.SubnetIDs != nil {
-		f2 := []*string{}
-		for _, f2iter := range r.ko.Spec.SubnetIDs {
-			var f2elem string
-			f2elem = *f2iter
-			f2 = append(f2, &f2elem)
-		}
-		res.SetSubnetIds(f2)
+		res.SubnetIds = aws.ToStringSlice(r.ko.Spec.SubnetIDs)
 	}
 
 	return res, nil
@@ -501,7 +474,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteDBSubnetGroupOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteDBSubnetGroupWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteDBSubnetGroup(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBSubnetGroup", err)
 	return nil, err
 }
@@ -514,7 +487,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteDBSubnetGroupInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.Name)
+		res.DBSubnetGroupName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -622,11 +595,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "DBSubnetGroupDoesNotCoverEnoughAZs",
 		"InvalidSubnet",
 		"InvalidParameter",

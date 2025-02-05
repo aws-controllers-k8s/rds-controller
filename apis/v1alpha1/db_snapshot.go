@@ -76,14 +76,14 @@ type DBSnapshotStatus struct {
 	// is unique to an Amazon Web Services Region.
 	// +kubebuilder:validation:Optional
 	DBIResourceID *string `json:"dbiResourceID,omitempty"`
-	// Specifies whether the DB snapshot is encrypted.
+	// Indicates whether the DB snapshot is encrypted.
 	// +kubebuilder:validation:Optional
 	Encrypted *bool `json:"encrypted,omitempty"`
 	// Specifies the name of the database engine.
 	// +kubebuilder:validation:Optional
 	Engine *string `json:"engine,omitempty"`
-	// True if mapping of Amazon Web Services Identity and Access Management (IAM)
-	// accounts to database accounts is enabled, and otherwise false.
+	// Indicates whether mapping of Amazon Web Services Identity and Access Management
+	// (IAM) accounts to database accounts is enabled.
 	// +kubebuilder:validation:Optional
 	IAMDatabaseAuthenticationEnabled *bool `json:"iamDatabaseAuthenticationEnabled,omitempty"`
 	// Specifies the time in Coordinated Universal Time (UTC) when the DB instance,

@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
@@ -28,8 +29,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +43,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.DBCluster{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +51,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +76,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeDBClustersOutput
-	resp, err = rm.sdkapi.DescribeDBClustersWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeDBClusters(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBClusters", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBClusterNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "DBClusterNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -98,18 +102,19 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.ActivityStreamKMSKeyID = nil
 		}
-		if elem.ActivityStreamMode != nil {
-			ko.Status.ActivityStreamMode = elem.ActivityStreamMode
+		if elem.ActivityStreamMode != "" {
+			ko.Status.ActivityStreamMode = aws.String(string(elem.ActivityStreamMode))
 		} else {
 			ko.Status.ActivityStreamMode = nil
 		}
-		if elem.ActivityStreamStatus != nil {
-			ko.Status.ActivityStreamStatus = elem.ActivityStreamStatus
+		if elem.ActivityStreamStatus != "" {
+			ko.Status.ActivityStreamStatus = aws.String(string(elem.ActivityStreamStatus))
 		} else {
 			ko.Status.ActivityStreamStatus = nil
 		}
 		if elem.AllocatedStorage != nil {
-			ko.Spec.AllocatedStorage = elem.AllocatedStorage
+			allocatedStorageCopy := int64(*elem.AllocatedStorage)
+			ko.Spec.AllocatedStorage = &allocatedStorageCopy
 		} else {
 			ko.Spec.AllocatedStorage = nil
 		}
@@ -143,13 +148,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.AutomaticRestartTime = nil
 		}
 		if elem.AvailabilityZones != nil {
-			f8 := []*string{}
-			for _, f8iter := range elem.AvailabilityZones {
-				var f8elem string
-				f8elem = *f8iter
-				f8 = append(f8, &f8elem)
-			}
-			ko.Spec.AvailabilityZones = f8
+			ko.Spec.AvailabilityZones = aws.StringSlice(elem.AvailabilityZones)
 		} else {
 			ko.Spec.AvailabilityZones = nil
 		}
@@ -164,12 +163,14 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.BacktrackWindow = nil
 		}
 		if elem.BackupRetentionPeriod != nil {
-			ko.Spec.BackupRetentionPeriod = elem.BackupRetentionPeriod
+			backupRetentionPeriodCopy := int64(*elem.BackupRetentionPeriod)
+			ko.Spec.BackupRetentionPeriod = &backupRetentionPeriodCopy
 		} else {
 			ko.Spec.BackupRetentionPeriod = nil
 		}
 		if elem.Capacity != nil {
-			ko.Status.Capacity = elem.Capacity
+			capacityCopy := int64(*elem.Capacity)
+			ko.Status.Capacity = &capacityCopy
 		} else {
 			ko.Status.Capacity = nil
 		}
@@ -199,13 +200,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.CrossAccountClone = nil
 		}
 		if elem.CustomEndpoints != nil {
-			f18 := []*string{}
-			for _, f18iter := range elem.CustomEndpoints {
-				var f18elem string
-				f18elem = *f18iter
-				f18 = append(f18, &f18elem)
-			}
-			ko.Status.CustomEndpoints = f18
+			ko.Status.CustomEndpoints = aws.StringSlice(elem.CustomEndpoints)
 		} else {
 			ko.Status.CustomEndpoints = nil
 		}
@@ -240,7 +235,8 @@ func (rm *resourceManager) sdkFind(
 					f22elem.IsClusterWriter = f22iter.IsClusterWriter
 				}
 				if f22iter.PromotionTier != nil {
-					f22elem.PromotionTier = f22iter.PromotionTier
+					promotionTierCopy := int64(*f22iter.PromotionTier)
+					f22elem.PromotionTier = &promotionTierCopy
 				}
 				f22 = append(f22, f22elem)
 			}
@@ -327,13 +323,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.EarliestRestorableTime = nil
 		}
 		if elem.EnabledCloudwatchLogsExports != nil {
-			f33 := []*string{}
-			for _, f33iter := range elem.EnabledCloudwatchLogsExports {
-				var f33elem string
-				f33elem = *f33iter
-				f33 = append(f33, &f33elem)
-			}
-			ko.Status.EnabledCloudwatchLogsExports = f33
+			ko.Status.EnabledCloudwatchLogsExports = aws.StringSlice(elem.EnabledCloudwatchLogsExports)
 		} else {
 			ko.Status.EnabledCloudwatchLogsExports = nil
 		}
@@ -362,8 +352,8 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.GlobalWriteForwardingRequested = nil
 		}
-		if elem.GlobalWriteForwardingStatus != nil {
-			ko.Status.GlobalWriteForwardingStatus = elem.GlobalWriteForwardingStatus
+		if elem.GlobalWriteForwardingStatus != "" {
+			ko.Status.GlobalWriteForwardingStatus = aws.String(string(elem.GlobalWriteForwardingStatus))
 		} else {
 			ko.Status.GlobalWriteForwardingStatus = nil
 		}
@@ -383,7 +373,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.IAMDatabaseAuthenticationEnabled = nil
 		}
 		if elem.Iops != nil {
-			ko.Spec.IOPS = elem.Iops
+			iopsCopy := int64(*elem.Iops)
+			ko.Spec.IOPS = &iopsCopy
 		} else {
 			ko.Spec.IOPS = nil
 		}
@@ -418,7 +409,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.MasterUsername = nil
 		}
 		if elem.MonitoringInterval != nil {
-			ko.Spec.MonitoringInterval = elem.MonitoringInterval
+			monitoringIntervalCopy := int64(*elem.MonitoringInterval)
+			ko.Spec.MonitoringInterval = &monitoringIntervalCopy
 		} else {
 			ko.Spec.MonitoringInterval = nil
 		}
@@ -440,10 +432,12 @@ func (rm *resourceManager) sdkFind(
 		if elem.PendingModifiedValues != nil {
 			f52 := &svcapitypes.ClusterPendingModifiedValues{}
 			if elem.PendingModifiedValues.AllocatedStorage != nil {
-				f52.AllocatedStorage = elem.PendingModifiedValues.AllocatedStorage
+				allocatedStorageCopy := int64(*elem.PendingModifiedValues.AllocatedStorage)
+				f52.AllocatedStorage = &allocatedStorageCopy
 			}
 			if elem.PendingModifiedValues.BackupRetentionPeriod != nil {
-				f52.BackupRetentionPeriod = elem.PendingModifiedValues.BackupRetentionPeriod
+				backupRetentionPeriodCopy := int64(*elem.PendingModifiedValues.BackupRetentionPeriod)
+				f52.BackupRetentionPeriod = &backupRetentionPeriodCopy
 			}
 			if elem.PendingModifiedValues.DBClusterIdentifier != nil {
 				f52.DBClusterIdentifier = elem.PendingModifiedValues.DBClusterIdentifier
@@ -455,7 +449,8 @@ func (rm *resourceManager) sdkFind(
 				f52.IAMDatabaseAuthenticationEnabled = elem.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
 			}
 			if elem.PendingModifiedValues.Iops != nil {
-				f52.IOPS = elem.PendingModifiedValues.Iops
+				iopsCopy := int64(*elem.PendingModifiedValues.Iops)
+				f52.IOPS = &iopsCopy
 			}
 			if elem.PendingModifiedValues.MasterUserPassword != nil {
 				f52.MasterUserPassword = elem.PendingModifiedValues.MasterUserPassword
@@ -463,22 +458,10 @@ func (rm *resourceManager) sdkFind(
 			if elem.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
 				f52f7 := &svcapitypes.PendingCloudwatchLogsExports{}
 				if elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-					f52f7f0 := []*string{}
-					for _, f52f7f0iter := range elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-						var f52f7f0elem string
-						f52f7f0elem = *f52f7f0iter
-						f52f7f0 = append(f52f7f0, &f52f7f0elem)
-					}
-					f52f7.LogTypesToDisable = f52f7f0
+					f52f7.LogTypesToDisable = aws.StringSlice(elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable)
 				}
 				if elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-					f52f7f1 := []*string{}
-					for _, f52f7f1iter := range elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-						var f52f7f1elem string
-						f52f7f1elem = *f52f7f1iter
-						f52f7f1 = append(f52f7f1, &f52f7f1elem)
-					}
-					f52f7.LogTypesToEnable = f52f7f1
+					f52f7.LogTypesToEnable = aws.StringSlice(elem.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable)
 				}
 				f52.PendingCloudwatchLogsExports = f52f7
 			}
@@ -502,12 +485,14 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.PerformanceInsightsKMSKeyID = nil
 		}
 		if elem.PerformanceInsightsRetentionPeriod != nil {
-			ko.Spec.PerformanceInsightsRetentionPeriod = elem.PerformanceInsightsRetentionPeriod
+			performanceInsightsRetentionPeriodCopy := int64(*elem.PerformanceInsightsRetentionPeriod)
+			ko.Spec.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 		} else {
 			ko.Spec.PerformanceInsightsRetentionPeriod = nil
 		}
 		if elem.Port != nil {
-			ko.Spec.Port = elem.Port
+			portCopy := int64(*elem.Port)
+			ko.Spec.Port = &portCopy
 		} else {
 			ko.Spec.Port = nil
 		}
@@ -527,13 +512,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.PubliclyAccessible = nil
 		}
 		if elem.ReadReplicaIdentifiers != nil {
-			f61 := []*string{}
-			for _, f61iter := range elem.ReadReplicaIdentifiers {
-				var f61elem string
-				f61elem = *f61iter
-				f61 = append(f61, &f61elem)
-			}
-			ko.Status.ReadReplicaIdentifiers = f61
+			ko.Status.ReadReplicaIdentifiers = aws.StringSlice(elem.ReadReplicaIdentifiers)
 		} else {
 			ko.Status.ReadReplicaIdentifiers = nil
 		}
@@ -554,6 +533,10 @@ func (rm *resourceManager) sdkFind(
 			}
 			if elem.ServerlessV2ScalingConfiguration.MinCapacity != nil {
 				f65.MinCapacity = elem.ServerlessV2ScalingConfiguration.MinCapacity
+			}
+			if elem.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+				secondsUntilAutoPauseCopy := int64(*elem.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause)
+				f65.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 			}
 			ko.Spec.ServerlessV2ScalingConfiguration = f65
 		} else {
@@ -675,7 +658,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeDBClustersInput{}
 
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 
 	return res, nil
@@ -712,7 +695,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateDBClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateDBClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateDBCluster(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateDBCluster", err)
 	if err != nil {
 		return nil, err
@@ -731,18 +714,19 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.ActivityStreamKMSKeyID = nil
 	}
-	if resp.DBCluster.ActivityStreamMode != nil {
-		ko.Status.ActivityStreamMode = resp.DBCluster.ActivityStreamMode
+	if resp.DBCluster.ActivityStreamMode != "" {
+		ko.Status.ActivityStreamMode = aws.String(string(resp.DBCluster.ActivityStreamMode))
 	} else {
 		ko.Status.ActivityStreamMode = nil
 	}
-	if resp.DBCluster.ActivityStreamStatus != nil {
-		ko.Status.ActivityStreamStatus = resp.DBCluster.ActivityStreamStatus
+	if resp.DBCluster.ActivityStreamStatus != "" {
+		ko.Status.ActivityStreamStatus = aws.String(string(resp.DBCluster.ActivityStreamStatus))
 	} else {
 		ko.Status.ActivityStreamStatus = nil
 	}
 	if resp.DBCluster.AllocatedStorage != nil {
-		ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
+		allocatedStorageCopy := int64(*resp.DBCluster.AllocatedStorage)
+		ko.Spec.AllocatedStorage = &allocatedStorageCopy
 	} else {
 		ko.Spec.AllocatedStorage = nil
 	}
@@ -776,13 +760,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.AutomaticRestartTime = nil
 	}
 	if resp.DBCluster.AvailabilityZones != nil {
-		f8 := []*string{}
-		for _, f8iter := range resp.DBCluster.AvailabilityZones {
-			var f8elem string
-			f8elem = *f8iter
-			f8 = append(f8, &f8elem)
-		}
-		ko.Spec.AvailabilityZones = f8
+		ko.Spec.AvailabilityZones = aws.StringSlice(resp.DBCluster.AvailabilityZones)
 	} else {
 		ko.Spec.AvailabilityZones = nil
 	}
@@ -797,12 +775,14 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.BacktrackWindow = nil
 	}
 	if resp.DBCluster.BackupRetentionPeriod != nil {
-		ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+		backupRetentionPeriodCopy := int64(*resp.DBCluster.BackupRetentionPeriod)
+		ko.Spec.BackupRetentionPeriod = &backupRetentionPeriodCopy
 	} else {
 		ko.Spec.BackupRetentionPeriod = nil
 	}
 	if resp.DBCluster.Capacity != nil {
-		ko.Status.Capacity = resp.DBCluster.Capacity
+		capacityCopy := int64(*resp.DBCluster.Capacity)
+		ko.Status.Capacity = &capacityCopy
 	} else {
 		ko.Status.Capacity = nil
 	}
@@ -832,13 +812,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.CrossAccountClone = nil
 	}
 	if resp.DBCluster.CustomEndpoints != nil {
-		f18 := []*string{}
-		for _, f18iter := range resp.DBCluster.CustomEndpoints {
-			var f18elem string
-			f18elem = *f18iter
-			f18 = append(f18, &f18elem)
-		}
-		ko.Status.CustomEndpoints = f18
+		ko.Status.CustomEndpoints = aws.StringSlice(resp.DBCluster.CustomEndpoints)
 	} else {
 		ko.Status.CustomEndpoints = nil
 	}
@@ -873,7 +847,8 @@ func (rm *resourceManager) sdkCreate(
 				f22elem.IsClusterWriter = f22iter.IsClusterWriter
 			}
 			if f22iter.PromotionTier != nil {
-				f22elem.PromotionTier = f22iter.PromotionTier
+				promotionTierCopy := int64(*f22iter.PromotionTier)
+				f22elem.PromotionTier = &promotionTierCopy
 			}
 			f22 = append(f22, f22elem)
 		}
@@ -960,13 +935,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.EarliestRestorableTime = nil
 	}
 	if resp.DBCluster.EnabledCloudwatchLogsExports != nil {
-		f33 := []*string{}
-		for _, f33iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
-			var f33elem string
-			f33elem = *f33iter
-			f33 = append(f33, &f33elem)
-		}
-		ko.Status.EnabledCloudwatchLogsExports = f33
+		ko.Status.EnabledCloudwatchLogsExports = aws.StringSlice(resp.DBCluster.EnabledCloudwatchLogsExports)
 	} else {
 		ko.Status.EnabledCloudwatchLogsExports = nil
 	}
@@ -995,8 +964,8 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.GlobalWriteForwardingRequested = nil
 	}
-	if resp.DBCluster.GlobalWriteForwardingStatus != nil {
-		ko.Status.GlobalWriteForwardingStatus = resp.DBCluster.GlobalWriteForwardingStatus
+	if resp.DBCluster.GlobalWriteForwardingStatus != "" {
+		ko.Status.GlobalWriteForwardingStatus = aws.String(string(resp.DBCluster.GlobalWriteForwardingStatus))
 	} else {
 		ko.Status.GlobalWriteForwardingStatus = nil
 	}
@@ -1016,7 +985,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.IAMDatabaseAuthenticationEnabled = nil
 	}
 	if resp.DBCluster.Iops != nil {
-		ko.Spec.IOPS = resp.DBCluster.Iops
+		iopsCopy := int64(*resp.DBCluster.Iops)
+		ko.Spec.IOPS = &iopsCopy
 	} else {
 		ko.Spec.IOPS = nil
 	}
@@ -1051,7 +1021,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.MasterUsername = nil
 	}
 	if resp.DBCluster.MonitoringInterval != nil {
-		ko.Spec.MonitoringInterval = resp.DBCluster.MonitoringInterval
+		monitoringIntervalCopy := int64(*resp.DBCluster.MonitoringInterval)
+		ko.Spec.MonitoringInterval = &monitoringIntervalCopy
 	} else {
 		ko.Spec.MonitoringInterval = nil
 	}
@@ -1073,10 +1044,12 @@ func (rm *resourceManager) sdkCreate(
 	if resp.DBCluster.PendingModifiedValues != nil {
 		f52 := &svcapitypes.ClusterPendingModifiedValues{}
 		if resp.DBCluster.PendingModifiedValues.AllocatedStorage != nil {
-			f52.AllocatedStorage = resp.DBCluster.PendingModifiedValues.AllocatedStorage
+			allocatedStorageCopy := int64(*resp.DBCluster.PendingModifiedValues.AllocatedStorage)
+			f52.AllocatedStorage = &allocatedStorageCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod != nil {
-			f52.BackupRetentionPeriod = resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod
+			backupRetentionPeriodCopy := int64(*resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod)
+			f52.BackupRetentionPeriod = &backupRetentionPeriodCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.DBClusterIdentifier != nil {
 			f52.DBClusterIdentifier = resp.DBCluster.PendingModifiedValues.DBClusterIdentifier
@@ -1088,7 +1061,8 @@ func (rm *resourceManager) sdkCreate(
 			f52.IAMDatabaseAuthenticationEnabled = resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
 		}
 		if resp.DBCluster.PendingModifiedValues.Iops != nil {
-			f52.IOPS = resp.DBCluster.PendingModifiedValues.Iops
+			iopsCopy := int64(*resp.DBCluster.PendingModifiedValues.Iops)
+			f52.IOPS = &iopsCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.MasterUserPassword != nil {
 			f52.MasterUserPassword = resp.DBCluster.PendingModifiedValues.MasterUserPassword
@@ -1096,22 +1070,10 @@ func (rm *resourceManager) sdkCreate(
 		if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
 			f52f7 := &svcapitypes.PendingCloudwatchLogsExports{}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-				f52f7f0 := []*string{}
-				for _, f52f7f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-					var f52f7f0elem string
-					f52f7f0elem = *f52f7f0iter
-					f52f7f0 = append(f52f7f0, &f52f7f0elem)
-				}
-				f52f7.LogTypesToDisable = f52f7f0
+				f52f7.LogTypesToDisable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable)
 			}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-				f52f7f1 := []*string{}
-				for _, f52f7f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-					var f52f7f1elem string
-					f52f7f1elem = *f52f7f1iter
-					f52f7f1 = append(f52f7f1, &f52f7f1elem)
-				}
-				f52f7.LogTypesToEnable = f52f7f1
+				f52f7.LogTypesToEnable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable)
 			}
 			f52.PendingCloudwatchLogsExports = f52f7
 		}
@@ -1135,12 +1097,14 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.PerformanceInsightsKMSKeyID = nil
 	}
 	if resp.DBCluster.PerformanceInsightsRetentionPeriod != nil {
-		ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBCluster.PerformanceInsightsRetentionPeriod
+		performanceInsightsRetentionPeriodCopy := int64(*resp.DBCluster.PerformanceInsightsRetentionPeriod)
+		ko.Spec.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	} else {
 		ko.Spec.PerformanceInsightsRetentionPeriod = nil
 	}
 	if resp.DBCluster.Port != nil {
-		ko.Spec.Port = resp.DBCluster.Port
+		portCopy := int64(*resp.DBCluster.Port)
+		ko.Spec.Port = &portCopy
 	} else {
 		ko.Spec.Port = nil
 	}
@@ -1160,13 +1124,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.PubliclyAccessible = nil
 	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
-		f61 := []*string{}
-		for _, f61iter := range resp.DBCluster.ReadReplicaIdentifiers {
-			var f61elem string
-			f61elem = *f61iter
-			f61 = append(f61, &f61elem)
-		}
-		ko.Status.ReadReplicaIdentifiers = f61
+		ko.Status.ReadReplicaIdentifiers = aws.StringSlice(resp.DBCluster.ReadReplicaIdentifiers)
 	} else {
 		ko.Status.ReadReplicaIdentifiers = nil
 	}
@@ -1186,16 +1144,20 @@ func (rm *resourceManager) sdkCreate(
 			f64.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MaxCapacity != nil {
-			f64.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
+			maxCapacityCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.MaxCapacity)
+			f64.MaxCapacity = &maxCapacityCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MinCapacity != nil {
-			f64.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
+			minCapacityCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.MinCapacity)
+			f64.MinCapacity = &minCapacityCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
-			f64.SecondsBeforeTimeout = resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout
+			secondsBeforeTimeoutCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout)
+			f64.SecondsBeforeTimeout = &secondsBeforeTimeoutCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-			f64.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
+			secondsUntilAutoPauseCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause)
+			f64.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
 			f64.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
@@ -1211,6 +1173,10 @@ func (rm *resourceManager) sdkCreate(
 		}
 		if resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity != nil {
 			f65.MinCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity
+		}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			secondsUntilAutoPauseCopy := int64(*resp.DBCluster.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause)
+			f65.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		ko.Spec.ServerlessV2ScalingConfiguration = f65
 	} else {
@@ -1291,103 +1257,103 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateDBClusterInput{}
 
 	if r.ko.Spec.AllocatedStorage != nil {
-		res.SetAllocatedStorage(*r.ko.Spec.AllocatedStorage)
+		allocatedStorageCopy0 := *r.ko.Spec.AllocatedStorage
+		if allocatedStorageCopy0 > math.MaxInt32 || allocatedStorageCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field AllocatedStorage is of type int32")
+		}
+		allocatedStorageCopy := int32(allocatedStorageCopy0)
+		res.AllocatedStorage = &allocatedStorageCopy
 	}
 	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
-		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+		res.AutoMinorVersionUpgrade = r.ko.Spec.AutoMinorVersionUpgrade
 	}
 	if r.ko.Spec.AvailabilityZones != nil {
-		f2 := []*string{}
-		for _, f2iter := range r.ko.Spec.AvailabilityZones {
-			var f2elem string
-			f2elem = *f2iter
-			f2 = append(f2, &f2elem)
-		}
-		res.SetAvailabilityZones(f2)
+		res.AvailabilityZones = aws.ToStringSlice(r.ko.Spec.AvailabilityZones)
 	}
 	if r.ko.Spec.BacktrackWindow != nil {
-		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
+		res.BacktrackWindow = r.ko.Spec.BacktrackWindow
 	}
 	if r.ko.Spec.BackupRetentionPeriod != nil {
-		res.SetBackupRetentionPeriod(*r.ko.Spec.BackupRetentionPeriod)
+		backupRetentionPeriodCopy0 := *r.ko.Spec.BackupRetentionPeriod
+		if backupRetentionPeriodCopy0 > math.MaxInt32 || backupRetentionPeriodCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field BackupRetentionPeriod is of type int32")
+		}
+		backupRetentionPeriodCopy := int32(backupRetentionPeriodCopy0)
+		res.BackupRetentionPeriod = &backupRetentionPeriodCopy
 	}
 	if r.ko.Spec.CharacterSetName != nil {
-		res.SetCharacterSetName(*r.ko.Spec.CharacterSetName)
+		res.CharacterSetName = r.ko.Spec.CharacterSetName
 	}
 	if r.ko.Spec.CopyTagsToSnapshot != nil {
-		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+		res.CopyTagsToSnapshot = r.ko.Spec.CopyTagsToSnapshot
 	}
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 	if r.ko.Spec.DBClusterInstanceClass != nil {
-		res.SetDBClusterInstanceClass(*r.ko.Spec.DBClusterInstanceClass)
+		res.DBClusterInstanceClass = r.ko.Spec.DBClusterInstanceClass
 	}
 	if r.ko.Spec.DBClusterParameterGroupName != nil {
-		res.SetDBClusterParameterGroupName(*r.ko.Spec.DBClusterParameterGroupName)
+		res.DBClusterParameterGroupName = r.ko.Spec.DBClusterParameterGroupName
 	}
 	if r.ko.Spec.DBSubnetGroupName != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+		res.DBSubnetGroupName = r.ko.Spec.DBSubnetGroupName
 	}
 	if r.ko.Spec.DBSystemID != nil {
-		res.SetDBSystemId(*r.ko.Spec.DBSystemID)
+		res.DBSystemId = r.ko.Spec.DBSystemID
 	}
 	if r.ko.Spec.DatabaseName != nil {
-		res.SetDatabaseName(*r.ko.Spec.DatabaseName)
+		res.DatabaseName = r.ko.Spec.DatabaseName
 	}
 	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
-	}
-	if r.ko.Spec.DestinationRegion != nil {
-		res.SetDestinationRegion(*r.ko.Spec.DestinationRegion)
+		res.DeletionProtection = r.ko.Spec.DeletionProtection
 	}
 	if r.ko.Spec.Domain != nil {
-		res.SetDomain(*r.ko.Spec.Domain)
+		res.Domain = r.ko.Spec.Domain
 	}
 	if r.ko.Spec.DomainIAMRoleName != nil {
-		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+		res.DomainIAMRoleName = r.ko.Spec.DomainIAMRoleName
 	}
 	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
-		f17 := []*string{}
-		for _, f17iter := range r.ko.Spec.EnableCloudwatchLogsExports {
-			var f17elem string
-			f17elem = *f17iter
-			f17 = append(f17, &f17elem)
-		}
-		res.SetEnableCloudwatchLogsExports(f17)
+		res.EnableCloudwatchLogsExports = aws.ToStringSlice(r.ko.Spec.EnableCloudwatchLogsExports)
 	}
 	if r.ko.Spec.EnableGlobalWriteForwarding != nil {
-		res.SetEnableGlobalWriteForwarding(*r.ko.Spec.EnableGlobalWriteForwarding)
+		res.EnableGlobalWriteForwarding = r.ko.Spec.EnableGlobalWriteForwarding
 	}
 	if r.ko.Spec.EnableHTTPEndpoint != nil {
-		res.SetEnableHttpEndpoint(*r.ko.Spec.EnableHTTPEndpoint)
+		res.EnableHttpEndpoint = r.ko.Spec.EnableHTTPEndpoint
 	}
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
-		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+		res.EnableIAMDatabaseAuthentication = r.ko.Spec.EnableIAMDatabaseAuthentication
 	}
 	if r.ko.Spec.EnablePerformanceInsights != nil {
-		res.SetEnablePerformanceInsights(*r.ko.Spec.EnablePerformanceInsights)
+		res.EnablePerformanceInsights = r.ko.Spec.EnablePerformanceInsights
 	}
 	if r.ko.Spec.Engine != nil {
-		res.SetEngine(*r.ko.Spec.Engine)
+		res.Engine = r.ko.Spec.Engine
 	}
 	if r.ko.Spec.EngineMode != nil {
-		res.SetEngineMode(*r.ko.Spec.EngineMode)
+		res.EngineMode = r.ko.Spec.EngineMode
 	}
 	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+		res.EngineVersion = r.ko.Spec.EngineVersion
 	}
 	if r.ko.Spec.GlobalClusterIdentifier != nil {
-		res.SetGlobalClusterIdentifier(*r.ko.Spec.GlobalClusterIdentifier)
+		res.GlobalClusterIdentifier = r.ko.Spec.GlobalClusterIdentifier
 	}
 	if r.ko.Spec.IOPS != nil {
-		res.SetIops(*r.ko.Spec.IOPS)
+		iopsCopy0 := *r.ko.Spec.IOPS
+		if iopsCopy0 > math.MaxInt32 || iopsCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Iops is of type int32")
+		}
+		iopsCopy := int32(iopsCopy0)
+		res.Iops = &iopsCopy
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
 	}
 	if r.ko.Spec.ManageMasterUserPassword != nil {
-		res.SetManageMasterUserPassword(*r.ko.Spec.ManageMasterUserPassword)
+		res.ManageMasterUserPassword = r.ko.Spec.ManageMasterUserPassword
 	}
 	if r.ko.Spec.MasterUserPassword != nil {
 		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
@@ -1395,114 +1361,151 @@ func (rm *resourceManager) newCreateRequestPayload(
 			return nil, ackrequeue.Needed(err)
 		}
 		if tmpSecret != "" {
-			res.SetMasterUserPassword(tmpSecret)
+			res.MasterUserPassword = aws.String(tmpSecret)
 		}
 	}
 	if r.ko.Spec.MasterUserSecretKMSKeyID != nil {
-		res.SetMasterUserSecretKmsKeyId(*r.ko.Spec.MasterUserSecretKMSKeyID)
+		res.MasterUserSecretKmsKeyId = r.ko.Spec.MasterUserSecretKMSKeyID
 	}
 	if r.ko.Spec.MasterUsername != nil {
-		res.SetMasterUsername(*r.ko.Spec.MasterUsername)
+		res.MasterUsername = r.ko.Spec.MasterUsername
 	}
 	if r.ko.Spec.MonitoringInterval != nil {
-		res.SetMonitoringInterval(*r.ko.Spec.MonitoringInterval)
+		monitoringIntervalCopy0 := *r.ko.Spec.MonitoringInterval
+		if monitoringIntervalCopy0 > math.MaxInt32 || monitoringIntervalCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field MonitoringInterval is of type int32")
+		}
+		monitoringIntervalCopy := int32(monitoringIntervalCopy0)
+		res.MonitoringInterval = &monitoringIntervalCopy
 	}
 	if r.ko.Spec.MonitoringRoleARN != nil {
-		res.SetMonitoringRoleArn(*r.ko.Spec.MonitoringRoleARN)
+		res.MonitoringRoleArn = r.ko.Spec.MonitoringRoleARN
 	}
 	if r.ko.Spec.NetworkType != nil {
-		res.SetNetworkType(*r.ko.Spec.NetworkType)
+		res.NetworkType = r.ko.Spec.NetworkType
 	}
 	if r.ko.Spec.OptionGroupName != nil {
-		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+		res.OptionGroupName = r.ko.Spec.OptionGroupName
 	}
 	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
-		res.SetPerformanceInsightsKMSKeyId(*r.ko.Spec.PerformanceInsightsKMSKeyID)
+		res.PerformanceInsightsKMSKeyId = r.ko.Spec.PerformanceInsightsKMSKeyID
 	}
 	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
-		res.SetPerformanceInsightsRetentionPeriod(*r.ko.Spec.PerformanceInsightsRetentionPeriod)
+		performanceInsightsRetentionPeriodCopy0 := *r.ko.Spec.PerformanceInsightsRetentionPeriod
+		if performanceInsightsRetentionPeriodCopy0 > math.MaxInt32 || performanceInsightsRetentionPeriodCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field PerformanceInsightsRetentionPeriod is of type int32")
+		}
+		performanceInsightsRetentionPeriodCopy := int32(performanceInsightsRetentionPeriodCopy0)
+		res.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	}
 	if r.ko.Spec.Port != nil {
-		res.SetPort(*r.ko.Spec.Port)
+		portCopy0 := *r.ko.Spec.Port
+		if portCopy0 > math.MaxInt32 || portCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Port is of type int32")
+		}
+		portCopy := int32(portCopy0)
+		res.Port = &portCopy
 	}
 	if r.ko.Spec.PreSignedURL != nil {
-		res.SetPreSignedUrl(*r.ko.Spec.PreSignedURL)
+		res.PreSignedUrl = r.ko.Spec.PreSignedURL
 	}
 	if r.ko.Spec.PreferredBackupWindow != nil {
-		res.SetPreferredBackupWindow(*r.ko.Spec.PreferredBackupWindow)
+		res.PreferredBackupWindow = r.ko.Spec.PreferredBackupWindow
 	}
 	if r.ko.Spec.PreferredMaintenanceWindow != nil {
-		res.SetPreferredMaintenanceWindow(*r.ko.Spec.PreferredMaintenanceWindow)
+		res.PreferredMaintenanceWindow = r.ko.Spec.PreferredMaintenanceWindow
 	}
 	if r.ko.Spec.PubliclyAccessible != nil {
-		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+		res.PubliclyAccessible = r.ko.Spec.PubliclyAccessible
 	}
 	if r.ko.Spec.ReplicationSourceIdentifier != nil {
-		res.SetReplicationSourceIdentifier(*r.ko.Spec.ReplicationSourceIdentifier)
+		res.ReplicationSourceIdentifier = r.ko.Spec.ReplicationSourceIdentifier
 	}
 	if r.ko.Spec.ScalingConfiguration != nil {
-		f44 := &svcsdk.ScalingConfiguration{}
+		f44 := &svcsdktypes.ScalingConfiguration{}
 		if r.ko.Spec.ScalingConfiguration.AutoPause != nil {
-			f44.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+			f44.AutoPause = r.ko.Spec.ScalingConfiguration.AutoPause
 		}
 		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
-			f44.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+			maxCapacityCopy0 := *r.ko.Spec.ScalingConfiguration.MaxCapacity
+			if maxCapacityCopy0 > math.MaxInt32 || maxCapacityCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MaxCapacity is of type int32")
+			}
+			maxCapacityCopy := int32(maxCapacityCopy0)
+			f44.MaxCapacity = &maxCapacityCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil {
-			f44.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+			minCapacityCopy0 := *r.ko.Spec.ScalingConfiguration.MinCapacity
+			if minCapacityCopy0 > math.MaxInt32 || minCapacityCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MinCapacity is of type int32")
+			}
+			minCapacityCopy := int32(minCapacityCopy0)
+			f44.MinCapacity = &minCapacityCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
-			f44.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+			secondsBeforeTimeoutCopy0 := *r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout
+			if secondsBeforeTimeoutCopy0 > math.MaxInt32 || secondsBeforeTimeoutCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsBeforeTimeout is of type int32")
+			}
+			secondsBeforeTimeoutCopy := int32(secondsBeforeTimeoutCopy0)
+			f44.SecondsBeforeTimeout = &secondsBeforeTimeoutCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
-			f44.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+			secondsUntilAutoPauseCopy0 := *r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause
+			if secondsUntilAutoPauseCopy0 > math.MaxInt32 || secondsUntilAutoPauseCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsUntilAutoPause is of type int32")
+			}
+			secondsUntilAutoPauseCopy := int32(secondsUntilAutoPauseCopy0)
+			f44.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
-			f44.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+			f44.TimeoutAction = r.ko.Spec.ScalingConfiguration.TimeoutAction
 		}
-		res.SetScalingConfiguration(f44)
+		res.ScalingConfiguration = f44
 	}
 	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil {
-		f45 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		f45 := &svcsdktypes.ServerlessV2ScalingConfiguration{}
 		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-			f45.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			f45.MaxCapacity = r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity
 		}
 		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
-			f45.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+			f45.MinCapacity = r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity
 		}
-		res.SetServerlessV2ScalingConfiguration(f45)
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			secondsUntilAutoPauseCopy0 := *r.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause
+			if secondsUntilAutoPauseCopy0 > math.MaxInt32 || secondsUntilAutoPauseCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsUntilAutoPause is of type int32")
+			}
+			secondsUntilAutoPauseCopy := int32(secondsUntilAutoPauseCopy0)
+			f45.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
+		}
+		res.ServerlessV2ScalingConfiguration = f45
 	}
 	if r.ko.Spec.SourceRegion != nil {
-		res.SetSourceRegion(*r.ko.Spec.SourceRegion)
+		res.SourceRegion = r.ko.Spec.SourceRegion
 	}
 	if r.ko.Spec.StorageEncrypted != nil {
-		res.SetStorageEncrypted(*r.ko.Spec.StorageEncrypted)
+		res.StorageEncrypted = r.ko.Spec.StorageEncrypted
 	}
 	if r.ko.Spec.StorageType != nil {
-		res.SetStorageType(*r.ko.Spec.StorageType)
+		res.StorageType = r.ko.Spec.StorageType
 	}
 	if r.ko.Spec.Tags != nil {
-		f49 := []*svcsdk.Tag{}
+		f49 := []svcsdktypes.Tag{}
 		for _, f49iter := range r.ko.Spec.Tags {
-			f49elem := &svcsdk.Tag{}
+			f49elem := &svcsdktypes.Tag{}
 			if f49iter.Key != nil {
-				f49elem.SetKey(*f49iter.Key)
+				f49elem.Key = f49iter.Key
 			}
 			if f49iter.Value != nil {
-				f49elem.SetValue(*f49iter.Value)
+				f49elem.Value = f49iter.Value
 			}
-			f49 = append(f49, f49elem)
+			f49 = append(f49, *f49elem)
 		}
-		res.SetTags(f49)
+		res.Tags = f49
 	}
 	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		f50 := []*string{}
-		for _, f50iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var f50elem string
-			f50elem = *f50iter
-			f50 = append(f50, &f50elem)
-		}
-		res.SetVpcSecurityGroupIds(f50)
+		res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
 	}
 
 	return res, nil
@@ -1544,7 +1547,7 @@ func (rm *resourceManager) sdkDelete(
 
 	var resp *svcsdk.DeleteDBClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteDBClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteDBCluster(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBCluster", err)
 	return nil, err
 }
@@ -1557,7 +1560,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteDBClusterInput{}
 
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 
 	return res, nil
@@ -1665,11 +1668,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "DBClusterQuotaExceededFault",
 		"DBSubnetGroupDoesNotCoverEnoughAZs",
 		"InsufficientStorageClusterCapacity",
@@ -1688,150 +1692,195 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 // with each the field set by the corresponding configuration's fields.
 func (rm *resourceManager) newRestoreDBClusterFromSnapshotInput(
 	r *resource,
-) *svcsdk.RestoreDBClusterFromSnapshotInput {
+) (*svcsdk.RestoreDBClusterFromSnapshotInput, error) {
 	res := &svcsdk.RestoreDBClusterFromSnapshotInput{}
 
 	if r.ko.Spec.AvailabilityZones != nil {
-		resf0 := []*string{}
-		for _, resf0iter := range r.ko.Spec.AvailabilityZones {
-			var resf0elem string
-			resf0elem = *resf0iter
-			resf0 = append(resf0, &resf0elem)
-		}
-		res.SetAvailabilityZones(resf0)
+		res.AvailabilityZones = aws.ToStringSlice(r.ko.Spec.AvailabilityZones)
 	}
 	if r.ko.Spec.BacktrackWindow != nil {
-		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
+		res.BacktrackWindow = r.ko.Spec.BacktrackWindow
 	}
 	if r.ko.Spec.CopyTagsToSnapshot != nil {
-		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+		res.CopyTagsToSnapshot = r.ko.Spec.CopyTagsToSnapshot
 	}
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 	if r.ko.Spec.DBClusterInstanceClass != nil {
-		res.SetDBClusterInstanceClass(*r.ko.Spec.DBClusterInstanceClass)
+		res.DBClusterInstanceClass = r.ko.Spec.DBClusterInstanceClass
 	}
 	if r.ko.Spec.DBClusterParameterGroupName != nil {
-		res.SetDBClusterParameterGroupName(*r.ko.Spec.DBClusterParameterGroupName)
+		res.DBClusterParameterGroupName = r.ko.Spec.DBClusterParameterGroupName
 	}
 	if r.ko.Spec.DBSubnetGroupName != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+		res.DBSubnetGroupName = r.ko.Spec.DBSubnetGroupName
 	}
 	if r.ko.Spec.DatabaseName != nil {
-		res.SetDatabaseName(*r.ko.Spec.DatabaseName)
+		res.DatabaseName = r.ko.Spec.DatabaseName
 	}
 	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+		res.DeletionProtection = r.ko.Spec.DeletionProtection
 	}
 	if r.ko.Spec.Domain != nil {
-		res.SetDomain(*r.ko.Spec.Domain)
+		res.Domain = r.ko.Spec.Domain
 	}
 	if r.ko.Spec.DomainIAMRoleName != nil {
-		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+		res.DomainIAMRoleName = r.ko.Spec.DomainIAMRoleName
 	}
 	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
-		resf11 := []*string{}
-		for _, resf11iter := range r.ko.Spec.EnableCloudwatchLogsExports {
-			var resf11elem string
-			resf11elem = *resf11iter
-			resf11 = append(resf11, &resf11elem)
-		}
-		res.SetEnableCloudwatchLogsExports(resf11)
+		res.EnableCloudwatchLogsExports = aws.ToStringSlice(r.ko.Spec.EnableCloudwatchLogsExports)
 	}
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
-		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+		res.EnableIAMDatabaseAuthentication = r.ko.Spec.EnableIAMDatabaseAuthentication
+	}
+	if r.ko.Spec.EnablePerformanceInsights != nil {
+		res.EnablePerformanceInsights = r.ko.Spec.EnablePerformanceInsights
 	}
 	if r.ko.Spec.Engine != nil {
-		res.SetEngine(*r.ko.Spec.Engine)
+		res.Engine = r.ko.Spec.Engine
 	}
 	if r.ko.Spec.EngineMode != nil {
-		res.SetEngineMode(*r.ko.Spec.EngineMode)
+		res.EngineMode = r.ko.Spec.EngineMode
 	}
 	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+		res.EngineVersion = r.ko.Spec.EngineVersion
 	}
 	if r.ko.Spec.IOPS != nil {
-		res.SetIops(*r.ko.Spec.IOPS)
+		iopsCopy0 := *r.ko.Spec.IOPS
+		if iopsCopy0 > math.MaxInt32 || iopsCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Iops is of type int32")
+		}
+		iopsCopy := int32(iopsCopy0)
+		res.Iops = &iopsCopy
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
+	}
+	if r.ko.Spec.MonitoringInterval != nil {
+		monitoringIntervalCopy0 := *r.ko.Spec.MonitoringInterval
+		if monitoringIntervalCopy0 > math.MaxInt32 || monitoringIntervalCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field MonitoringInterval is of type int32")
+		}
+		monitoringIntervalCopy := int32(monitoringIntervalCopy0)
+		res.MonitoringInterval = &monitoringIntervalCopy
+	}
+	if r.ko.Spec.MonitoringRoleARN != nil {
+		res.MonitoringRoleArn = r.ko.Spec.MonitoringRoleARN
 	}
 	if r.ko.Spec.NetworkType != nil {
-		res.SetNetworkType(*r.ko.Spec.NetworkType)
+		res.NetworkType = r.ko.Spec.NetworkType
 	}
 	if r.ko.Spec.OptionGroupName != nil {
-		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+		res.OptionGroupName = r.ko.Spec.OptionGroupName
+	}
+	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+		res.PerformanceInsightsKMSKeyId = r.ko.Spec.PerformanceInsightsKMSKeyID
+	}
+	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+		performanceInsightsRetentionPeriodCopy0 := *r.ko.Spec.PerformanceInsightsRetentionPeriod
+		if performanceInsightsRetentionPeriodCopy0 > math.MaxInt32 || performanceInsightsRetentionPeriodCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field PerformanceInsightsRetentionPeriod is of type int32")
+		}
+		performanceInsightsRetentionPeriodCopy := int32(performanceInsightsRetentionPeriodCopy0)
+		res.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	}
 	if r.ko.Spec.Port != nil {
-		res.SetPort(*r.ko.Spec.Port)
+		portCopy0 := *r.ko.Spec.Port
+		if portCopy0 > math.MaxInt32 || portCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Port is of type int32")
+		}
+		portCopy := int32(portCopy0)
+		res.Port = &portCopy
 	}
 	if r.ko.Spec.PubliclyAccessible != nil {
-		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+		res.PubliclyAccessible = r.ko.Spec.PubliclyAccessible
 	}
 	if r.ko.Spec.ScalingConfiguration != nil {
-		resf22 := &svcsdk.ScalingConfiguration{}
+		resf27 := &svcsdktypes.ScalingConfiguration{}
 		if r.ko.Spec.ScalingConfiguration.AutoPause != nil {
-			resf22.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+			resf27.AutoPause = r.ko.Spec.ScalingConfiguration.AutoPause
 		}
 		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
-			resf22.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+			maxCapacityCopy0 := *r.ko.Spec.ScalingConfiguration.MaxCapacity
+			if maxCapacityCopy0 > math.MaxInt32 || maxCapacityCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MaxCapacity is of type int32")
+			}
+			maxCapacityCopy := int32(maxCapacityCopy0)
+			resf27.MaxCapacity = &maxCapacityCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil {
-			resf22.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+			minCapacityCopy0 := *r.ko.Spec.ScalingConfiguration.MinCapacity
+			if minCapacityCopy0 > math.MaxInt32 || minCapacityCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MinCapacity is of type int32")
+			}
+			minCapacityCopy := int32(minCapacityCopy0)
+			resf27.MinCapacity = &minCapacityCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
-			resf22.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+			secondsBeforeTimeoutCopy0 := *r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout
+			if secondsBeforeTimeoutCopy0 > math.MaxInt32 || secondsBeforeTimeoutCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsBeforeTimeout is of type int32")
+			}
+			secondsBeforeTimeoutCopy := int32(secondsBeforeTimeoutCopy0)
+			resf27.SecondsBeforeTimeout = &secondsBeforeTimeoutCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
-			resf22.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+			secondsUntilAutoPauseCopy0 := *r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause
+			if secondsUntilAutoPauseCopy0 > math.MaxInt32 || secondsUntilAutoPauseCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsUntilAutoPause is of type int32")
+			}
+			secondsUntilAutoPauseCopy := int32(secondsUntilAutoPauseCopy0)
+			resf27.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
-			resf22.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+			resf27.TimeoutAction = r.ko.Spec.ScalingConfiguration.TimeoutAction
 		}
-		res.SetScalingConfiguration(resf22)
+		res.ScalingConfiguration = resf27
 	}
 	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil {
-		resf23 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		resf28 := &svcsdktypes.ServerlessV2ScalingConfiguration{}
 		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-			resf23.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			resf28.MaxCapacity = r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity
 		}
 		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
-			resf23.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+			resf28.MinCapacity = r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity
 		}
-		res.SetServerlessV2ScalingConfiguration(resf23)
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			secondsUntilAutoPauseCopy0 := *r.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause
+			if secondsUntilAutoPauseCopy0 > math.MaxInt32 || secondsUntilAutoPauseCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsUntilAutoPause is of type int32")
+			}
+			secondsUntilAutoPauseCopy := int32(secondsUntilAutoPauseCopy0)
+			resf28.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
+		}
+		res.ServerlessV2ScalingConfiguration = resf28
 	}
 	if r.ko.Spec.SnapshotIdentifier != nil {
-		res.SetSnapshotIdentifier(*r.ko.Spec.SnapshotIdentifier)
+		res.SnapshotIdentifier = r.ko.Spec.SnapshotIdentifier
 	}
 	if r.ko.Spec.StorageType != nil {
-		res.SetStorageType(*r.ko.Spec.StorageType)
+		res.StorageType = r.ko.Spec.StorageType
 	}
 	if r.ko.Spec.Tags != nil {
-		resf26 := []*svcsdk.Tag{}
-		for _, resf26iter := range r.ko.Spec.Tags {
-			resf26elem := &svcsdk.Tag{}
-			if resf26iter.Key != nil {
-				resf26elem.SetKey(*resf26iter.Key)
+		resf31 := []svcsdktypes.Tag{}
+		for _, resf31iter := range r.ko.Spec.Tags {
+			resf31elem := &svcsdktypes.Tag{}
+			if resf31iter.Key != nil {
+				resf31elem.Key = resf31iter.Key
 			}
-			if resf26iter.Value != nil {
-				resf26elem.SetValue(*resf26iter.Value)
+			if resf31iter.Value != nil {
+				resf31elem.Value = resf31iter.Value
 			}
-			resf26 = append(resf26, resf26elem)
+			resf31 = append(resf31, *resf31elem)
 		}
-		res.SetTags(resf26)
+		res.Tags = resf31
 	}
 	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		resf27 := []*string{}
-		for _, resf27iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var resf27elem string
-			resf27elem = *resf27iter
-			resf27 = append(resf27, &resf27elem)
-		}
-		res.SetVpcSecurityGroupIds(resf27)
+		res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
 	}
 
-	return res
+	return res, nil
 }
 
 // setResourceFromRestoreDBClusterFromSnapshotOutput sets a resource RestoreDBClusterFromSnapshotOutput type
@@ -1851,18 +1900,19 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 	} else {
 		r.ko.Status.ActivityStreamKMSKeyID = nil
 	}
-	if resp.DBCluster.ActivityStreamMode != nil {
-		r.ko.Status.ActivityStreamMode = resp.DBCluster.ActivityStreamMode
+	if resp.DBCluster.ActivityStreamMode != "" {
+		r.ko.Status.ActivityStreamMode = aws.String(string(resp.DBCluster.ActivityStreamMode))
 	} else {
 		r.ko.Status.ActivityStreamMode = nil
 	}
-	if resp.DBCluster.ActivityStreamStatus != nil {
-		r.ko.Status.ActivityStreamStatus = resp.DBCluster.ActivityStreamStatus
+	if resp.DBCluster.ActivityStreamStatus != "" {
+		r.ko.Status.ActivityStreamStatus = aws.String(string(resp.DBCluster.ActivityStreamStatus))
 	} else {
 		r.ko.Status.ActivityStreamStatus = nil
 	}
 	if resp.DBCluster.AllocatedStorage != nil {
-		r.ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
+		allocatedStorageCopy := int64(*resp.DBCluster.AllocatedStorage)
+		r.ko.Spec.AllocatedStorage = &allocatedStorageCopy
 	} else {
 		r.ko.Spec.AllocatedStorage = nil
 	}
@@ -1896,13 +1946,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Status.AutomaticRestartTime = nil
 	}
 	if resp.DBCluster.AvailabilityZones != nil {
-		f8 := []*string{}
-		for _, f8iter := range resp.DBCluster.AvailabilityZones {
-			var f8elem string
-			f8elem = *f8iter
-			f8 = append(f8, &f8elem)
-		}
-		r.ko.Spec.AvailabilityZones = f8
+		r.ko.Spec.AvailabilityZones = aws.StringSlice(resp.DBCluster.AvailabilityZones)
 	} else {
 		r.ko.Spec.AvailabilityZones = nil
 	}
@@ -1917,12 +1961,14 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Spec.BacktrackWindow = nil
 	}
 	if resp.DBCluster.BackupRetentionPeriod != nil {
-		r.ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+		backupRetentionPeriodCopy := int64(*resp.DBCluster.BackupRetentionPeriod)
+		r.ko.Spec.BackupRetentionPeriod = &backupRetentionPeriodCopy
 	} else {
 		r.ko.Spec.BackupRetentionPeriod = nil
 	}
 	if resp.DBCluster.Capacity != nil {
-		r.ko.Status.Capacity = resp.DBCluster.Capacity
+		capacityCopy := int64(*resp.DBCluster.Capacity)
+		r.ko.Status.Capacity = &capacityCopy
 	} else {
 		r.ko.Status.Capacity = nil
 	}
@@ -1952,13 +1998,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Status.CrossAccountClone = nil
 	}
 	if resp.DBCluster.CustomEndpoints != nil {
-		f18 := []*string{}
-		for _, f18iter := range resp.DBCluster.CustomEndpoints {
-			var f18elem string
-			f18elem = *f18iter
-			f18 = append(f18, &f18elem)
-		}
-		r.ko.Status.CustomEndpoints = f18
+		r.ko.Status.CustomEndpoints = aws.StringSlice(resp.DBCluster.CustomEndpoints)
 	} else {
 		r.ko.Status.CustomEndpoints = nil
 	}
@@ -1993,7 +2033,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 				f22elem.IsClusterWriter = f22iter.IsClusterWriter
 			}
 			if f22iter.PromotionTier != nil {
-				f22elem.PromotionTier = f22iter.PromotionTier
+				promotionTierCopy := int64(*f22iter.PromotionTier)
+				f22elem.PromotionTier = &promotionTierCopy
 			}
 			f22 = append(f22, f22elem)
 		}
@@ -2080,13 +2121,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Status.EarliestRestorableTime = nil
 	}
 	if resp.DBCluster.EnabledCloudwatchLogsExports != nil {
-		f33 := []*string{}
-		for _, f33iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
-			var f33elem string
-			f33elem = *f33iter
-			f33 = append(f33, &f33elem)
-		}
-		r.ko.Status.EnabledCloudwatchLogsExports = f33
+		r.ko.Status.EnabledCloudwatchLogsExports = aws.StringSlice(resp.DBCluster.EnabledCloudwatchLogsExports)
 	} else {
 		r.ko.Status.EnabledCloudwatchLogsExports = nil
 	}
@@ -2115,8 +2150,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 	} else {
 		r.ko.Status.GlobalWriteForwardingRequested = nil
 	}
-	if resp.DBCluster.GlobalWriteForwardingStatus != nil {
-		r.ko.Status.GlobalWriteForwardingStatus = resp.DBCluster.GlobalWriteForwardingStatus
+	if resp.DBCluster.GlobalWriteForwardingStatus != "" {
+		r.ko.Status.GlobalWriteForwardingStatus = aws.String(string(resp.DBCluster.GlobalWriteForwardingStatus))
 	} else {
 		r.ko.Status.GlobalWriteForwardingStatus = nil
 	}
@@ -2136,7 +2171,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Status.IAMDatabaseAuthenticationEnabled = nil
 	}
 	if resp.DBCluster.Iops != nil {
-		r.ko.Spec.IOPS = resp.DBCluster.Iops
+		iopsCopy := int64(*resp.DBCluster.Iops)
+		r.ko.Spec.IOPS = &iopsCopy
 	} else {
 		r.ko.Spec.IOPS = nil
 	}
@@ -2171,7 +2207,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Spec.MasterUsername = nil
 	}
 	if resp.DBCluster.MonitoringInterval != nil {
-		r.ko.Spec.MonitoringInterval = resp.DBCluster.MonitoringInterval
+		monitoringIntervalCopy := int64(*resp.DBCluster.MonitoringInterval)
+		r.ko.Spec.MonitoringInterval = &monitoringIntervalCopy
 	} else {
 		r.ko.Spec.MonitoringInterval = nil
 	}
@@ -2193,10 +2230,12 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 	if resp.DBCluster.PendingModifiedValues != nil {
 		f52 := &svcapitypes.ClusterPendingModifiedValues{}
 		if resp.DBCluster.PendingModifiedValues.AllocatedStorage != nil {
-			f52.AllocatedStorage = resp.DBCluster.PendingModifiedValues.AllocatedStorage
+			allocatedStorageCopy := int64(*resp.DBCluster.PendingModifiedValues.AllocatedStorage)
+			f52.AllocatedStorage = &allocatedStorageCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod != nil {
-			f52.BackupRetentionPeriod = resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod
+			backupRetentionPeriodCopy := int64(*resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod)
+			f52.BackupRetentionPeriod = &backupRetentionPeriodCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.DBClusterIdentifier != nil {
 			f52.DBClusterIdentifier = resp.DBCluster.PendingModifiedValues.DBClusterIdentifier
@@ -2208,7 +2247,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 			f52.IAMDatabaseAuthenticationEnabled = resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
 		}
 		if resp.DBCluster.PendingModifiedValues.Iops != nil {
-			f52.IOPS = resp.DBCluster.PendingModifiedValues.Iops
+			iopsCopy := int64(*resp.DBCluster.PendingModifiedValues.Iops)
+			f52.IOPS = &iopsCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.MasterUserPassword != nil {
 			f52.MasterUserPassword = resp.DBCluster.PendingModifiedValues.MasterUserPassword
@@ -2216,22 +2256,10 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
 			f52f7 := &svcapitypes.PendingCloudwatchLogsExports{}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-				f52f7f0 := []*string{}
-				for _, f52f7f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-					var f52f7f0elem string
-					f52f7f0elem = *f52f7f0iter
-					f52f7f0 = append(f52f7f0, &f52f7f0elem)
-				}
-				f52f7.LogTypesToDisable = f52f7f0
+				f52f7.LogTypesToDisable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable)
 			}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-				f52f7f1 := []*string{}
-				for _, f52f7f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-					var f52f7f1elem string
-					f52f7f1elem = *f52f7f1iter
-					f52f7f1 = append(f52f7f1, &f52f7f1elem)
-				}
-				f52f7.LogTypesToEnable = f52f7f1
+				f52f7.LogTypesToEnable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable)
 			}
 			f52.PendingCloudwatchLogsExports = f52f7
 		}
@@ -2255,12 +2283,14 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Spec.PerformanceInsightsKMSKeyID = nil
 	}
 	if resp.DBCluster.PerformanceInsightsRetentionPeriod != nil {
-		r.ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBCluster.PerformanceInsightsRetentionPeriod
+		performanceInsightsRetentionPeriodCopy := int64(*resp.DBCluster.PerformanceInsightsRetentionPeriod)
+		r.ko.Spec.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	} else {
 		r.ko.Spec.PerformanceInsightsRetentionPeriod = nil
 	}
 	if resp.DBCluster.Port != nil {
-		r.ko.Spec.Port = resp.DBCluster.Port
+		portCopy := int64(*resp.DBCluster.Port)
+		r.ko.Spec.Port = &portCopy
 	} else {
 		r.ko.Spec.Port = nil
 	}
@@ -2280,13 +2310,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		r.ko.Spec.PubliclyAccessible = nil
 	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
-		f61 := []*string{}
-		for _, f61iter := range resp.DBCluster.ReadReplicaIdentifiers {
-			var f61elem string
-			f61elem = *f61iter
-			f61 = append(f61, &f61elem)
-		}
-		r.ko.Status.ReadReplicaIdentifiers = f61
+		r.ko.Status.ReadReplicaIdentifiers = aws.StringSlice(resp.DBCluster.ReadReplicaIdentifiers)
 	} else {
 		r.ko.Status.ReadReplicaIdentifiers = nil
 	}
@@ -2306,16 +2330,20 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 			f64.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MaxCapacity != nil {
-			f64.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
+			maxCapacityCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.MaxCapacity)
+			f64.MaxCapacity = &maxCapacityCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MinCapacity != nil {
-			f64.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
+			minCapacityCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.MinCapacity)
+			f64.MinCapacity = &minCapacityCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
-			f64.SecondsBeforeTimeout = resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout
+			secondsBeforeTimeoutCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout)
+			f64.SecondsBeforeTimeout = &secondsBeforeTimeoutCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-			f64.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
+			secondsUntilAutoPauseCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause)
+			f64.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
 			f64.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
@@ -2331,6 +2359,10 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 		}
 		if resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity != nil {
 			f65.MinCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity
+		}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			secondsUntilAutoPauseCopy := int64(*resp.DBCluster.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause)
+			f65.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		r.ko.Spec.ServerlessV2ScalingConfiguration = f65
 	} else {
@@ -2390,141 +2422,192 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 // with each the field set by the corresponding configuration's fields.
 func (rm *resourceManager) newRestoreDBClusterToPointInTimeInput(
 	r *resource,
-) *svcsdk.RestoreDBClusterToPointInTimeInput {
+) (*svcsdk.RestoreDBClusterToPointInTimeInput, error) {
 	res := &svcsdk.RestoreDBClusterToPointInTimeInput{}
 
 	if r.ko.Spec.BacktrackWindow != nil {
-		res.SetBacktrackWindow(*r.ko.Spec.BacktrackWindow)
+		res.BacktrackWindow = r.ko.Spec.BacktrackWindow
 	}
 	if r.ko.Spec.CopyTagsToSnapshot != nil {
-		res.SetCopyTagsToSnapshot(*r.ko.Spec.CopyTagsToSnapshot)
+		res.CopyTagsToSnapshot = r.ko.Spec.CopyTagsToSnapshot
 	}
 	if r.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*r.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = r.ko.Spec.DBClusterIdentifier
 	}
 	if r.ko.Spec.DBClusterInstanceClass != nil {
-		res.SetDBClusterInstanceClass(*r.ko.Spec.DBClusterInstanceClass)
+		res.DBClusterInstanceClass = r.ko.Spec.DBClusterInstanceClass
 	}
 	if r.ko.Spec.DBClusterParameterGroupName != nil {
-		res.SetDBClusterParameterGroupName(*r.ko.Spec.DBClusterParameterGroupName)
+		res.DBClusterParameterGroupName = r.ko.Spec.DBClusterParameterGroupName
 	}
 	if r.ko.Spec.DBSubnetGroupName != nil {
-		res.SetDBSubnetGroupName(*r.ko.Spec.DBSubnetGroupName)
+		res.DBSubnetGroupName = r.ko.Spec.DBSubnetGroupName
 	}
 	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+		res.DeletionProtection = r.ko.Spec.DeletionProtection
 	}
 	if r.ko.Spec.Domain != nil {
-		res.SetDomain(*r.ko.Spec.Domain)
+		res.Domain = r.ko.Spec.Domain
 	}
 	if r.ko.Spec.DomainIAMRoleName != nil {
-		res.SetDomainIAMRoleName(*r.ko.Spec.DomainIAMRoleName)
+		res.DomainIAMRoleName = r.ko.Spec.DomainIAMRoleName
 	}
 	if r.ko.Spec.EnableCloudwatchLogsExports != nil {
-		resf9 := []*string{}
-		for _, resf9iter := range r.ko.Spec.EnableCloudwatchLogsExports {
-			var resf9elem string
-			resf9elem = *resf9iter
-			resf9 = append(resf9, &resf9elem)
-		}
-		res.SetEnableCloudwatchLogsExports(resf9)
+		res.EnableCloudwatchLogsExports = aws.ToStringSlice(r.ko.Spec.EnableCloudwatchLogsExports)
 	}
 	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
-		res.SetEnableIAMDatabaseAuthentication(*r.ko.Spec.EnableIAMDatabaseAuthentication)
+		res.EnableIAMDatabaseAuthentication = r.ko.Spec.EnableIAMDatabaseAuthentication
+	}
+	if r.ko.Spec.EnablePerformanceInsights != nil {
+		res.EnablePerformanceInsights = r.ko.Spec.EnablePerformanceInsights
 	}
 	if r.ko.Spec.EngineMode != nil {
-		res.SetEngineMode(*r.ko.Spec.EngineMode)
+		res.EngineMode = r.ko.Spec.EngineMode
 	}
 	if r.ko.Spec.IOPS != nil {
-		res.SetIops(*r.ko.Spec.IOPS)
+		iopsCopy0 := *r.ko.Spec.IOPS
+		if iopsCopy0 > math.MaxInt32 || iopsCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Iops is of type int32")
+		}
+		iopsCopy := int32(iopsCopy0)
+		res.Iops = &iopsCopy
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
+	}
+	if r.ko.Spec.MonitoringInterval != nil {
+		monitoringIntervalCopy0 := *r.ko.Spec.MonitoringInterval
+		if monitoringIntervalCopy0 > math.MaxInt32 || monitoringIntervalCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field MonitoringInterval is of type int32")
+		}
+		monitoringIntervalCopy := int32(monitoringIntervalCopy0)
+		res.MonitoringInterval = &monitoringIntervalCopy
+	}
+	if r.ko.Spec.MonitoringRoleARN != nil {
+		res.MonitoringRoleArn = r.ko.Spec.MonitoringRoleARN
 	}
 	if r.ko.Spec.NetworkType != nil {
-		res.SetNetworkType(*r.ko.Spec.NetworkType)
+		res.NetworkType = r.ko.Spec.NetworkType
 	}
 	if r.ko.Spec.OptionGroupName != nil {
-		res.SetOptionGroupName(*r.ko.Spec.OptionGroupName)
+		res.OptionGroupName = r.ko.Spec.OptionGroupName
+	}
+	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+		res.PerformanceInsightsKMSKeyId = r.ko.Spec.PerformanceInsightsKMSKeyID
+	}
+	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+		performanceInsightsRetentionPeriodCopy0 := *r.ko.Spec.PerformanceInsightsRetentionPeriod
+		if performanceInsightsRetentionPeriodCopy0 > math.MaxInt32 || performanceInsightsRetentionPeriodCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field PerformanceInsightsRetentionPeriod is of type int32")
+		}
+		performanceInsightsRetentionPeriodCopy := int32(performanceInsightsRetentionPeriodCopy0)
+		res.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	}
 	if r.ko.Spec.Port != nil {
-		res.SetPort(*r.ko.Spec.Port)
+		portCopy0 := *r.ko.Spec.Port
+		if portCopy0 > math.MaxInt32 || portCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Port is of type int32")
+		}
+		portCopy := int32(portCopy0)
+		res.Port = &portCopy
 	}
 	if r.ko.Spec.PubliclyAccessible != nil {
-		res.SetPubliclyAccessible(*r.ko.Spec.PubliclyAccessible)
+		res.PubliclyAccessible = r.ko.Spec.PubliclyAccessible
 	}
 	if r.ko.Spec.RestoreToTime != nil {
-		res.SetRestoreToTime(r.ko.Spec.RestoreToTime.Time)
+		res.RestoreToTime = &r.ko.Spec.RestoreToTime.Time
 	}
 	if r.ko.Spec.RestoreType != nil {
-		res.SetRestoreType(*r.ko.Spec.RestoreType)
+		res.RestoreType = r.ko.Spec.RestoreType
 	}
 	if r.ko.Spec.ScalingConfiguration != nil {
-		resf20 := &svcsdk.ScalingConfiguration{}
+		resf25 := &svcsdktypes.ScalingConfiguration{}
 		if r.ko.Spec.ScalingConfiguration.AutoPause != nil {
-			resf20.SetAutoPause(*r.ko.Spec.ScalingConfiguration.AutoPause)
+			resf25.AutoPause = r.ko.Spec.ScalingConfiguration.AutoPause
 		}
 		if r.ko.Spec.ScalingConfiguration.MaxCapacity != nil {
-			resf20.SetMaxCapacity(*r.ko.Spec.ScalingConfiguration.MaxCapacity)
+			maxCapacityCopy0 := *r.ko.Spec.ScalingConfiguration.MaxCapacity
+			if maxCapacityCopy0 > math.MaxInt32 || maxCapacityCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MaxCapacity is of type int32")
+			}
+			maxCapacityCopy := int32(maxCapacityCopy0)
+			resf25.MaxCapacity = &maxCapacityCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.MinCapacity != nil {
-			resf20.SetMinCapacity(*r.ko.Spec.ScalingConfiguration.MinCapacity)
+			minCapacityCopy0 := *r.ko.Spec.ScalingConfiguration.MinCapacity
+			if minCapacityCopy0 > math.MaxInt32 || minCapacityCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MinCapacity is of type int32")
+			}
+			minCapacityCopy := int32(minCapacityCopy0)
+			resf25.MinCapacity = &minCapacityCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout != nil {
-			resf20.SetSecondsBeforeTimeout(*r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout)
+			secondsBeforeTimeoutCopy0 := *r.ko.Spec.ScalingConfiguration.SecondsBeforeTimeout
+			if secondsBeforeTimeoutCopy0 > math.MaxInt32 || secondsBeforeTimeoutCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsBeforeTimeout is of type int32")
+			}
+			secondsBeforeTimeoutCopy := int32(secondsBeforeTimeoutCopy0)
+			resf25.SecondsBeforeTimeout = &secondsBeforeTimeoutCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil {
-			resf20.SetSecondsUntilAutoPause(*r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+			secondsUntilAutoPauseCopy0 := *r.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause
+			if secondsUntilAutoPauseCopy0 > math.MaxInt32 || secondsUntilAutoPauseCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsUntilAutoPause is of type int32")
+			}
+			secondsUntilAutoPauseCopy := int32(secondsUntilAutoPauseCopy0)
+			resf25.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		if r.ko.Spec.ScalingConfiguration.TimeoutAction != nil {
-			resf20.SetTimeoutAction(*r.ko.Spec.ScalingConfiguration.TimeoutAction)
+			resf25.TimeoutAction = r.ko.Spec.ScalingConfiguration.TimeoutAction
 		}
-		res.SetScalingConfiguration(resf20)
+		res.ScalingConfiguration = resf25
 	}
 	if r.ko.Spec.ServerlessV2ScalingConfiguration != nil {
-		resf21 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		resf26 := &svcsdktypes.ServerlessV2ScalingConfiguration{}
 		if r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-			resf21.SetMaxCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+			resf26.MaxCapacity = r.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity
 		}
 		if r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
-			resf21.SetMinCapacity(*r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+			resf26.MinCapacity = r.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity
 		}
-		res.SetServerlessV2ScalingConfiguration(resf21)
+		if r.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			secondsUntilAutoPauseCopy0 := *r.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause
+			if secondsUntilAutoPauseCopy0 > math.MaxInt32 || secondsUntilAutoPauseCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field SecondsUntilAutoPause is of type int32")
+			}
+			secondsUntilAutoPauseCopy := int32(secondsUntilAutoPauseCopy0)
+			resf26.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
+		}
+		res.ServerlessV2ScalingConfiguration = resf26
 	}
 	if r.ko.Spec.SourceDBClusterIdentifier != nil {
-		res.SetSourceDBClusterIdentifier(*r.ko.Spec.SourceDBClusterIdentifier)
+		res.SourceDBClusterIdentifier = r.ko.Spec.SourceDBClusterIdentifier
 	}
 	if r.ko.Spec.StorageType != nil {
-		res.SetStorageType(*r.ko.Spec.StorageType)
+		res.StorageType = r.ko.Spec.StorageType
 	}
 	if r.ko.Spec.Tags != nil {
-		resf24 := []*svcsdk.Tag{}
-		for _, resf24iter := range r.ko.Spec.Tags {
-			resf24elem := &svcsdk.Tag{}
-			if resf24iter.Key != nil {
-				resf24elem.SetKey(*resf24iter.Key)
+		resf29 := []svcsdktypes.Tag{}
+		for _, resf29iter := range r.ko.Spec.Tags {
+			resf29elem := &svcsdktypes.Tag{}
+			if resf29iter.Key != nil {
+				resf29elem.Key = resf29iter.Key
 			}
-			if resf24iter.Value != nil {
-				resf24elem.SetValue(*resf24iter.Value)
+			if resf29iter.Value != nil {
+				resf29elem.Value = resf29iter.Value
 			}
-			resf24 = append(resf24, resf24elem)
+			resf29 = append(resf29, *resf29elem)
 		}
-		res.SetTags(resf24)
+		res.Tags = resf29
 	}
 	if r.ko.Spec.UseLatestRestorableTime != nil {
-		res.SetUseLatestRestorableTime(*r.ko.Spec.UseLatestRestorableTime)
+		res.UseLatestRestorableTime = r.ko.Spec.UseLatestRestorableTime
 	}
 	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		resf26 := []*string{}
-		for _, resf26iter := range r.ko.Spec.VPCSecurityGroupIDs {
-			var resf26elem string
-			resf26elem = *resf26iter
-			resf26 = append(resf26, &resf26elem)
-		}
-		res.SetVpcSecurityGroupIds(resf26)
+		res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
 	}
 
-	return res
+	return res, nil
 }
 
 // setResourceFromRestoreDBClusterToPointInTimeOutput sets a resource RestoreDBClusterToPointInTimeOutput type
@@ -2544,18 +2627,19 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 	} else {
 		r.ko.Status.ActivityStreamKMSKeyID = nil
 	}
-	if resp.DBCluster.ActivityStreamMode != nil {
-		r.ko.Status.ActivityStreamMode = resp.DBCluster.ActivityStreamMode
+	if resp.DBCluster.ActivityStreamMode != "" {
+		r.ko.Status.ActivityStreamMode = aws.String(string(resp.DBCluster.ActivityStreamMode))
 	} else {
 		r.ko.Status.ActivityStreamMode = nil
 	}
-	if resp.DBCluster.ActivityStreamStatus != nil {
-		r.ko.Status.ActivityStreamStatus = resp.DBCluster.ActivityStreamStatus
+	if resp.DBCluster.ActivityStreamStatus != "" {
+		r.ko.Status.ActivityStreamStatus = aws.String(string(resp.DBCluster.ActivityStreamStatus))
 	} else {
 		r.ko.Status.ActivityStreamStatus = nil
 	}
 	if resp.DBCluster.AllocatedStorage != nil {
-		r.ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
+		allocatedStorageCopy := int64(*resp.DBCluster.AllocatedStorage)
+		r.ko.Spec.AllocatedStorage = &allocatedStorageCopy
 	} else {
 		r.ko.Spec.AllocatedStorage = nil
 	}
@@ -2589,13 +2673,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Status.AutomaticRestartTime = nil
 	}
 	if resp.DBCluster.AvailabilityZones != nil {
-		f8 := []*string{}
-		for _, f8iter := range resp.DBCluster.AvailabilityZones {
-			var f8elem string
-			f8elem = *f8iter
-			f8 = append(f8, &f8elem)
-		}
-		r.ko.Spec.AvailabilityZones = f8
+		r.ko.Spec.AvailabilityZones = aws.StringSlice(resp.DBCluster.AvailabilityZones)
 	} else {
 		r.ko.Spec.AvailabilityZones = nil
 	}
@@ -2610,12 +2688,14 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Spec.BacktrackWindow = nil
 	}
 	if resp.DBCluster.BackupRetentionPeriod != nil {
-		r.ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+		backupRetentionPeriodCopy := int64(*resp.DBCluster.BackupRetentionPeriod)
+		r.ko.Spec.BackupRetentionPeriod = &backupRetentionPeriodCopy
 	} else {
 		r.ko.Spec.BackupRetentionPeriod = nil
 	}
 	if resp.DBCluster.Capacity != nil {
-		r.ko.Status.Capacity = resp.DBCluster.Capacity
+		capacityCopy := int64(*resp.DBCluster.Capacity)
+		r.ko.Status.Capacity = &capacityCopy
 	} else {
 		r.ko.Status.Capacity = nil
 	}
@@ -2645,13 +2725,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Status.CrossAccountClone = nil
 	}
 	if resp.DBCluster.CustomEndpoints != nil {
-		f18 := []*string{}
-		for _, f18iter := range resp.DBCluster.CustomEndpoints {
-			var f18elem string
-			f18elem = *f18iter
-			f18 = append(f18, &f18elem)
-		}
-		r.ko.Status.CustomEndpoints = f18
+		r.ko.Status.CustomEndpoints = aws.StringSlice(resp.DBCluster.CustomEndpoints)
 	} else {
 		r.ko.Status.CustomEndpoints = nil
 	}
@@ -2686,7 +2760,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 				f22elem.IsClusterWriter = f22iter.IsClusterWriter
 			}
 			if f22iter.PromotionTier != nil {
-				f22elem.PromotionTier = f22iter.PromotionTier
+				promotionTierCopy := int64(*f22iter.PromotionTier)
+				f22elem.PromotionTier = &promotionTierCopy
 			}
 			f22 = append(f22, f22elem)
 		}
@@ -2773,13 +2848,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Status.EarliestRestorableTime = nil
 	}
 	if resp.DBCluster.EnabledCloudwatchLogsExports != nil {
-		f33 := []*string{}
-		for _, f33iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
-			var f33elem string
-			f33elem = *f33iter
-			f33 = append(f33, &f33elem)
-		}
-		r.ko.Status.EnabledCloudwatchLogsExports = f33
+		r.ko.Status.EnabledCloudwatchLogsExports = aws.StringSlice(resp.DBCluster.EnabledCloudwatchLogsExports)
 	} else {
 		r.ko.Status.EnabledCloudwatchLogsExports = nil
 	}
@@ -2808,8 +2877,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 	} else {
 		r.ko.Status.GlobalWriteForwardingRequested = nil
 	}
-	if resp.DBCluster.GlobalWriteForwardingStatus != nil {
-		r.ko.Status.GlobalWriteForwardingStatus = resp.DBCluster.GlobalWriteForwardingStatus
+	if resp.DBCluster.GlobalWriteForwardingStatus != "" {
+		r.ko.Status.GlobalWriteForwardingStatus = aws.String(string(resp.DBCluster.GlobalWriteForwardingStatus))
 	} else {
 		r.ko.Status.GlobalWriteForwardingStatus = nil
 	}
@@ -2829,7 +2898,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Status.IAMDatabaseAuthenticationEnabled = nil
 	}
 	if resp.DBCluster.Iops != nil {
-		r.ko.Spec.IOPS = resp.DBCluster.Iops
+		iopsCopy := int64(*resp.DBCluster.Iops)
+		r.ko.Spec.IOPS = &iopsCopy
 	} else {
 		r.ko.Spec.IOPS = nil
 	}
@@ -2864,7 +2934,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Spec.MasterUsername = nil
 	}
 	if resp.DBCluster.MonitoringInterval != nil {
-		r.ko.Spec.MonitoringInterval = resp.DBCluster.MonitoringInterval
+		monitoringIntervalCopy := int64(*resp.DBCluster.MonitoringInterval)
+		r.ko.Spec.MonitoringInterval = &monitoringIntervalCopy
 	} else {
 		r.ko.Spec.MonitoringInterval = nil
 	}
@@ -2886,10 +2957,12 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 	if resp.DBCluster.PendingModifiedValues != nil {
 		f52 := &svcapitypes.ClusterPendingModifiedValues{}
 		if resp.DBCluster.PendingModifiedValues.AllocatedStorage != nil {
-			f52.AllocatedStorage = resp.DBCluster.PendingModifiedValues.AllocatedStorage
+			allocatedStorageCopy := int64(*resp.DBCluster.PendingModifiedValues.AllocatedStorage)
+			f52.AllocatedStorage = &allocatedStorageCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod != nil {
-			f52.BackupRetentionPeriod = resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod
+			backupRetentionPeriodCopy := int64(*resp.DBCluster.PendingModifiedValues.BackupRetentionPeriod)
+			f52.BackupRetentionPeriod = &backupRetentionPeriodCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.DBClusterIdentifier != nil {
 			f52.DBClusterIdentifier = resp.DBCluster.PendingModifiedValues.DBClusterIdentifier
@@ -2901,7 +2974,8 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 			f52.IAMDatabaseAuthenticationEnabled = resp.DBCluster.PendingModifiedValues.IAMDatabaseAuthenticationEnabled
 		}
 		if resp.DBCluster.PendingModifiedValues.Iops != nil {
-			f52.IOPS = resp.DBCluster.PendingModifiedValues.Iops
+			iopsCopy := int64(*resp.DBCluster.PendingModifiedValues.Iops)
+			f52.IOPS = &iopsCopy
 		}
 		if resp.DBCluster.PendingModifiedValues.MasterUserPassword != nil {
 			f52.MasterUserPassword = resp.DBCluster.PendingModifiedValues.MasterUserPassword
@@ -2909,22 +2983,10 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
 			f52f7 := &svcapitypes.PendingCloudwatchLogsExports{}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-				f52f7f0 := []*string{}
-				for _, f52f7f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-					var f52f7f0elem string
-					f52f7f0elem = *f52f7f0iter
-					f52f7f0 = append(f52f7f0, &f52f7f0elem)
-				}
-				f52f7.LogTypesToDisable = f52f7f0
+				f52f7.LogTypesToDisable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable)
 			}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-				f52f7f1 := []*string{}
-				for _, f52f7f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-					var f52f7f1elem string
-					f52f7f1elem = *f52f7f1iter
-					f52f7f1 = append(f52f7f1, &f52f7f1elem)
-				}
-				f52f7.LogTypesToEnable = f52f7f1
+				f52f7.LogTypesToEnable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable)
 			}
 			f52.PendingCloudwatchLogsExports = f52f7
 		}
@@ -2948,12 +3010,14 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Spec.PerformanceInsightsKMSKeyID = nil
 	}
 	if resp.DBCluster.PerformanceInsightsRetentionPeriod != nil {
-		r.ko.Spec.PerformanceInsightsRetentionPeriod = resp.DBCluster.PerformanceInsightsRetentionPeriod
+		performanceInsightsRetentionPeriodCopy := int64(*resp.DBCluster.PerformanceInsightsRetentionPeriod)
+		r.ko.Spec.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	} else {
 		r.ko.Spec.PerformanceInsightsRetentionPeriod = nil
 	}
 	if resp.DBCluster.Port != nil {
-		r.ko.Spec.Port = resp.DBCluster.Port
+		portCopy := int64(*resp.DBCluster.Port)
+		r.ko.Spec.Port = &portCopy
 	} else {
 		r.ko.Spec.Port = nil
 	}
@@ -2973,13 +3037,7 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		r.ko.Spec.PubliclyAccessible = nil
 	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
-		f61 := []*string{}
-		for _, f61iter := range resp.DBCluster.ReadReplicaIdentifiers {
-			var f61elem string
-			f61elem = *f61iter
-			f61 = append(f61, &f61elem)
-		}
-		r.ko.Status.ReadReplicaIdentifiers = f61
+		r.ko.Status.ReadReplicaIdentifiers = aws.StringSlice(resp.DBCluster.ReadReplicaIdentifiers)
 	} else {
 		r.ko.Status.ReadReplicaIdentifiers = nil
 	}
@@ -2999,16 +3057,20 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 			f64.AutoPause = resp.DBCluster.ScalingConfigurationInfo.AutoPause
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MaxCapacity != nil {
-			f64.MaxCapacity = resp.DBCluster.ScalingConfigurationInfo.MaxCapacity
+			maxCapacityCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.MaxCapacity)
+			f64.MaxCapacity = &maxCapacityCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.MinCapacity != nil {
-			f64.MinCapacity = resp.DBCluster.ScalingConfigurationInfo.MinCapacity
+			minCapacityCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.MinCapacity)
+			f64.MinCapacity = &minCapacityCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout != nil {
-			f64.SecondsBeforeTimeout = resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout
+			secondsBeforeTimeoutCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.SecondsBeforeTimeout)
+			f64.SecondsBeforeTimeout = &secondsBeforeTimeoutCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause != nil {
-			f64.SecondsUntilAutoPause = resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause
+			secondsUntilAutoPauseCopy := int64(*resp.DBCluster.ScalingConfigurationInfo.SecondsUntilAutoPause)
+			f64.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		if resp.DBCluster.ScalingConfigurationInfo.TimeoutAction != nil {
 			f64.TimeoutAction = resp.DBCluster.ScalingConfigurationInfo.TimeoutAction
@@ -3024,6 +3086,10 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterToPointInTimeOutput(
 		}
 		if resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity != nil {
 			f65.MinCapacity = resp.DBCluster.ServerlessV2ScalingConfiguration.MinCapacity
+		}
+		if resp.DBCluster.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil {
+			secondsUntilAutoPauseCopy := int64(*resp.DBCluster.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause)
+			f65.SecondsUntilAutoPause = &secondsUntilAutoPauseCopy
 		}
 		r.ko.Spec.ServerlessV2ScalingConfiguration = f65
 	} else {

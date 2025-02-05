@@ -41,7 +41,7 @@ func TestComputeTagsDelta(t *testing.T) {
 		name               string
 		args               args
 		wantAddedOrUpdated []*svcapitypes.Tag
-		wantRemoved        []*string
+		wantRemoved        []string
 	}{
 		{
 			name:               "empty arrays",
@@ -63,7 +63,7 @@ func TestComputeTagsDelta(t *testing.T) {
 				b: []*svcapitypes.Tag{tagA, tagB, tagC},
 			},
 			wantAddedOrUpdated: nil,
-			wantRemoved:        []*string{aws.String("A"), aws.String("B"), aws.String("C")},
+			wantRemoved:        []string{"A", "B", "C"},
 		},
 		{
 			name: "added and removed tags",
@@ -72,7 +72,7 @@ func TestComputeTagsDelta(t *testing.T) {
 				b: []*svcapitypes.Tag{tagA, tagB, tagC},
 			},
 			wantAddedOrUpdated: []*svcapitypes.Tag{tagD, tagE},
-			wantRemoved:        []*string{aws.String("A"), aws.String("B"), aws.String("C")},
+			wantRemoved:        []string{"A", "B", "C"},
 		},
 		{
 			name: "added, updated and removed tags",
@@ -82,7 +82,7 @@ func TestComputeTagsDelta(t *testing.T) {
 			},
 			// notice the order of b is not the same.
 			wantAddedOrUpdated: []*svcapitypes.Tag{tagE2, tagD},
-			wantRemoved:        []*string{aws.String("A"), aws.String("B"), aws.String("C")},
+			wantRemoved:        []string{"A", "B", "C"},
 		},
 	}
 	for _, tt := range tests {

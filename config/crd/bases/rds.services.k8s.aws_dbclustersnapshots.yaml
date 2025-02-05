@@ -94,8 +94,10 @@ spec:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
 
-                    For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
-                    in the Amazon RDS User Guide.
+                    For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+                    (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+                    in the Amazon Aurora User Guide.
                   properties:
                     key:
                       type: string
@@ -139,20 +141,20 @@ spec:
                 - region
                 type: object
               allocatedStorage:
-                description: Specifies the allocated storage size in gibibytes (GiB).
+                description: The allocated storage size of the DB cluster snapshot
+                  in gibibytes (GiB).
                 format: int64
                 type: integer
               availabilityZones:
                 description: |-
-                  Provides the list of Availability Zones (AZs) where instances in the DB cluster
-                  snapshot can be restored.
+                  The list of Availability Zones (AZs) where instances in the DB cluster snapshot
+                  can be restored.
                 items:
                   type: string
                 type: array
               clusterCreateTime:
-                description: |-
-                  Specifies the time when the DB cluster was created, in Universal Coordinated
-                  Time (UTC).
+                description: The time when the DB cluster was created, in Universal
+                  Coordinated Time (UTC).
                 format: date-time
                 type: string
               conditions:
@@ -194,21 +196,20 @@ spec:
                 description: Reserved for future use.
                 type: string
               engine:
-                description: Specifies the name of the database engine for this DB
-                  cluster snapshot.
+                description: The name of the database engine for this DB cluster snapshot.
                 type: string
               engineMode:
-                description: Provides the engine mode of the database engine for this
-                  DB cluster snapshot.
+                description: The engine mode of the database engine for this DB cluster
+                  snapshot.
                 type: string
               engineVersion:
-                description: Provides the version of the database engine for this
-                  DB cluster snapshot.
+                description: The version of the database engine for this DB cluster
+                  snapshot.
                 type: string
               iamDatabaseAuthenticationEnabled:
                 description: |-
-                  True if mapping of Amazon Web Services Identity and Access Management (IAM)
-                  accounts to database accounts is enabled, and otherwise false.
+                  Indicates whether mapping of Amazon Web Services Identity and Access Management
+                  (IAM) accounts to database accounts is enabled.
                 type: boolean
               kmsKeyID:
                 description: |-
@@ -219,31 +220,27 @@ spec:
                   ARN, or alias name for the KMS key.
                 type: string
               licenseModel:
-                description: Provides the license model information for this DB cluster
-                  snapshot.
+                description: The license model information for this DB cluster snapshot.
                 type: string
               masterUsername:
-                description: Provides the master username for this DB cluster snapshot.
+                description: The master username for this DB cluster snapshot.
                 type: string
               percentProgress:
-                description: Specifies the percentage of the estimated data that has
-                  been transferred.
+                description: The percentage of the estimated data that has been transferred.
                 format: int64
                 type: integer
               port:
-                description: |-
-                  Specifies the port that the DB cluster was listening on at the time of the
-                  snapshot.
+                description: The port that the DB cluster was listening on at the
+                  time of the snapshot.
                 format: int64
                 type: integer
               snapshotCreateTime:
-                description: |-
-                  Provides the time when the snapshot was taken, in Universal Coordinated Time
-                  (UTC).
+                description: The time when the snapshot was taken, in Universal Coordinated
+                  Time (UTC).
                 format: date-time
                 type: string
               snapshotType:
-                description: Provides the type of the DB cluster snapshot.
+                description: The type of the DB cluster snapshot.
                 type: string
               sourceDBClusterSnapshotARN:
                 description: |-
@@ -253,8 +250,7 @@ spec:
                 type: string
               status:
                 description: |-
-                  Specifies the status of this DB cluster snapshot. Valid statuses are the
-                  following:
+                  The status of this DB cluster snapshot. Valid statuses are the following:
 
                      * available
 
@@ -263,15 +259,17 @@ spec:
                      * creating
                 type: string
               storageEncrypted:
-                description: Specifies whether the DB cluster snapshot is encrypted.
+                description: Indicates whether the DB cluster snapshot is encrypted.
                 type: boolean
               tagList:
                 items:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
 
-                    For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
-                    in the Amazon RDS User Guide.
+                    For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+                    (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+                    in the Amazon Aurora User Guide.
                   properties:
                     key:
                       type: string
@@ -280,7 +278,7 @@ spec:
                   type: object
                 type: array
               vpcID:
-                description: Provides the VPC ID associated with the DB cluster snapshot.
+                description: The VPC ID associated with the DB cluster snapshot.
                 type: string
             type: object
         type: object
