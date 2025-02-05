@@ -67,9 +67,9 @@ spec:
                 type: array
               debugLogging:
                 description: |-
-                  Whether the proxy includes detailed information about SQL statements in its
-                  logs. This information helps you to debug issues involving SQL behavior or
-                  the performance and scalability of the proxy connections. The debug information
+                  Specifies whether the proxy includes detailed information about SQL statements
+                  in its logs. This information helps you to debug issues involving SQL behavior
+                  or the performance and scalability of the proxy connections. The debug information
                   includes the text of SQL statements that you submit through the proxy. Thus,
                   only enable this setting when needed for debugging, and only when you have
                   security measures in place to safeguard any sensitive information that appears
@@ -101,9 +101,9 @@ spec:
                 type: string
               requireTLS:
                 description: |-
-                  A Boolean parameter that specifies whether Transport Layer Security (TLS)
-                  encryption is required for connections to the proxy. By enabling this setting,
-                  you can enforce encrypted TLS connections to the proxy.
+                  Specifies whether Transport Layer Security (TLS) encryption is required for
+                  connections to the proxy. By enabling this setting, you can enforce encrypted
+                  TLS connections to the proxy.
                 type: boolean
               roleARN:
                 description: |-
@@ -118,8 +118,10 @@ spec:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
 
-                    For more information, see Tagging Amazon RDS Resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
-                    in the Amazon RDS User Guide.
+                    For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+                    (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+                    in the Amazon Aurora User Guide.
                   properties:
                     key:
                       type: string

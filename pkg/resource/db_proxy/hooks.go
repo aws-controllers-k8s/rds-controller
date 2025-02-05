@@ -23,7 +23,8 @@ import (
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
@@ -32,9 +33,9 @@ var (
 	// TerminalStatuses are the status strings that are terminal states for a
 	// DB proxy.
 	TerminalStatuses = []string{
-		svcsdk.DBProxyStatusIncompatibleNetwork,
-		svcsdk.DBProxyStatusDeleting,
-		svcsdk.DBProxyStatusSuspending,
+		string(svcsdktypes.DBProxyStatusIncompatibleNetwork),
+		string(svcsdktypes.DBProxyStatusDeleting),
+		string(svcsdktypes.DBProxyStatusSuspending),
 	}
 )
 
@@ -55,7 +56,7 @@ func requeueWaitUntilCanModify(r *resource) *ackrequeue.RequeueNeededAfter {
 	status := *r.ko.Status.Status
 	msg := fmt.Sprintf(
 		"DB proxy in '%s' state, cannot be modified until '%s'.",
-		status, svcsdk.DBProxyStatusAvailable,
+		status, svcsdktypes.DBProxyStatusAvailable,
 	)
 	return ackrequeue.NeededAfter(
 		errors.New(msg),
@@ -85,7 +86,7 @@ func proxyAvailable(r *resource) bool {
 		return false
 	}
 	dbis := *r.ko.Status.Status
-	return dbis == svcsdk.DBProxyStatusAvailable
+	return dbis == string(svcsdktypes.DBProxyStatusAvailable)
 }
 
 // proxyCreating returns true if the supplied DB proxy is in the process
@@ -95,7 +96,7 @@ func proxyCreating(r *resource) bool {
 		return false
 	}
 	dbis := *r.ko.Status.Status
-	return dbis == svcsdk.DBProxyStatusCreating
+	return dbis == string(svcsdktypes.DBProxyStatusCreating)
 }
 
 // proxyDeleting returns true if the supplied DB proxy is in the process
@@ -105,7 +106,7 @@ func proxyDeleting(r *resource) bool {
 		return false
 	}
 	dbis := *r.ko.Status.Status
-	return dbis == svcsdk.DBProxyStatusDeleting
+	return dbis == string(svcsdktypes.DBProxyStatusDeleting)
 }
 
 // syncTags keeps the resource's tags in sync
@@ -143,7 +144,7 @@ func (rm *resourceManager) syncTags(
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from proxy", "tags", toDelete)
-		_, err = rm.sdkapi.RemoveTagsFromResourceWithContext(
+		_, err = rm.sdkapi.RemoveTagsFromResource(
 			ctx,
 			&svcsdk.RemoveTagsFromResourceInput{
 				ResourceName: arn,
@@ -162,7 +163,7 @@ func (rm *resourceManager) syncTags(
 	// AddTagsToResource call is enough.
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to proxy", "tags", toAdd)
-		_, err = rm.sdkapi.AddTagsToResourceWithContext(
+		_, err = rm.sdkapi.AddTagsToResource(
 			ctx,
 			&svcsdk.AddTagsToResourceInput{
 				ResourceName: arn,
@@ -182,7 +183,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsForResourceWithContext(
+	resp, err := rm.sdkapi.ListTagsForResource(
 		ctx,
 		&svcsdk.ListTagsForResourceInput{
 			ResourceName: &resourceARN,
@@ -222,10 +223,10 @@ func compareTags(
 // array.
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}

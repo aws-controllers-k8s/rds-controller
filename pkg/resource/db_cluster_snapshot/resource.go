@@ -19,6 +19,7 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerrors "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -92,11 +93,11 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 
 	f0, f0ok := identifier.AdditionalKeys["dbClusterIdentifier"]
 	if f0ok {
-		r.ko.Spec.DBClusterIdentifier = &f0
+		r.ko.Spec.DBClusterIdentifier = aws.String(f0)
 	}
-	f7, f7ok := identifier.AdditionalKeys["snapshotType"]
-	if f7ok {
-		r.ko.Status.SnapshotType = &f7
+	f8, f8ok := identifier.AdditionalKeys["snapshotType"]
+	if f8ok {
+		r.ko.Status.SnapshotType = aws.String(f8)
 	}
 
 	return nil
@@ -112,11 +113,11 @@ func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) erro
 
 	f0, f0ok := fields["dbClusterIdentifier"]
 	if f0ok {
-		r.ko.Spec.DBClusterIdentifier = &f0
+		r.ko.Spec.DBClusterIdentifier = aws.String(f0)
 	}
-	f7, f7ok := fields["snapshotType"]
-	if f7ok {
-		r.ko.Status.SnapshotType = &f7
+	f8, f8ok := fields["snapshotType"]
+	if f8ok {
+		r.ko.Status.SnapshotType = aws.String(f8)
 	}
 
 	return nil

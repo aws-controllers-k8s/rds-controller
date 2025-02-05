@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.DBSnapshot{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeDBSnapshotsOutput
-	resp, err = rm.sdkapi.DescribeDBSnapshotsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeDBSnapshots(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeDBSnapshots", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "DBSnapshotNotFound" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "DBSnapshotNotFound" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -89,7 +92,8 @@ func (rm *resourceManager) sdkFind(
 	found := false
 	for _, elem := range resp.DBSnapshots {
 		if elem.AllocatedStorage != nil {
-			ko.Status.AllocatedStorage = elem.AllocatedStorage
+			allocatedStorageCopy := int64(*elem.AllocatedStorage)
+			ko.Status.AllocatedStorage = &allocatedStorageCopy
 		} else {
 			ko.Status.AllocatedStorage = nil
 		}
@@ -141,7 +145,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.InstanceCreateTime = nil
 		}
 		if elem.Iops != nil {
-			ko.Status.IOPS = elem.Iops
+			iopsCopy := int64(*elem.Iops)
+			ko.Status.IOPS = &iopsCopy
 		} else {
 			ko.Status.IOPS = nil
 		}
@@ -166,12 +171,14 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.OriginalSnapshotCreateTime = nil
 		}
 		if elem.PercentProgress != nil {
-			ko.Status.PercentProgress = elem.PercentProgress
+			percentProgressCopy := int64(*elem.PercentProgress)
+			ko.Status.PercentProgress = &percentProgressCopy
 		} else {
 			ko.Status.PercentProgress = nil
 		}
 		if elem.Port != nil {
-			ko.Status.Port = elem.Port
+			portCopy := int64(*elem.Port)
+			ko.Status.Port = &portCopy
 		} else {
 			ko.Status.Port = nil
 		}
@@ -227,7 +234,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.Status = nil
 		}
 		if elem.StorageThroughput != nil {
-			ko.Status.StorageThroughput = elem.StorageThroughput
+			storageThroughputCopy := int64(*elem.StorageThroughput)
+			ko.Status.StorageThroughput = &storageThroughputCopy
 		} else {
 			ko.Status.StorageThroughput = nil
 		}
@@ -309,16 +317,16 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeDBSnapshotsInput{}
 
 	if r.ko.Spec.DBInstanceIdentifier != nil {
-		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
+		res.DBInstanceIdentifier = r.ko.Spec.DBInstanceIdentifier
 	}
 	if r.ko.Spec.DBSnapshotIdentifier != nil {
-		res.SetDBSnapshotIdentifier(*r.ko.Spec.DBSnapshotIdentifier)
+		res.DBSnapshotIdentifier = r.ko.Spec.DBSnapshotIdentifier
 	}
 	if r.ko.Status.DBIResourceID != nil {
-		res.SetDbiResourceId(*r.ko.Status.DBIResourceID)
+		res.DbiResourceId = r.ko.Status.DBIResourceID
 	}
 	if r.ko.Status.SnapshotType != nil {
-		res.SetSnapshotType(*r.ko.Status.SnapshotType)
+		res.SnapshotType = r.ko.Status.SnapshotType
 	}
 
 	return res, nil
@@ -343,7 +351,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateDBSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateDBSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateDBSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateDBSnapshot", err)
 	if err != nil {
 		return nil, err
@@ -353,7 +361,8 @@ func (rm *resourceManager) sdkCreate(
 	ko := desired.ko.DeepCopy()
 
 	if resp.DBSnapshot.AllocatedStorage != nil {
-		ko.Status.AllocatedStorage = resp.DBSnapshot.AllocatedStorage
+		allocatedStorageCopy := int64(*resp.DBSnapshot.AllocatedStorage)
+		ko.Status.AllocatedStorage = &allocatedStorageCopy
 	} else {
 		ko.Status.AllocatedStorage = nil
 	}
@@ -405,7 +414,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.InstanceCreateTime = nil
 	}
 	if resp.DBSnapshot.Iops != nil {
-		ko.Status.IOPS = resp.DBSnapshot.Iops
+		iopsCopy := int64(*resp.DBSnapshot.Iops)
+		ko.Status.IOPS = &iopsCopy
 	} else {
 		ko.Status.IOPS = nil
 	}
@@ -430,12 +440,14 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.OriginalSnapshotCreateTime = nil
 	}
 	if resp.DBSnapshot.PercentProgress != nil {
-		ko.Status.PercentProgress = resp.DBSnapshot.PercentProgress
+		percentProgressCopy := int64(*resp.DBSnapshot.PercentProgress)
+		ko.Status.PercentProgress = &percentProgressCopy
 	} else {
 		ko.Status.PercentProgress = nil
 	}
 	if resp.DBSnapshot.Port != nil {
-		ko.Status.Port = resp.DBSnapshot.Port
+		portCopy := int64(*resp.DBSnapshot.Port)
+		ko.Status.Port = &portCopy
 	} else {
 		ko.Status.Port = nil
 	}
@@ -491,7 +503,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Status = nil
 	}
 	if resp.DBSnapshot.StorageThroughput != nil {
-		ko.Status.StorageThroughput = resp.DBSnapshot.StorageThroughput
+		storageThroughputCopy := int64(*resp.DBSnapshot.StorageThroughput)
+		ko.Status.StorageThroughput = &storageThroughputCopy
 	} else {
 		ko.Status.StorageThroughput = nil
 	}
@@ -555,24 +568,24 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateDBSnapshotInput{}
 
 	if r.ko.Spec.DBInstanceIdentifier != nil {
-		res.SetDBInstanceIdentifier(*r.ko.Spec.DBInstanceIdentifier)
+		res.DBInstanceIdentifier = r.ko.Spec.DBInstanceIdentifier
 	}
 	if r.ko.Spec.DBSnapshotIdentifier != nil {
-		res.SetDBSnapshotIdentifier(*r.ko.Spec.DBSnapshotIdentifier)
+		res.DBSnapshotIdentifier = r.ko.Spec.DBSnapshotIdentifier
 	}
 	if r.ko.Spec.Tags != nil {
-		f2 := []*svcsdk.Tag{}
+		f2 := []svcsdktypes.Tag{}
 		for _, f2iter := range r.ko.Spec.Tags {
-			f2elem := &svcsdk.Tag{}
+			f2elem := &svcsdktypes.Tag{}
 			if f2iter.Key != nil {
-				f2elem.SetKey(*f2iter.Key)
+				f2elem.Key = f2iter.Key
 			}
 			if f2iter.Value != nil {
-				f2elem.SetValue(*f2iter.Value)
+				f2elem.Value = f2iter.Value
 			}
-			f2 = append(f2, f2elem)
+			f2 = append(f2, *f2elem)
 		}
-		res.SetTags(f2)
+		res.Tags = f2
 	}
 
 	return res, nil
@@ -609,7 +622,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.ModifyDBSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.ModifyDBSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.ModifyDBSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBSnapshot", err)
 	if err != nil {
 		return nil, err
@@ -619,7 +632,8 @@ func (rm *resourceManager) sdkUpdate(
 	ko := desired.ko.DeepCopy()
 
 	if resp.DBSnapshot.AllocatedStorage != nil {
-		ko.Status.AllocatedStorage = resp.DBSnapshot.AllocatedStorage
+		allocatedStorageCopy := int64(*resp.DBSnapshot.AllocatedStorage)
+		ko.Status.AllocatedStorage = &allocatedStorageCopy
 	} else {
 		ko.Status.AllocatedStorage = nil
 	}
@@ -671,7 +685,8 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.InstanceCreateTime = nil
 	}
 	if resp.DBSnapshot.Iops != nil {
-		ko.Status.IOPS = resp.DBSnapshot.Iops
+		iopsCopy := int64(*resp.DBSnapshot.Iops)
+		ko.Status.IOPS = &iopsCopy
 	} else {
 		ko.Status.IOPS = nil
 	}
@@ -696,12 +711,14 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.OriginalSnapshotCreateTime = nil
 	}
 	if resp.DBSnapshot.PercentProgress != nil {
-		ko.Status.PercentProgress = resp.DBSnapshot.PercentProgress
+		percentProgressCopy := int64(*resp.DBSnapshot.PercentProgress)
+		ko.Status.PercentProgress = &percentProgressCopy
 	} else {
 		ko.Status.PercentProgress = nil
 	}
 	if resp.DBSnapshot.Port != nil {
-		ko.Status.Port = resp.DBSnapshot.Port
+		portCopy := int64(*resp.DBSnapshot.Port)
+		ko.Status.Port = &portCopy
 	} else {
 		ko.Status.Port = nil
 	}
@@ -757,7 +774,8 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.Status = nil
 	}
 	if resp.DBSnapshot.StorageThroughput != nil {
-		ko.Status.StorageThroughput = resp.DBSnapshot.StorageThroughput
+		storageThroughputCopy := int64(*resp.DBSnapshot.StorageThroughput)
+		ko.Status.StorageThroughput = &storageThroughputCopy
 	} else {
 		ko.Status.StorageThroughput = nil
 	}
@@ -812,7 +830,7 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.ModifyDBSnapshotInput{}
 
 	if r.ko.Spec.DBSnapshotIdentifier != nil {
-		res.SetDBSnapshotIdentifier(*r.ko.Spec.DBSnapshotIdentifier)
+		res.DBSnapshotIdentifier = r.ko.Spec.DBSnapshotIdentifier
 	}
 
 	return res, nil
@@ -834,7 +852,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteDBSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteDBSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteDBSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBSnapshot", err)
 	return nil, err
 }
@@ -847,7 +865,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteDBSnapshotInput{}
 
 	if r.ko.Spec.DBSnapshotIdentifier != nil {
-		res.SetDBSnapshotIdentifier(*r.ko.Spec.DBSnapshotIdentifier)
+		res.DBSnapshotIdentifier = r.ko.Spec.DBSnapshotIdentifier
 	}
 
 	return res, nil

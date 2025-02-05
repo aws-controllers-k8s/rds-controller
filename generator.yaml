@@ -18,8 +18,63 @@ ignore:
     - EventSubscription
     #- GlobalCluster
     - OptionGroup
+    - Integration
+    - DBShardGroup
+    - TenantDatabase
   field_paths:
+    - CreateDBClusterInput.CACertificateIdentifier
+    - CreateDBClusterInput.ClusterScalabilityType
+    - CreateDBClusterInput.DatabaseInsightsMode
+    - CreateDBClusterInput.EngineLifecycleSupport
+    - CreateDBClusterInput.EnableLimitlessDatabase
+    - CreateDBClusterInput.EnableLocalWriteForwarding
+    - CreateDBClusterInput.RdsCustomClusterConfiguration
+    - CreateDBClusterOutput.DBCluster.IOOptimizedNextAllowedModificationTime
+    - CreateDBClusterOutput.DBCluster.LimitlessDatabase
+    - CreateDBClusterOutput.DBCluster.LocalWriteForwardingStatus
+    - CreateDBClusterOutput.DBCluster.StatusInfos
+    - CreateDBClusterOutput.DBCluster.StorageThroughput
+    - CreateDBClusterOutput.DBCluster.AwsBackupRecoveryPointArn
+    - CreateDBClusterOutput.DBCluster.CertificateDetails
+    - CreateDBClusterOutput.DBCluster.ClusterScalabilityType
+    - CreateDBClusterOutput.DBCluster.DatabaseInsightsMode
+    - CreateDBClusterOutput.DBCluster.EngineLifecycleSupport
     - CreateDBInstanceInput.DBSecurityGroups
+    - CreateDBInstanceInput.DomainAuthSecretArn
+    - CreateDBInstanceInput.DomainDnsIps
+    - CreateDBInstanceInput.MultiTenant
+    - CreateDBInstanceInput.DedicatedLogVolume
+    - CreateDBInstanceInput.DatabaseInsightsMode
+    - CreateDBInstanceInput.DBSystemId
+    - CreateDBInstanceInput.DomainFqdn
+    - CreateDBInstanceInput.DomainOu
+    - CreateDBInstanceInput.EngineLifecycleSupport
+    - CreateDBInstanceOutput.DBInstance.PercentProgress
+    - CreateDBInstanceOutput.DBInstance.DatabaseInsightsMode
+    - CreateDBInstanceOutput.DBInstance.DedicatedLogVolume
+    - CreateDBInstanceOutput.DBInstance.EngineLifecycleSupport
+    - CreateDBInstanceOutput.DBInstance.IsStorageConfigUpgradeAvailable
+    - CreateDBInstanceOutput.DBInstance.MultiTenant
+    - CreateDBInstanceOutput.DBInstance.PendingModifiedValues.DedicatedLogVolume
+    - CreateDBInstanceOutput.DBInstance.PendingModifiedValues.Engine
+    - CreateDBInstanceOutput.DBInstance.PendingModifiedValues.MultiTenant
+    - CreateDBClusterSnapshotOutput.DBClusterSnapshot.DbClusterResourceId
+    - CreateDBClusterSnapshotOutput.DBClusterSnapshot.StorageThroughput
+    - CreateDBClusterSnapshotOutput.DBClusterSnapshot.StorageType
+    - RestoreDBInstanceFromDBSnapshotInput.DomainFqdn
+    - RestoreDBInstanceToPointInTimeInput.DomainOu
+    - RestoreDBInstanceToPointInTimeInput.EngineLifecycleSupport
+    - RestoreDBClusterToPointInTimeInput.SourceDbClusterResourceId
+    - RestoreDBInstanceFromDBSnapshotInput.DedicatedLogVolume
+    - RestoreDBInstanceFromDBSnapshotInput.DomainAuthSecretArn
+    - RestoreDBInstanceFromDBSnapshotInput.DomainDnsIps
+    - RestoreDBInstanceFromDBSnapshotInput.DomainOu
+    - RestoreDBInstanceFromDBSnapshotInput.EngineLifecycleSupport
+    - RestoreDBClusterToPointInTimeInput.EngineLifecycleSupport
+    - RestoreDBClusterToPointInTimeInput.RdsCustomClusterConfiguration
+    - RestoreDBClusterFromSnapshotInput.EngineLifecycleSupport
+    - RestoreDBClusterFromSnapshotInput.RdsCustomClusterConfiguration
+    - RestoreDBClusterFromSnapshotOutput.DBCluster.RdsCustomClusterConfiguration
     - DBInstance.DBSecurityGroups
     # We handle Spec.Tags separately...
     - "DescribeDBInstancesOutput.DBInstances.DBInstance.TagList"
@@ -27,7 +82,23 @@ ignore:
     # support them for the moment. They require some code-generator modifications.
     - "CreateDBSnapshotOutput.DBSnapshot.EngineVersion"
     - "CreateDBSnapshotOutput.DBSnapshot.OptionGroupName"
+    - CreateDBSnapshotOutput.DBSnapshot.DBSystemId
+    - CreateDBSnapshotOutput.DBSnapshot.DedicatedLogVolume
+    - CreateDBSnapshotOutput.DBSnapshot.MultiTenant
     - "DescribeDBClusterSnapshotsOutput.DBClusterSnapshots.TagList"
+    - DomainMembership.AuthSecretArn
+    - DomainMembership.DnsIps
+    - DomainMembership.OU
+    - ClusterPendingModifiedValues.CertificateDetails
+    - ClusterPendingModifiedValues.RdsCustomClusterConfiguration
+    - ClusterPendingModifiedValues.StorageType
+    - CreateGlobalClusterInput.EngineLifecycleSupport
+    # ignoring tags until we can handle them in new PR
+    - CreateGlobalClusterInput.Tags
+    - CreateGlobalClusterOutput.GlobalCluster.Endpoint
+    - CreateGlobalClusterOutput.GlobalCluster.TagList
+    - CreateGlobalClusterOutput.GlobalCluster.FailoverState.IsDataLossAllowed
+    - GlobalClusterMember.SynchronizationStatus
 operations:
   ModifyDBCluster:
     override_values:
@@ -42,12 +113,12 @@ operations:
       # operations to "true" because we want changes that a Kubernetes user
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
-      ApplyImmediately: true
+      ApplyImmediately: aws.Bool(true)
       # We override the value of AllowMajorVersionUpgrade field in the modify
       # call since any engine version change should apply directly.
       # This flag was designed as a protect flag but not necessary in controller
       # side when customer need to make the engine version change
-      AllowMajorVersionUpgrade: true
+      AllowMajorVersionUpgrade: aws.Bool(true)
   ModifyDBInstance:
     override_values:
       # The whole concept of a "maintenance window" isn't aligned with the
@@ -61,12 +132,12 @@ operations:
       # operations to "true" because we want changes that a Kubernetes user
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
-      ApplyImmediately: true
+      ApplyImmediately: aws.Bool(true)
       # We override the value of the ApplyImmediately field in the modify
       # operations to "true" because we want changes that a Kubernetes user
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
-      AllowMajorVersionUpgrade: true
+      AllowMajorVersionUpgrade: aws.Bool(true)
 resources:
   DBCluster:
     update_operation:
@@ -100,6 +171,9 @@ resources:
         - InvalidSubnet
         - StorageQuotaExceeded
     fields:
+      DestinationRegion:
+        set:
+          - ignore: all
       DBClusterIdentifier:
         is_primary_key: true
       MasterUserPassword:
@@ -300,6 +374,8 @@ resources:
           operation: CreateDBInstanceReadReplica
           path: SourceDBInstanceIdentifier
       DestinationRegion:
+        set:
+          - ignore: all
         from:
           operation: CreateDBInstanceReadReplica
           path: DestinationRegion

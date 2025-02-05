@@ -21,8 +21,9 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
@@ -111,7 +112,7 @@ func (rm *resourceManager) syncTags(
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from parameter group", "tags", toDelete)
-		_, err = rm.sdkapi.RemoveTagsFromResourceWithContext(
+		_, err = rm.sdkapi.RemoveTagsFromResource(
 			ctx,
 			&svcsdk.RemoveTagsFromResourceInput{
 				ResourceName: arn,
@@ -130,7 +131,7 @@ func (rm *resourceManager) syncTags(
 	// AddTagsToResource call is enough.
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to parameter group", "tags", toAdd)
-		_, err = rm.sdkapi.AddTagsToResourceWithContext(
+		_, err = rm.sdkapi.AddTagsToResource(
 			ctx,
 			&svcsdk.AddTagsToResourceInput{
 				ResourceName: arn,
@@ -150,7 +151,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsForResourceWithContext(
+	resp, err := rm.sdkapi.ListTagsForResource(
 		ctx,
 		&svcsdk.ListTagsForResourceInput{
 			ResourceName: &resourceARN,
@@ -190,10 +191,10 @@ func compareTags(
 // array.
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -268,7 +269,7 @@ func (rm *resourceManager) getParameters(
 	var marker *string
 	params = make(map[string]*string)
 	for {
-		resp, err := rm.sdkapi.DescribeDBParametersWithContext(
+		resp, err := rm.sdkapi.DescribeDBParameters(
 			ctx,
 			&svcsdk.DescribeDBParametersInput{
 				DBParameterGroupName: groupName,
@@ -285,7 +286,7 @@ func (rm *resourceManager) getParameters(
 			p := svcapitypes.Parameter{
 				ParameterName:  param.ParameterName,
 				ParameterValue: param.ParameterValue,
-				ApplyMethod:    param.ApplyMethod,
+				ApplyMethod:    aws.String(string(param.ApplyMethod)),
 				ApplyType:      param.ApplyType,
 			}
 			paramStatuses = append(paramStatuses, &p)
@@ -311,11 +312,11 @@ func (rm *resourceManager) resetParameters(
 	defer func() { exit(err) }()
 
 	var pMeta *util.ParamMeta
-	inputParams := []*svcsdk.Parameter{}
+	inputParams := []svcsdktypes.Parameter{}
 	for paramName, _ := range toDelete {
 		// default to this if something goes wrong looking up parameter
 		// defaults
-		applyMethod := svcsdk.ApplyMethodImmediate
+		applyMethod := svcsdktypes.ApplyMethodImmediate
 		pMeta, err = cachedParamMeta.Get(
 			ctx, *family, paramName, rm.getFamilyParameters,
 		)
@@ -326,11 +327,11 @@ func (rm *resourceManager) resetParameters(
 			return util.NewErrUnmodifiableParameter(paramName)
 		}
 		if !pMeta.IsDynamic {
-			applyMethod = svcsdk.ApplyMethodPendingReboot
+			applyMethod = svcsdktypes.ApplyMethodPendingReboot
 		}
-		p := &svcsdk.Parameter{
+		p := svcsdktypes.Parameter{
 			ParameterName: aws.String(paramName),
-			ApplyMethod:   aws.String(applyMethod),
+			ApplyMethod:   applyMethod,
 		}
 		inputParams = append(inputParams, p)
 	}
@@ -339,7 +340,7 @@ func (rm *resourceManager) resetParameters(
 		"resetting parameters from parameter group",
 		"parameters", toDelete,
 	)
-	_, err = rm.sdkapi.ResetDBParameterGroupWithContext(
+	_, err = rm.sdkapi.ResetDBParameterGroup(
 		ctx,
 		&svcsdk.ResetDBParameterGroupInput{
 			DBParameterGroupName: groupName,
@@ -366,11 +367,11 @@ func (rm *resourceManager) modifyParameters(
 	defer func() { exit(err) }()
 
 	var pMeta *util.ParamMeta
-	inputParams := []*svcsdk.Parameter{}
+	inputParams := []svcsdktypes.Parameter{}
 	for paramName, paramValue := range toModify {
 		// default to this if something goes wrong looking up parameter
 		// defaults
-		applyMethod := svcsdk.ApplyMethodImmediate
+		applyMethod := svcsdktypes.ApplyMethodImmediate
 		pMeta, err = cachedParamMeta.Get(
 			ctx, *family, paramName, rm.getFamilyParameters,
 		)
@@ -381,12 +382,12 @@ func (rm *resourceManager) modifyParameters(
 			return util.NewErrUnmodifiableParameter(paramName)
 		}
 		if !pMeta.IsDynamic {
-			applyMethod = svcsdk.ApplyMethodPendingReboot
+			applyMethod = svcsdktypes.ApplyMethodPendingReboot
 		}
-		p := &svcsdk.Parameter{
+		p := svcsdktypes.Parameter{
 			ParameterName:  aws.String(paramName),
 			ParameterValue: paramValue,
-			ApplyMethod:    aws.String(applyMethod),
+			ApplyMethod:    applyMethod,
 		}
 		inputParams = append(inputParams, p)
 	}
@@ -395,7 +396,7 @@ func (rm *resourceManager) modifyParameters(
 		"modifying parameters from parameter group",
 		"parameters", toModify,
 	)
-	_, err = rm.sdkapi.ModifyDBParameterGroupWithContext(
+	_, err = rm.sdkapi.ModifyDBParameterGroup(
 		ctx,
 		&svcsdk.ModifyDBParameterGroupInput{
 			DBParameterGroupName: groupName,
@@ -419,7 +420,7 @@ func (rm *resourceManager) getFamilyParameters(
 	familyMeta := map[string]util.ParamMeta{}
 
 	for {
-		resp, err := rm.sdkapi.DescribeEngineDefaultParametersWithContext(
+		resp, err := rm.sdkapi.DescribeEngineDefaultParameters(
 			ctx,
 			&svcsdk.DescribeEngineDefaultParametersInput{
 				DBParameterGroupFamily: aws.String(family),

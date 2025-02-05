@@ -40,7 +40,7 @@ type DBParameterGroupSpec struct {
 	// the following command:
 	//
 	// aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
-	// --engine <engine>
+	// --engine
 	//
 	// For example, to list all of the available parameter group families for the
 	// MySQL DB engine, use the following command:
@@ -52,13 +52,13 @@ type DBParameterGroupSpec struct {
 	//
 	// The following are the valid DB engine values:
 	//
-	//   - aurora (for MySQL 5.6-compatible Aurora)
-	//
-	//   - aurora-mysql (for MySQL 5.7-compatible and MySQL 8.0-compatible Aurora)
+	//   - aurora-mysql
 	//
 	//   - aurora-postgresql
 	//
-	//   - mariadb
+	//   - db2-ae
+	//
+	//   - db2-se
 	//
 	//   - mysql
 	//

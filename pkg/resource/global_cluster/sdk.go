@@ -28,8 +28,9 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +41,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.RDS{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.GlobalCluster{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +49,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +74,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeGlobalClustersOutput
-	resp, err = rm.sdkapi.DescribeGlobalClustersWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeGlobalClusters(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeGlobalClusters", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "GlobalClusterNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "GlobalClusterNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -103,23 +105,28 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.Engine = nil
 		}
+		if elem.EngineLifecycleSupport != nil {
+			ko.Status.EngineLifecycleSupport = elem.EngineLifecycleSupport
+		} else {
+			ko.Status.EngineLifecycleSupport = nil
+		}
 		if elem.EngineVersion != nil {
 			ko.Spec.EngineVersion = elem.EngineVersion
 		} else {
 			ko.Spec.EngineVersion = nil
 		}
 		if elem.FailoverState != nil {
-			f4 := &svcapitypes.FailoverState{}
+			f5 := &svcapitypes.FailoverState{}
 			if elem.FailoverState.FromDbClusterArn != nil {
-				f4.FromDBClusterARN = elem.FailoverState.FromDbClusterArn
+				f5.FromDBClusterARN = elem.FailoverState.FromDbClusterArn
 			}
-			if elem.FailoverState.Status != nil {
-				f4.Status = elem.FailoverState.Status
+			if elem.FailoverState.Status != "" {
+				f5.Status = aws.String(string(elem.FailoverState.Status))
 			}
 			if elem.FailoverState.ToDbClusterArn != nil {
-				f4.ToDBClusterARN = elem.FailoverState.ToDbClusterArn
+				f5.ToDBClusterARN = elem.FailoverState.ToDbClusterArn
 			}
-			ko.Status.FailoverState = f4
+			ko.Status.FailoverState = f5
 		} else {
 			ko.Status.FailoverState = nil
 		}
@@ -136,30 +143,24 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.GlobalClusterIdentifier = nil
 		}
 		if elem.GlobalClusterMembers != nil {
-			f7 := []*svcapitypes.GlobalClusterMember{}
-			for _, f7iter := range elem.GlobalClusterMembers {
-				f7elem := &svcapitypes.GlobalClusterMember{}
-				if f7iter.DBClusterArn != nil {
-					f7elem.DBClusterARN = f7iter.DBClusterArn
+			f8 := []*svcapitypes.GlobalClusterMember{}
+			for _, f8iter := range elem.GlobalClusterMembers {
+				f8elem := &svcapitypes.GlobalClusterMember{}
+				if f8iter.DBClusterArn != nil {
+					f8elem.DBClusterARN = f8iter.DBClusterArn
 				}
-				if f7iter.GlobalWriteForwardingStatus != nil {
-					f7elem.GlobalWriteForwardingStatus = f7iter.GlobalWriteForwardingStatus
+				if f8iter.GlobalWriteForwardingStatus != "" {
+					f8elem.GlobalWriteForwardingStatus = aws.String(string(f8iter.GlobalWriteForwardingStatus))
 				}
-				if f7iter.IsWriter != nil {
-					f7elem.IsWriter = f7iter.IsWriter
+				if f8iter.IsWriter != nil {
+					f8elem.IsWriter = f8iter.IsWriter
 				}
-				if f7iter.Readers != nil {
-					f7elemf3 := []*string{}
-					for _, f7elemf3iter := range f7iter.Readers {
-						var f7elemf3elem string
-						f7elemf3elem = *f7elemf3iter
-						f7elemf3 = append(f7elemf3, &f7elemf3elem)
-					}
-					f7elem.Readers = f7elemf3
+				if f8iter.Readers != nil {
+					f8elem.Readers = aws.StringSlice(f8iter.Readers)
 				}
-				f7 = append(f7, f7elem)
+				f8 = append(f8, f8elem)
 			}
-			ko.Status.GlobalClusterMembers = f7
+			ko.Status.GlobalClusterMembers = f8
 		} else {
 			ko.Status.GlobalClusterMembers = nil
 		}
@@ -206,7 +207,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeGlobalClustersInput{}
 
 	if r.ko.Spec.GlobalClusterIdentifier != nil {
-		res.SetGlobalClusterIdentifier(*r.ko.Spec.GlobalClusterIdentifier)
+		res.GlobalClusterIdentifier = r.ko.Spec.GlobalClusterIdentifier
 	}
 
 	return res, nil
@@ -231,7 +232,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateGlobalClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateGlobalClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateGlobalCluster(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateGlobalCluster", err)
 	if err != nil {
 		return nil, err
@@ -255,23 +256,28 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.Engine = nil
 	}
+	if resp.GlobalCluster.EngineLifecycleSupport != nil {
+		ko.Status.EngineLifecycleSupport = resp.GlobalCluster.EngineLifecycleSupport
+	} else {
+		ko.Status.EngineLifecycleSupport = nil
+	}
 	if resp.GlobalCluster.EngineVersion != nil {
 		ko.Spec.EngineVersion = resp.GlobalCluster.EngineVersion
 	} else {
 		ko.Spec.EngineVersion = nil
 	}
 	if resp.GlobalCluster.FailoverState != nil {
-		f4 := &svcapitypes.FailoverState{}
+		f5 := &svcapitypes.FailoverState{}
 		if resp.GlobalCluster.FailoverState.FromDbClusterArn != nil {
-			f4.FromDBClusterARN = resp.GlobalCluster.FailoverState.FromDbClusterArn
+			f5.FromDBClusterARN = resp.GlobalCluster.FailoverState.FromDbClusterArn
 		}
-		if resp.GlobalCluster.FailoverState.Status != nil {
-			f4.Status = resp.GlobalCluster.FailoverState.Status
+		if resp.GlobalCluster.FailoverState.Status != "" {
+			f5.Status = aws.String(string(resp.GlobalCluster.FailoverState.Status))
 		}
 		if resp.GlobalCluster.FailoverState.ToDbClusterArn != nil {
-			f4.ToDBClusterARN = resp.GlobalCluster.FailoverState.ToDbClusterArn
+			f5.ToDBClusterARN = resp.GlobalCluster.FailoverState.ToDbClusterArn
 		}
-		ko.Status.FailoverState = f4
+		ko.Status.FailoverState = f5
 	} else {
 		ko.Status.FailoverState = nil
 	}
@@ -288,30 +294,24 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.GlobalClusterIdentifier = nil
 	}
 	if resp.GlobalCluster.GlobalClusterMembers != nil {
-		f7 := []*svcapitypes.GlobalClusterMember{}
-		for _, f7iter := range resp.GlobalCluster.GlobalClusterMembers {
-			f7elem := &svcapitypes.GlobalClusterMember{}
-			if f7iter.DBClusterArn != nil {
-				f7elem.DBClusterARN = f7iter.DBClusterArn
+		f8 := []*svcapitypes.GlobalClusterMember{}
+		for _, f8iter := range resp.GlobalCluster.GlobalClusterMembers {
+			f8elem := &svcapitypes.GlobalClusterMember{}
+			if f8iter.DBClusterArn != nil {
+				f8elem.DBClusterARN = f8iter.DBClusterArn
 			}
-			if f7iter.GlobalWriteForwardingStatus != nil {
-				f7elem.GlobalWriteForwardingStatus = f7iter.GlobalWriteForwardingStatus
+			if f8iter.GlobalWriteForwardingStatus != "" {
+				f8elem.GlobalWriteForwardingStatus = aws.String(string(f8iter.GlobalWriteForwardingStatus))
 			}
-			if f7iter.IsWriter != nil {
-				f7elem.IsWriter = f7iter.IsWriter
+			if f8iter.IsWriter != nil {
+				f8elem.IsWriter = f8iter.IsWriter
 			}
-			if f7iter.Readers != nil {
-				f7elemf3 := []*string{}
-				for _, f7elemf3iter := range f7iter.Readers {
-					var f7elemf3elem string
-					f7elemf3elem = *f7elemf3iter
-					f7elemf3 = append(f7elemf3, &f7elemf3elem)
-				}
-				f7elem.Readers = f7elemf3
+			if f8iter.Readers != nil {
+				f8elem.Readers = aws.StringSlice(f8iter.Readers)
 			}
-			f7 = append(f7, f7elem)
+			f8 = append(f8, f8elem)
 		}
-		ko.Status.GlobalClusterMembers = f7
+		ko.Status.GlobalClusterMembers = f8
 	} else {
 		ko.Status.GlobalClusterMembers = nil
 	}
@@ -344,25 +344,25 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateGlobalClusterInput{}
 
 	if r.ko.Spec.DatabaseName != nil {
-		res.SetDatabaseName(*r.ko.Spec.DatabaseName)
+		res.DatabaseName = r.ko.Spec.DatabaseName
 	}
 	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+		res.DeletionProtection = r.ko.Spec.DeletionProtection
 	}
 	if r.ko.Spec.Engine != nil {
-		res.SetEngine(*r.ko.Spec.Engine)
+		res.Engine = r.ko.Spec.Engine
 	}
 	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+		res.EngineVersion = r.ko.Spec.EngineVersion
 	}
 	if r.ko.Spec.GlobalClusterIdentifier != nil {
-		res.SetGlobalClusterIdentifier(*r.ko.Spec.GlobalClusterIdentifier)
+		res.GlobalClusterIdentifier = r.ko.Spec.GlobalClusterIdentifier
 	}
 	if r.ko.Spec.SourceDBClusterIdentifier != nil {
-		res.SetSourceDBClusterIdentifier(*r.ko.Spec.SourceDBClusterIdentifier)
+		res.SourceDBClusterIdentifier = r.ko.Spec.SourceDBClusterIdentifier
 	}
 	if r.ko.Spec.StorageEncrypted != nil {
-		res.SetStorageEncrypted(*r.ko.Spec.StorageEncrypted)
+		res.StorageEncrypted = r.ko.Spec.StorageEncrypted
 	}
 
 	return res, nil
@@ -388,7 +388,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.ModifyGlobalClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.ModifyGlobalClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.ModifyGlobalCluster(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "ModifyGlobalCluster", err)
 	if err != nil {
 		return nil, err
@@ -412,23 +412,28 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.Engine = nil
 	}
+	if resp.GlobalCluster.EngineLifecycleSupport != nil {
+		ko.Status.EngineLifecycleSupport = resp.GlobalCluster.EngineLifecycleSupport
+	} else {
+		ko.Status.EngineLifecycleSupport = nil
+	}
 	if resp.GlobalCluster.EngineVersion != nil {
 		ko.Spec.EngineVersion = resp.GlobalCluster.EngineVersion
 	} else {
 		ko.Spec.EngineVersion = nil
 	}
 	if resp.GlobalCluster.FailoverState != nil {
-		f4 := &svcapitypes.FailoverState{}
+		f5 := &svcapitypes.FailoverState{}
 		if resp.GlobalCluster.FailoverState.FromDbClusterArn != nil {
-			f4.FromDBClusterARN = resp.GlobalCluster.FailoverState.FromDbClusterArn
+			f5.FromDBClusterARN = resp.GlobalCluster.FailoverState.FromDbClusterArn
 		}
-		if resp.GlobalCluster.FailoverState.Status != nil {
-			f4.Status = resp.GlobalCluster.FailoverState.Status
+		if resp.GlobalCluster.FailoverState.Status != "" {
+			f5.Status = aws.String(string(resp.GlobalCluster.FailoverState.Status))
 		}
 		if resp.GlobalCluster.FailoverState.ToDbClusterArn != nil {
-			f4.ToDBClusterARN = resp.GlobalCluster.FailoverState.ToDbClusterArn
+			f5.ToDBClusterARN = resp.GlobalCluster.FailoverState.ToDbClusterArn
 		}
-		ko.Status.FailoverState = f4
+		ko.Status.FailoverState = f5
 	} else {
 		ko.Status.FailoverState = nil
 	}
@@ -445,30 +450,24 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.GlobalClusterIdentifier = nil
 	}
 	if resp.GlobalCluster.GlobalClusterMembers != nil {
-		f7 := []*svcapitypes.GlobalClusterMember{}
-		for _, f7iter := range resp.GlobalCluster.GlobalClusterMembers {
-			f7elem := &svcapitypes.GlobalClusterMember{}
-			if f7iter.DBClusterArn != nil {
-				f7elem.DBClusterARN = f7iter.DBClusterArn
+		f8 := []*svcapitypes.GlobalClusterMember{}
+		for _, f8iter := range resp.GlobalCluster.GlobalClusterMembers {
+			f8elem := &svcapitypes.GlobalClusterMember{}
+			if f8iter.DBClusterArn != nil {
+				f8elem.DBClusterARN = f8iter.DBClusterArn
 			}
-			if f7iter.GlobalWriteForwardingStatus != nil {
-				f7elem.GlobalWriteForwardingStatus = f7iter.GlobalWriteForwardingStatus
+			if f8iter.GlobalWriteForwardingStatus != "" {
+				f8elem.GlobalWriteForwardingStatus = aws.String(string(f8iter.GlobalWriteForwardingStatus))
 			}
-			if f7iter.IsWriter != nil {
-				f7elem.IsWriter = f7iter.IsWriter
+			if f8iter.IsWriter != nil {
+				f8elem.IsWriter = f8iter.IsWriter
 			}
-			if f7iter.Readers != nil {
-				f7elemf3 := []*string{}
-				for _, f7elemf3iter := range f7iter.Readers {
-					var f7elemf3elem string
-					f7elemf3elem = *f7elemf3iter
-					f7elemf3 = append(f7elemf3, &f7elemf3elem)
-				}
-				f7elem.Readers = f7elemf3
+			if f8iter.Readers != nil {
+				f8elem.Readers = aws.StringSlice(f8iter.Readers)
 			}
-			f7 = append(f7, f7elem)
+			f8 = append(f8, f8elem)
 		}
-		ko.Status.GlobalClusterMembers = f7
+		ko.Status.GlobalClusterMembers = f8
 	} else {
 		ko.Status.GlobalClusterMembers = nil
 	}
@@ -502,13 +501,13 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.ModifyGlobalClusterInput{}
 
 	if r.ko.Spec.DeletionProtection != nil {
-		res.SetDeletionProtection(*r.ko.Spec.DeletionProtection)
+		res.DeletionProtection = r.ko.Spec.DeletionProtection
 	}
 	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+		res.EngineVersion = r.ko.Spec.EngineVersion
 	}
 	if r.ko.Spec.GlobalClusterIdentifier != nil {
-		res.SetGlobalClusterIdentifier(*r.ko.Spec.GlobalClusterIdentifier)
+		res.GlobalClusterIdentifier = r.ko.Spec.GlobalClusterIdentifier
 	}
 
 	return res, nil
@@ -530,7 +529,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteGlobalClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteGlobalClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteGlobalCluster(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteGlobalCluster", err)
 	return nil, err
 }
@@ -543,7 +542,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteGlobalClusterInput{}
 
 	if r.ko.Spec.GlobalClusterIdentifier != nil {
-		res.SetGlobalClusterIdentifier(*r.ko.Spec.GlobalClusterIdentifier)
+		res.GlobalClusterIdentifier = r.ko.Spec.GlobalClusterIdentifier
 	}
 
 	return res, nil
@@ -651,11 +650,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "GlobalClusterAlreadyExistsFault",
 		"GlobalClusterQuotaExceededFault":
 		return true

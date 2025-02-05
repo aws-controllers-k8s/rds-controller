@@ -28,7 +28,7 @@ import (
 func ComputeTagsDelta(
 	a []*svcapitypes.Tag,
 	b []*svcapitypes.Tag,
-) (addedOrUpdated []*svcapitypes.Tag, removed []*string) {
+) (addedOrUpdated []*svcapitypes.Tag, removed []string) {
 	var visitedIndexes []string
 mainLoop:
 	for _, aElement := range b {
@@ -41,7 +41,7 @@ mainLoop:
 				continue mainLoop
 			}
 		}
-		removed = append(removed, aElement.Key)
+		removed = append(removed, *aElement.Key)
 	}
 	for _, bElement := range a {
 		if !ackutil.InStrings(*bElement.Key, visitedIndexes) {

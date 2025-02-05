@@ -15,6 +15,8 @@ package db_cluster
 
 import (
 	"context"
+	"fmt"
+	"math"
 	"regexp"
 	"slices"
 
@@ -22,7 +24,9 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -84,7 +88,7 @@ func (rm *resourceManager) customUpdate(
 
 	var resp *svcsdk.ModifyDBClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.ModifyDBClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.ModifyDBCluster(ctx, input)
 
 	rm.metrics.RecordAPICall("UPDATE", "ModifyDBCluster", err)
 	if err != nil {
@@ -104,18 +108,18 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.ActivityStreamKMSKeyID = nil
 	}
-	if resp.DBCluster.ActivityStreamMode != nil {
-		ko.Status.ActivityStreamMode = resp.DBCluster.ActivityStreamMode
+	if resp.DBCluster.ActivityStreamMode != "" {
+		ko.Status.ActivityStreamMode = aws.String(string(resp.DBCluster.ActivityStreamMode))
 	} else {
 		ko.Status.ActivityStreamMode = nil
 	}
-	if resp.DBCluster.ActivityStreamStatus != nil {
-		ko.Status.ActivityStreamStatus = resp.DBCluster.ActivityStreamStatus
+	if resp.DBCluster.ActivityStreamStatus != "" {
+		ko.Status.ActivityStreamStatus = aws.String(string(resp.DBCluster.ActivityStreamStatus))
 	} else {
 		ko.Status.ActivityStreamStatus = nil
 	}
 	if resp.DBCluster.AllocatedStorage != nil {
-		ko.Spec.AllocatedStorage = resp.DBCluster.AllocatedStorage
+		ko.Spec.AllocatedStorage = aws.Int64(int64(*resp.DBCluster.AllocatedStorage))
 	} else {
 		ko.Spec.AllocatedStorage = nil
 	}
@@ -139,13 +143,7 @@ func (rm *resourceManager) customUpdate(
 		ko.Status.AssociatedRoles = nil
 	}
 	if resp.DBCluster.AvailabilityZones != nil {
-		f6 := []*string{}
-		for _, f6iter := range resp.DBCluster.AvailabilityZones {
-			var f6elem string
-			f6elem = *f6iter
-			f6 = append(f6, &f6elem)
-		}
-		ko.Spec.AvailabilityZones = f6
+		ko.Spec.AvailabilityZones = aws.StringSlice(resp.DBCluster.AvailabilityZones)
 	} else {
 		ko.Spec.AvailabilityZones = nil
 	}
@@ -160,12 +158,12 @@ func (rm *resourceManager) customUpdate(
 		ko.Spec.BacktrackWindow = nil
 	}
 	if resp.DBCluster.BackupRetentionPeriod != nil {
-		ko.Spec.BackupRetentionPeriod = resp.DBCluster.BackupRetentionPeriod
+		ko.Spec.BackupRetentionPeriod = aws.Int64(int64(*resp.DBCluster.BackupRetentionPeriod))
 	} else {
 		ko.Spec.BackupRetentionPeriod = nil
 	}
 	if resp.DBCluster.Capacity != nil {
-		ko.Status.Capacity = resp.DBCluster.Capacity
+		ko.Status.Capacity = aws.Int64(int64(*resp.DBCluster.Capacity))
 	} else {
 		ko.Status.Capacity = nil
 	}
@@ -180,7 +178,7 @@ func (rm *resourceManager) customUpdate(
 		ko.Status.CloneGroupID = nil
 	}
 	if resp.DBCluster.ClusterCreateTime != nil {
-		ko.Status.ClusterCreateTime = &metav1.Time{*resp.DBCluster.ClusterCreateTime}
+		ko.Status.ClusterCreateTime = &metav1.Time{Time: *resp.DBCluster.ClusterCreateTime}
 	} else {
 		ko.Status.ClusterCreateTime = nil
 	}
@@ -195,13 +193,7 @@ func (rm *resourceManager) customUpdate(
 		ko.Status.CrossAccountClone = nil
 	}
 	if resp.DBCluster.CustomEndpoints != nil {
-		f16 := []*string{}
-		for _, f16iter := range resp.DBCluster.CustomEndpoints {
-			var f16elem string
-			f16elem = *f16iter
-			f16 = append(f16, &f16elem)
-		}
-		ko.Status.CustomEndpoints = f16
+		ko.Status.CustomEndpoints = aws.StringSlice(resp.DBCluster.CustomEndpoints)
 	} else {
 		ko.Status.CustomEndpoints = nil
 	}
@@ -231,7 +223,7 @@ func (rm *resourceManager) customUpdate(
 				f19elem.IsClusterWriter = f19iter.IsClusterWriter
 			}
 			if f19iter.PromotionTier != nil {
-				f19elem.PromotionTier = f19iter.PromotionTier
+				f19elem.PromotionTier = aws.Int64(int64(*f19iter.PromotionTier))
 			}
 			f19 = append(f19, f19elem)
 		}
@@ -313,13 +305,7 @@ func (rm *resourceManager) customUpdate(
 		ko.Status.EarliestRestorableTime = nil
 	}
 	if resp.DBCluster.EnabledCloudwatchLogsExports != nil {
-		f29 := []*string{}
-		for _, f29iter := range resp.DBCluster.EnabledCloudwatchLogsExports {
-			var f29elem string
-			f29elem = *f29iter
-			f29 = append(f29, &f29elem)
-		}
-		ko.Status.EnabledCloudwatchLogsExports = f29
+		ko.Status.EnabledCloudwatchLogsExports = aws.StringSlice(resp.DBCluster.EnabledCloudwatchLogsExports)
 	} else {
 		ko.Status.EnabledCloudwatchLogsExports = nil
 	}
@@ -348,8 +334,8 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.GlobalWriteForwardingRequested = nil
 	}
-	if resp.DBCluster.GlobalWriteForwardingStatus != nil {
-		ko.Status.GlobalWriteForwardingStatus = resp.DBCluster.GlobalWriteForwardingStatus
+	if resp.DBCluster.GlobalWriteForwardingStatus != "" {
+		ko.Status.GlobalWriteForwardingStatus = aws.String(string(resp.DBCluster.GlobalWriteForwardingStatus))
 	} else {
 		ko.Status.GlobalWriteForwardingStatus = nil
 	}
@@ -405,22 +391,10 @@ func (rm *resourceManager) customUpdate(
 		if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports != nil {
 			f43f4 := &svcapitypes.PendingCloudwatchLogsExports{}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable != nil {
-				f43f4f0 := []*string{}
-				for _, f43f4f0iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable {
-					var f43f4f0elem string
-					f43f4f0elem = *f43f4f0iter
-					f43f4f0 = append(f43f4f0, &f43f4f0elem)
-				}
-				f43f4.LogTypesToDisable = f43f4f0
+				f43f4.LogTypesToDisable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToDisable)
 			}
 			if resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable != nil {
-				f43f4f1 := []*string{}
-				for _, f43f4f1iter := range resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable {
-					var f43f4f1elem string
-					f43f4f1elem = *f43f4f1iter
-					f43f4f1 = append(f43f4f1, &f43f4f1elem)
-				}
-				f43f4.LogTypesToEnable = f43f4f1
+				f43f4.LogTypesToEnable = aws.StringSlice(resp.DBCluster.PendingModifiedValues.PendingCloudwatchLogsExports.LogTypesToEnable)
 			}
 			f43.PendingCloudwatchLogsExports = f43f4
 		}
@@ -434,7 +408,7 @@ func (rm *resourceManager) customUpdate(
 		ko.Status.PercentProgress = nil
 	}
 	if resp.DBCluster.Port != nil {
-		ko.Spec.Port = resp.DBCluster.Port
+		ko.Spec.Port = aws.Int64(int64(*resp.DBCluster.Port))
 	} else {
 		ko.Spec.Port = nil
 	}
@@ -449,13 +423,7 @@ func (rm *resourceManager) customUpdate(
 		ko.Spec.PreferredMaintenanceWindow = nil
 	}
 	if resp.DBCluster.ReadReplicaIdentifiers != nil {
-		f48 := []*string{}
-		for _, f48iter := range resp.DBCluster.ReadReplicaIdentifiers {
-			var f48elem string
-			f48elem = *f48iter
-			f48 = append(f48, &f48elem)
-		}
-		ko.Status.ReadReplicaIdentifiers = f48
+		ko.Status.ReadReplicaIdentifiers = aws.StringSlice(resp.DBCluster.ReadReplicaIdentifiers)
 	} else {
 		ko.Status.ReadReplicaIdentifiers = nil
 	}
@@ -542,42 +510,45 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 ) (*svcsdk.ModifyDBClusterInput, error) {
 	res := &svcsdk.ModifyDBClusterInput{}
 
-	res.SetApplyImmediately(true)
-	res.SetAllowMajorVersionUpgrade(true)
+	res.ApplyImmediately = aws.Bool(true)
+	res.AllowMajorVersionUpgrade = aws.Bool(true)
 	if desired.ko.Spec.BacktrackWindow != nil && delta.DifferentAt("Spec.BacktrackWindow") {
-		res.SetBacktrackWindow(*desired.ko.Spec.BacktrackWindow)
+		res.BacktrackWindow = desired.ko.Spec.BacktrackWindow
 	}
 	if desired.ko.Spec.BackupRetentionPeriod != nil && delta.DifferentAt("Spec.BackupRetentionPeriod") {
-		res.SetBackupRetentionPeriod(*desired.ko.Spec.BackupRetentionPeriod)
+		if *desired.ko.Spec.BackupRetentionPeriod > math.MaxInt32 {
+			return nil, fmt.Errorf("error: BackupRetentionPeriod should be int32")
+		}
+		res.BackupRetentionPeriod = aws.Int32(int32(*desired.ko.Spec.BackupRetentionPeriod))
 	}
 	if desired.ko.Spec.CopyTagsToSnapshot != nil && delta.DifferentAt("Spec.CopyTagsToSnapshot") {
-		res.SetCopyTagsToSnapshot(*desired.ko.Spec.CopyTagsToSnapshot)
+		res.CopyTagsToSnapshot = desired.ko.Spec.CopyTagsToSnapshot
 	}
 	// NOTE(jaypipes): This is a required field in the input shape. If not set,
 	// we get back a cryptic error message "1 Validation error(s) found."
 	if desired.ko.Spec.DBClusterIdentifier != nil {
-		res.SetDBClusterIdentifier(*desired.ko.Spec.DBClusterIdentifier)
+		res.DBClusterIdentifier = desired.ko.Spec.DBClusterIdentifier
 	}
 	if desired.ko.Spec.DBClusterParameterGroupName != nil && delta.DifferentAt("Spec.DBClusterParameterGroupName") {
-		res.SetDBClusterParameterGroupName(*desired.ko.Spec.DBClusterParameterGroupName)
+		res.DBClusterParameterGroupName = desired.ko.Spec.DBClusterParameterGroupName
 	}
 	if desired.ko.Spec.DeletionProtection != nil && delta.DifferentAt("Spec.DeletionProtection") {
-		res.SetDeletionProtection(*desired.ko.Spec.DeletionProtection)
+		res.DeletionProtection = desired.ko.Spec.DeletionProtection
 	}
 	if desired.ko.Spec.Domain != nil && delta.DifferentAt("Spec.Domain") {
-		res.SetDomain(*desired.ko.Spec.Domain)
+		res.Domain = desired.ko.Spec.Domain
 	}
 	if desired.ko.Spec.DomainIAMRoleName != nil && delta.DifferentAt("Spec.DomainIAMRoleName") {
-		res.SetDomainIAMRoleName(*desired.ko.Spec.DomainIAMRoleName)
+		res.DomainIAMRoleName = desired.ko.Spec.DomainIAMRoleName
 	}
 	if desired.ko.Spec.EnableGlobalWriteForwarding != nil && delta.DifferentAt("Spec.EnableGlobalWriteForwarding") {
-		res.SetEnableGlobalWriteForwarding(*desired.ko.Spec.EnableGlobalWriteForwarding)
+		res.EnableGlobalWriteForwarding = desired.ko.Spec.EnableGlobalWriteForwarding
 	}
 	if desired.ko.Spec.EnableHTTPEndpoint != nil && delta.DifferentAt("Spec.EnableHTTPEndpoint") {
-		res.SetEnableHttpEndpoint(*desired.ko.Spec.EnableHTTPEndpoint)
+		res.EnableHttpEndpoint = desired.ko.Spec.EnableHTTPEndpoint
 	}
 	if desired.ko.Spec.EnableIAMDatabaseAuthentication != nil && delta.DifferentAt("Spec.EnableIAMDatabaseAuthentication") {
-		res.SetEnableIAMDatabaseAuthentication(*desired.ko.Spec.EnableIAMDatabaseAuthentication)
+		res.EnableIAMDatabaseAuthentication = desired.ko.Spec.EnableIAMDatabaseAuthentication
 	}
 	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
 		autoMinorVersionUpgrade := true
@@ -585,7 +556,7 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 			autoMinorVersionUpgrade = *desired.ko.Spec.AutoMinorVersionUpgrade
 		}
 		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
-			res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
+			res.EngineVersion = desired.ko.Spec.EngineVersion
 		}
 	}
 	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
@@ -594,61 +565,55 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 			return nil, err
 		}
 		if tmpSecret != "" {
-			res.SetMasterUserPassword(tmpSecret)
+			res.MasterUserPassword = &tmpSecret
 		}
 	}
 	if desired.ko.Spec.OptionGroupName != nil && delta.DifferentAt("Spec.OptionGroupName") {
-		res.SetOptionGroupName(*desired.ko.Spec.OptionGroupName)
+		res.OptionGroupName = desired.ko.Spec.OptionGroupName
 	}
 	if desired.ko.Spec.Port != nil && delta.DifferentAt("Spec.Port") {
-		res.SetPort(*desired.ko.Spec.Port)
+		res.Port = aws.Int32(int32(*desired.ko.Spec.Port))
 	}
 	if desired.ko.Spec.PreferredBackupWindow != nil && delta.DifferentAt("Spec.PreferredBackupkWindow") {
-		res.SetPreferredBackupWindow(*desired.ko.Spec.PreferredBackupWindow)
+		res.PreferredBackupWindow = desired.ko.Spec.PreferredBackupWindow
 	}
 	if desired.ko.Spec.PreferredMaintenanceWindow != nil && delta.DifferentAt("Spec.PreferredMaintenanceWindow") {
-		res.SetPreferredMaintenanceWindow(*desired.ko.Spec.PreferredMaintenanceWindow)
+		res.PreferredMaintenanceWindow = desired.ko.Spec.PreferredMaintenanceWindow
 	}
 	if desired.ko.Spec.ScalingConfiguration != nil && delta.DifferentAt("Spec.ScalingConfiguration") {
-		f22 := &svcsdk.ScalingConfiguration{}
+		f22 := &svcsdktypes.ScalingConfiguration{}
 		if desired.ko.Spec.ScalingConfiguration.AutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.AutoPause") {
-			f22.SetAutoPause(*desired.ko.Spec.ScalingConfiguration.AutoPause)
+			f22.AutoPause = desired.ko.Spec.ScalingConfiguration.AutoPause
 		}
 		if desired.ko.Spec.ScalingConfiguration.MaxCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MaxCapacity") {
-			f22.SetMaxCapacity(*desired.ko.Spec.ScalingConfiguration.MaxCapacity)
+			f22.MaxCapacity = aws.Int32(int32(*desired.ko.Spec.ScalingConfiguration.MaxCapacity))
 		}
 		if desired.ko.Spec.ScalingConfiguration.MinCapacity != nil && delta.DifferentAt("Spec.ScalingConfiguration.MinCapacity") {
-			f22.SetMinCapacity(*desired.ko.Spec.ScalingConfiguration.MinCapacity)
+			f22.MinCapacity = aws.Int32(int32(*desired.ko.Spec.ScalingConfiguration.MinCapacity))
 		}
 		if desired.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause != nil && delta.DifferentAt("Spec.ScalingConfiguration.SecondsUntilAutoPause") {
-			f22.SetSecondsUntilAutoPause(*desired.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause)
+			f22.SecondsUntilAutoPause = aws.Int32(int32(*desired.ko.Spec.ScalingConfiguration.SecondsUntilAutoPause))
 		}
 		if desired.ko.Spec.ScalingConfiguration.TimeoutAction != nil && delta.DifferentAt("Spec.ScalingConfiguration.TimeoutAction") {
-			f22.SetTimeoutAction(*desired.ko.Spec.ScalingConfiguration.TimeoutAction)
+			f22.TimeoutAction = desired.ko.Spec.ScalingConfiguration.TimeoutAction
 		}
-		res.SetScalingConfiguration(f22)
+		res.ScalingConfiguration = (f22)
 	}
 	if desired.ko.Spec.VPCSecurityGroupIDs != nil && delta.DifferentAt("Spec.VPCSecurityGroupIDs") {
-		f23 := []*string{}
-		for _, f23iter := range desired.ko.Spec.VPCSecurityGroupIDs {
-			var f23elem string
-			f23elem = *f23iter
-			f23 = append(f23, &f23elem)
-		}
-		res.SetVpcSecurityGroupIds(f23)
+		res.VpcSecurityGroupIds = aws.ToStringSlice(desired.ko.Spec.VPCSecurityGroupIDs)
 	}
 	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to get ServerlessV2ScalingConfiguration modified
 	if desired.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
-		f23 := &svcsdk.ServerlessV2ScalingConfiguration{}
+		f23 := &svcsdktypes.ServerlessV2ScalingConfiguration{}
 		if delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") || delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
 			if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-				f23.SetMaxCapacity(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity)
+				f23.MaxCapacity = desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity
 			}
 			if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-				f23.SetMinCapacity(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity)
+				f23.MinCapacity = desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity
 			}
 		}
-		res.SetServerlessV2ScalingConfiguration(f23)
+		res.ServerlessV2ScalingConfiguration = f23
 	}
 
 	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
@@ -656,11 +621,11 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		//Latest log types config
 		cloudwatchLogExportsConfigLatest := latest.ko.Spec.EnableCloudwatchLogsExports
 		logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired, cloudwatchLogExportsConfigLatest)
-		f24 := &svcsdk.CloudwatchLogsExportConfiguration{
-			EnableLogTypes:  logsTypesToEnable,
-			DisableLogTypes: logsTypesToDisable,
+		f24 := &svcsdktypes.CloudwatchLogsExportConfiguration{
+			EnableLogTypes:  aws.ToStringSlice(logsTypesToEnable),
+			DisableLogTypes: aws.ToStringSlice(logsTypesToDisable),
 		}
-		res.SetCloudwatchLogsExportConfiguration(f24)
+		res.CloudwatchLogsExportConfiguration = f24
 	}
 	return res, nil
 }

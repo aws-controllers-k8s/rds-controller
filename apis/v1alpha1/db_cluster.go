@@ -45,27 +45,32 @@ type DBClusterSpec struct {
 	// The amount of storage in gibibytes (GiB) to allocate to each DB instance
 	// in the Multi-AZ DB cluster.
 	//
+	// Valid for Cluster Type: Multi-AZ DB clusters only
+	//
 	// This setting is required to create a Multi-AZ DB cluster.
-	//
-	// Valid for: Multi-AZ DB clusters only
 	AllocatedStorage *int64 `json:"allocatedStorage,omitempty"`
-	// A value that indicates whether minor engine upgrades are applied automatically
-	// to the DB cluster during the maintenance window. By default, minor engine
-	// upgrades are applied automatically.
+	// Specifies whether minor engine upgrades are applied automatically to the
+	// DB cluster during the maintenance window. By default, minor engine upgrades
+	// are applied automatically.
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	AutoMinorVersionUpgrade *bool `json:"autoMinorVersionUpgrade,omitempty"`
-	// A list of Availability Zones (AZs) where DB instances in the DB cluster can
-	// be created.
+	// A list of Availability Zones (AZs) where you specifically want to create
+	// DB instances in the DB cluster.
 	//
-	// For information on Amazon Web Services Regions and Availability Zones, see
-	// Choosing the Regions and Availability Zones (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.RegionsAndAvailabilityZones.html)
+	// For information on AZs, see Availability Zones (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.RegionsAndAvailabilityZones.html#Concepts.RegionsAndAvailabilityZones.AvailabilityZones)
 	// in the Amazon Aurora User Guide.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
+	//
+	// Constraints:
+	//
+	//   - Can't specify more than three AZs.
 	AvailabilityZones []*string `json:"availabilityZones,omitempty"`
 	// The target backtrack window, in seconds. To disable backtracking, set this
 	// value to 0.
+	//
+	// Valid for Cluster Type: Aurora MySQL DB clusters only
 	//
 	// Default: 0
 	//
@@ -73,42 +78,42 @@ type DBClusterSpec struct {
 	//
 	//   - If specified, this value must be set to a number from 0 to 259,200 (72
 	//     hours).
-	//
-	// Valid for: Aurora MySQL DB clusters only
 	BacktrackWindow *int64 `json:"backtrackWindow,omitempty"`
 	// The number of days for which automated backups are retained.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Default: 1
 	//
 	// Constraints:
 	//
-	//   - Must be a value from 1 to 35
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	//   - Must be a value from 1 to 35.
 	BackupRetentionPeriod *int64 `json:"backupRetentionPeriod,omitempty"`
-	// A value that indicates that the DB cluster should be associated with the
-	// specified CharacterSet.
+	// The name of the character set (CharacterSet) to associate the DB cluster
+	// with.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	CharacterSetName *string `json:"characterSetName,omitempty"`
-	// A value that indicates whether to copy all tags from the DB cluster to snapshots
-	// of the DB cluster. The default is not to copy them.
+	// Specifies whether to copy all tags from the DB cluster to snapshots of the
+	// DB cluster. The default is not to copy them.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	CopyTagsToSnapshot *bool `json:"copyTagsToSnapshot,omitempty"`
-	// The DB cluster identifier. This parameter is stored as a lowercase string.
+	// The identifier for this DB cluster. This parameter is stored as a lowercase
+	// string.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Constraints:
 	//
-	//   - Must contain from 1 to 63 letters, numbers, or hyphens.
+	//   - Must contain from 1 to 63 (for Aurora DB clusters) or 1 to 52 (for Multi-AZ
+	//     DB clusters) letters, numbers, or hyphens.
 	//
 	//   - First character must be a letter.
 	//
 	//   - Can't end with a hyphen or contain two consecutive hyphens.
 	//
 	// Example: my-cluster1
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	// +kubebuilder:validation:Required
 	DBClusterIdentifier *string `json:"dbClusterIdentifier"`
 	// The compute and memory capacity of each DB instance in the Multi-AZ DB cluster,
@@ -121,45 +126,46 @@ type DBClusterSpec struct {
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	DBClusterInstanceClass *string `json:"dbClusterInstanceClass,omitempty"`
 	// The name of the DB cluster parameter group to associate with this DB cluster.
-	// If you do not specify a value, then the default DB cluster parameter group
+	// If you don't specify a value, then the default DB cluster parameter group
 	// for the specified DB engine and version is used.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Constraints:
 	//
 	//   - If supplied, must match the name of an existing DB cluster parameter
 	//     group.
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	DBClusterParameterGroupName *string                                  `json:"dbClusterParameterGroupName,omitempty"`
 	DBClusterParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterParameterGroupRef,omitempty"`
 	// A DB subnet group to associate with this DB cluster.
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
 	//
-	// Constraints: Must match the name of an existing DBSubnetGroup. Must not be
-	// default.
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
+	//
+	// Constraints:
+	//
+	//   - Must match the name of an existing DB subnet group.
 	//
 	// Example: mydbsubnetgroup
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
 	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
 	// Reserved for future use.
 	DBSystemID *string `json:"dbSystemID,omitempty"`
-	// The name for your database of up to 64 alphanumeric characters. If you do
-	// not provide a name, Amazon RDS doesn't create a database in the DB cluster
-	// you are creating.
+	// The name for your database of up to 64 alphanumeric characters. A database
+	// named postgres is always created. If this parameter is specified, an additional
+	// database with this name is created.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	DatabaseName *string `json:"databaseName,omitempty"`
-	// A value that indicates whether the DB cluster has deletion protection enabled.
-	// The database can't be deleted when deletion protection is enabled. By default,
-	// deletion protection isn't enabled.
+	// Specifies whether the DB cluster has deletion protection enabled. The database
+	// can't be deleted when deletion protection is enabled. By default, deletion
+	// protection isn't enabled.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	DeletionProtection *bool `json:"deletionProtection,omitempty"`
 	// DestinationRegion is used for presigning the request to a given region.
 	DestinationRegion *string `json:"destinationRegion,omitempty"`
@@ -171,31 +177,26 @@ type DBClusterSpec struct {
 	// For more information, see Kerberos authentication (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/kerberos-authentication.html)
 	// in the Amazon Aurora User Guide.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	Domain *string `json:"domain,omitempty"`
-	// Specify the name of the IAM role to be used when making API calls to the
-	// Directory Service.
+	// The name of the IAM role to use when making API calls to the Directory Service.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	DomainIAMRoleName *string `json:"domainIAMRoleName,omitempty"`
 	// The list of log types that need to be enabled for exporting to CloudWatch
-	// Logs. The values in the list depend on the DB engine being used.
+	// Logs.
 	//
-	// # RDS for MySQL
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
-	// Possible values are error, general, and slowquery.
+	// The following values are valid for each DB engine:
 	//
-	// # RDS for PostgreSQL
+	//   - Aurora MySQL - audit | error | general | slowquery
 	//
-	// Possible values are postgresql and upgrade.
+	//   - Aurora PostgreSQL - postgresql
 	//
-	// # Aurora MySQL
+	//   - RDS for MySQL - error | general | slowquery
 	//
-	// Possible values are audit, error, general, and slowquery.
-	//
-	// # Aurora PostgreSQL
-	//
-	// Possible value is postgresql.
+	//   - RDS for PostgreSQL - postgresql | upgrade
 	//
 	// For more information about exporting CloudWatch Logs for Amazon RDS, see
 	// Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
@@ -204,53 +205,60 @@ type DBClusterSpec struct {
 	// For more information about exporting CloudWatch Logs for Amazon Aurora, see
 	// Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
 	// in the Amazon Aurora User Guide.
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	EnableCloudwatchLogsExports []*string `json:"enableCloudwatchLogsExports,omitempty"`
-	// A value that indicates whether to enable this DB cluster to forward write
-	// operations to the primary cluster of an Aurora global database (GlobalCluster).
-	// By default, write operations are not allowed on Aurora DB clusters that are
-	// secondary clusters in an Aurora global database.
+	// Specifies whether to enable this DB cluster to forward write operations to
+	// the primary cluster of a global cluster (Aurora global database). By default,
+	// write operations are not allowed on Aurora DB clusters that are secondary
+	// clusters in an Aurora global database.
 	//
 	// You can set this value only on Aurora DB clusters that are members of an
 	// Aurora global database. With this parameter enabled, a secondary cluster
-	// can forward writes to the current primary cluster and the resulting changes
+	// can forward writes to the current primary cluster, and the resulting changes
 	// are replicated back to this cluster. For the primary DB cluster of an Aurora
 	// global database, this value is used immediately if the primary is demoted
-	// by the FailoverGlobalCluster API operation, but it does nothing until then.
+	// by a global cluster API operation, but it does nothing until then.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	EnableGlobalWriteForwarding *bool `json:"enableGlobalWriteForwarding,omitempty"`
-	// A value that indicates whether to enable the HTTP endpoint for an Aurora
-	// Serverless v1 DB cluster. By default, the HTTP endpoint is disabled.
+	// Specifies whether to enable the HTTP endpoint for the DB cluster. By default,
+	// the HTTP endpoint isn't enabled.
 	//
 	// When enabled, the HTTP endpoint provides a connectionless web service API
-	// for running SQL queries on the Aurora Serverless v1 DB cluster. You can also
-	// query your database from inside the RDS console with the query editor.
+	// (RDS Data API) for running SQL queries on the DB cluster. You can also query
+	// your database from inside the RDS console with the RDS query editor.
 	//
-	// For more information, see Using the Data API for Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
+	// RDS Data API is supported with the following DB clusters:
+	//
+	//   - Aurora PostgreSQL Serverless v2 and provisioned
+	//
+	//   - Aurora PostgreSQL and Aurora MySQL Serverless v1
+	//
+	// For more information, see Using RDS Data API (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
 	// in the Amazon Aurora User Guide.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	EnableHTTPEndpoint *bool `json:"enableHTTPEndpoint,omitempty"`
-	// A value that indicates whether to enable mapping of Amazon Web Services Identity
-	// and Access Management (IAM) accounts to database accounts. By default, mapping
-	// isn't enabled.
+	// Specifies whether to enable mapping of Amazon Web Services Identity and Access
+	// Management (IAM) accounts to database accounts. By default, mapping isn't
+	// enabled.
 	//
 	// For more information, see IAM Database Authentication (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.IAMDBAuth.html)
-	// in the Amazon Aurora User Guide.
+	// in the Amazon Aurora User Guide or IAM database authentication for MariaDB,
+	// MySQL, and PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
+	// in the Amazon RDS User Guide.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	EnableIAMDatabaseAuthentication *bool `json:"enableIAMDatabaseAuthentication,omitempty"`
-	// A value that indicates whether to turn on Performance Insights for the DB
-	// cluster.
+	// Specifies whether to turn on Performance Insights for the DB cluster.
 	//
 	// For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
 	// in the Amazon RDS User Guide.
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	EnablePerformanceInsights *bool `json:"enablePerformanceInsights,omitempty"`
-	// The name of the database engine to be used for this DB cluster.
+	// The database engine to use for this DB cluster.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Valid Values:
 	//
@@ -262,25 +270,24 @@ type DBClusterSpec struct {
 	//
 	//   - postgres
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	//   - neptune - For information about using Amazon Neptune, see the Amazon
+	//     Neptune User Guide (https://docs.aws.amazon.com/neptune/latest/userguide/intro.html).
+	//
 	// +kubebuilder:validation:Required
 	Engine *string `json:"engine"`
 	// The DB engine mode of the DB cluster, either provisioned or serverless.
 	//
 	// The serverless engine mode only applies for Aurora Serverless v1 DB clusters.
+	// Aurora Serverless v2 DB clusters use the provisioned engine mode.
 	//
-	// Limitations and requirements apply to some DB engine modes. For more information,
+	// For information about limitations and requirements for Serverless DB clusters,
 	// see the following sections in the Amazon Aurora User Guide:
 	//
 	//   - Limitations of Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
 	//
 	//   - Requirements for Aurora Serverless v2 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.requirements.html)
 	//
-	//   - Limitations of parallel query (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-mysql-parallel-query.html#aurora-mysql-parallel-query-limitations)
-	//
-	//   - Limitations of Aurora global databases (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database.limitations)
-	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	EngineMode *string `json:"engineMode,omitempty"`
 	// The version number of the database engine to use.
 	//
@@ -307,33 +314,27 @@ type DBClusterSpec struct {
 	//
 	// aws rds describe-db-engine-versions --engine postgres --query "DBEngineVersions[].EngineVersion"
 	//
-	// # Aurora MySQL
+	// For information about a specific engine, see the following topics:
 	//
-	// For information, see Database engine updates for Amazon Aurora MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
-	// in the Amazon Aurora User Guide.
+	//   - Aurora MySQL - see Database engine updates for Amazon Aurora MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
+	//     in the Amazon Aurora User Guide.
 	//
-	// # Aurora PostgreSQL
+	//   - Aurora PostgreSQL - see Amazon Aurora PostgreSQL releases and engine
+	//     versions (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Updates.20180305.html)
+	//     in the Amazon Aurora User Guide.
 	//
-	// For information, see Amazon Aurora PostgreSQL releases and engine versions
-	// (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Updates.20180305.html)
-	// in the Amazon Aurora User Guide.
+	//   - RDS for MySQL - see Amazon RDS for MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
+	//     in the Amazon RDS User Guide.
 	//
-	// # MySQL
+	//   - RDS for PostgreSQL - see Amazon RDS for PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
+	//     in the Amazon RDS User Guide.
 	//
-	// For information, see Amazon RDS for MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
-	// in the Amazon RDS User Guide.
-	//
-	// # PostgreSQL
-	//
-	// For information, see Amazon RDS for PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
-	// in the Amazon RDS User Guide.
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	EngineVersion *string `json:"engineVersion,omitempty"`
 	// The global cluster ID of an Aurora cluster that becomes the primary cluster
 	// in the new global database cluster.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	GlobalClusterIdentifier *string `json:"globalClusterIdentifier,omitempty"`
 	// The amount of Provisioned IOPS (input/output operations per second) to be
 	// initially allocated for each DB instance in the Multi-AZ DB cluster.
@@ -343,10 +344,12 @@ type DBClusterSpec struct {
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
 	//
-	// Constraints: Must be a multiple between .5 and 50 of the storage amount for
-	// the DB cluster.
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Constraints:
+	//
+	//   - Must be a multiple between .5 and 50 of the storage amount for the DB
+	//     cluster.
 	IOPS *int64 `json:"iops,omitempty"`
 	// The Amazon Web Services KMS key identifier for an encrypted DB cluster.
 	//
@@ -357,26 +360,26 @@ type DBClusterSpec struct {
 	// When a KMS key isn't specified in KmsKeyId:
 	//
 	//   - If ReplicationSourceIdentifier identifies an encrypted source, then
-	//     Amazon RDS will use the KMS key used to encrypt the source. Otherwise,
-	//     Amazon RDS will use your default KMS key.
+	//     Amazon RDS uses the KMS key used to encrypt the source. Otherwise, Amazon
+	//     RDS uses your default KMS key.
 	//
 	//   - If the StorageEncrypted parameter is enabled and ReplicationSourceIdentifier
-	//     isn't specified, then Amazon RDS will use your default KMS key.
+	//     isn't specified, then Amazon RDS uses your default KMS key.
 	//
 	// There is a default KMS key for your Amazon Web Services account. Your Amazon
 	// Web Services account has a different default KMS key for each Amazon Web
 	// Services Region.
 	//
 	// If you create a read replica of an encrypted DB cluster in another Amazon
-	// Web Services Region, you must set KmsKeyId to a KMS key identifier that is
-	// valid in the destination Amazon Web Services Region. This KMS key is used
+	// Web Services Region, make sure to set KmsKeyId to a KMS key identifier that
+	// is valid in the destination Amazon Web Services Region. This KMS key is used
 	// to encrypt the read replica in that Amazon Web Services Region.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	KMSKeyID  *string                                  `json:"kmsKeyID,omitempty"`
 	KMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsKeyRef,omitempty"`
-	// A value that indicates whether to manage the master user password with Amazon
-	// Web Services Secrets Manager.
+	// Specifies whether to manage the master user password with Amazon Web Services
+	// Secrets Manager.
 	//
 	// For more information, see Password management with Amazon Web Services Secrets
 	// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
@@ -384,23 +387,24 @@ type DBClusterSpec struct {
 	// Secrets Manager (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html)
 	// in the Amazon Aurora User Guide.
 	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
+	//
 	// Constraints:
 	//
 	//   - Can't manage the master user password with Amazon Web Services Secrets
 	//     Manager if MasterUserPassword is specified.
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	ManageMasterUserPassword *bool `json:"manageMasterUserPassword,omitempty"`
-	// The password for the master database user. This password can contain any
-	// printable ASCII character except "/", """, or "@".
+	// The password for the master database user.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Constraints:
 	//
 	//   - Must contain from 8 to 41 characters.
 	//
-	//   - Can't be specified if ManageMasterUserPassword is turned on.
+	//   - Can contain any printable ASCII character except "/", """, or "@".
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	//   - Can't be specified if ManageMasterUserPassword is turned on.
 	MasterUserPassword *ackv1alpha1.SecretKeyReference `json:"masterUserPassword,omitempty"`
 	// The Amazon Web Services KMS key identifier to encrypt a secret that is automatically
 	// generated and managed in Amazon Web Services Secrets Manager.
@@ -421,10 +425,12 @@ type DBClusterSpec struct {
 	// Web Services account has a different default KMS key for each Amazon Web
 	// Services Region.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	MasterUserSecretKMSKeyID  *string                                  `json:"masterUserSecretKMSKeyID,omitempty"`
 	MasterUserSecretKMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"masterUserSecretKMSKeyRef,omitempty"`
 	// The name of the master user for the DB cluster.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Constraints:
 	//
@@ -433,19 +439,19 @@ type DBClusterSpec struct {
 	//   - First character must be a letter.
 	//
 	//   - Can't be a reserved word for the chosen database engine.
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	MasterUsername *string `json:"masterUsername,omitempty"`
 	// The interval, in seconds, between points when Enhanced Monitoring metrics
 	// are collected for the DB cluster. To turn off collecting Enhanced Monitoring
-	// metrics, specify 0. The default is 0.
+	// metrics, specify 0.
 	//
 	// If MonitoringRoleArn is specified, also set MonitoringInterval to a value
 	// other than 0.
 	//
-	// Valid Values: 0, 1, 5, 10, 15, 30, 60
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Valid Values: 0 | 1 | 5 | 10 | 15 | 30 | 60
+	//
+	// Default: 0
 	MonitoringInterval *int64 `json:"monitoringInterval,omitempty"`
 	// The Amazon Resource Name (ARN) for the IAM role that permits RDS to send
 	// Enhanced Monitoring metrics to Amazon CloudWatch Logs. An example is arn:aws:iam:123456789012:role/emaccess.
@@ -456,15 +462,9 @@ type DBClusterSpec struct {
 	// If MonitoringInterval is set to a value other than 0, supply a MonitoringRoleArn
 	// value.
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	MonitoringRoleARN *string `json:"monitoringRoleARN,omitempty"`
 	// The network type of the DB cluster.
-	//
-	// Valid values:
-	//
-	//   - IPV4
-	//
-	//   - DUAL
 	//
 	// The network type is determined by the DBSubnetGroup specified for the DB
 	// cluster. A DBSubnetGroup can support only the IPv4 protocol or the IPv4 and
@@ -473,10 +473,11 @@ type DBClusterSpec struct {
 	// For more information, see Working with a DB instance in a VPC (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html)
 	// in the Amazon Aurora User Guide.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
+	//
+	// Valid Values: IPV4 | DUAL
 	NetworkType *string `json:"networkType,omitempty"`
-	// A value that indicates that the DB cluster should be associated with the
-	// specified option group.
+	// The option group to associate the DB cluster with.
 	//
 	// DB clusters are associated with a default option group that can't be modified.
 	OptionGroupName *string `json:"optionGroupName,omitempty"`
@@ -491,47 +492,37 @@ type DBClusterSpec struct {
 	// Web Services account. Your Amazon Web Services account has a different default
 	// KMS key for each Amazon Web Services Region.
 	//
-	// Valid for: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	PerformanceInsightsKMSKeyID *string `json:"performanceInsightsKMSKeyID,omitempty"`
-	// The number of days to retain Performance Insights data. The default is 7
-	// days. The following values are valid:
+	// The number of days to retain Performance Insights data.
+	//
+	// Valid for Cluster Type: Multi-AZ DB clusters only
+	//
+	// Valid Values:
 	//
 	//   - 7
 	//
-	//   - month * 31, where month is a number of months from 1-23
+	//   - month * 31, where month is a number of months from 1-23. Examples: 93
+	//     (3 months * 31), 341 (11 months * 31), 589 (19 months * 31)
 	//
 	//   - 731
 	//
-	// For example, the following values are valid:
+	// Default: 7 days
 	//
-	//   - 93 (3 months * 31)
-	//
-	//   - 341 (11 months * 31)
-	//
-	//   - 589 (19 months * 31)
-	//
-	//   - 731
-	//
-	// If you specify a retention period such as 94, which isn't a valid value,
-	// RDS issues an error.
-	//
-	// Valid for: Multi-AZ DB clusters only
+	// If you specify a retention period that isn't valid, such as 94, Amazon RDS
+	// issues an error.
 	PerformanceInsightsRetentionPeriod *int64 `json:"performanceInsightsRetentionPeriod,omitempty"`
 	// The port number on which the instances in the DB cluster accept connections.
 	//
-	// # RDS for MySQL and Aurora MySQL
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
-	// Default: 3306
+	// Valid Values: 1150-65535
 	//
-	// Valid values: 1150-65535
+	// Default:
 	//
-	// # RDS for PostgreSQL and Aurora PostgreSQL
+	//   - RDS for MySQL and Aurora MySQL - 3306
 	//
-	// Default: 5432
-	//
-	// Valid values: 1150-65535
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	//   - RDS for PostgreSQL and Aurora PostgreSQL - 5432
 	Port *int64 `json:"port,omitempty"`
 	// When you are replicating a DB cluster from one Amazon Web Services GovCloud
 	// (US) Region to another, an URL that contains a Signature Version 4 signed
@@ -573,10 +564,12 @@ type DBClusterSpec struct {
 	// valid request for the operation that can run in the source Amazon Web Services
 	// Region.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	PreSignedURL *string `json:"preSignedURL,omitempty"`
 	// The daily time range during which automated backups are created if automated
 	// backups are enabled using the BackupRetentionPeriod parameter.
+	//
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// The default is a 30-minute window selected at random from an 8-hour block
 	// of time for each Amazon Web Services Region. To view the time blocks available,
@@ -592,13 +585,10 @@ type DBClusterSpec struct {
 	//   - Must not conflict with the preferred maintenance window.
 	//
 	//   - Must be at least 30 minutes.
-	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	PreferredBackupWindow *string `json:"preferredBackupWindow,omitempty"`
-	// The weekly time range during which system maintenance can occur, in Universal
-	// Coordinated Time (UTC).
+	// The weekly time range during which system maintenance can occur.
 	//
-	// Format: ddd:hh24:mi-ddd:hh24:mi
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// The default is a 30-minute window selected at random from an 8-hour block
 	// of time for each Amazon Web Services Region, occurring on a random day of
@@ -606,23 +596,30 @@ type DBClusterSpec struct {
 	// Cluster Maintenance Window (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_UpgradeDBInstance.Maintenance.html#AdjustingTheMaintenanceWindow.Aurora)
 	// in the Amazon Aurora User Guide.
 	//
-	// Valid Days: Mon, Tue, Wed, Thu, Fri, Sat, Sun.
+	// Constraints:
 	//
-	// Constraints: Minimum 30-minute window.
+	//   - Must be in the format ddd:hh24:mi-ddd:hh24:mi.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	//   - Days must be one of Mon | Tue | Wed | Thu | Fri | Sat | Sun.
+	//
+	//   - Must be in Universal Coordinated Time (UTC).
+	//
+	//   - Must be at least 30 minutes.
 	PreferredMaintenanceWindow *string `json:"preferredMaintenanceWindow,omitempty"`
-	// A value that indicates whether the DB cluster is publicly accessible.
+	// Specifies whether the DB cluster is publicly accessible.
 	//
-	// When the DB cluster is publicly accessible, its Domain Name System (DNS)
-	// endpoint resolves to the private IP address from within the DB cluster's
-	// virtual private cloud (VPC). It resolves to the public IP address from outside
-	// of the DB cluster's VPC. Access to the DB cluster is ultimately controlled
-	// by the security group it uses. That public access isn't permitted if the
-	// security group assigned to the DB cluster doesn't permit it.
+	// When the DB cluster is publicly accessible and you connect from outside of
+	// the DB cluster's virtual private cloud (VPC), its Domain Name System (DNS)
+	// endpoint resolves to the public IP address. When you connect from within
+	// the same VPC as the DB cluster, the endpoint resolves to the private IP address.
+	// Access to the DB cluster is ultimately controlled by the security group it
+	// uses. That public access isn't permitted if the security group assigned to
+	// the DB cluster doesn't permit it.
 	//
 	// When the DB cluster isn't publicly accessible, it is an internal DB cluster
 	// with a DNS name that resolves to a private IP address.
+	//
+	// Valid for Cluster Type: Multi-AZ DB clusters only
 	//
 	// Default: The default behavior varies depending on whether DBSubnetGroupName
 	// is specified.
@@ -644,13 +641,11 @@ type DBClusterSpec struct {
 	//
 	//   - If the subnets are part of a VPC that has an internet gateway attached
 	//     to it, the DB cluster is public.
-	//
-	// Valid for: Multi-AZ DB clusters only
 	PubliclyAccessible *bool `json:"publiclyAccessible,omitempty"`
 	// The Amazon Resource Name (ARN) of the source DB instance or DB cluster if
 	// this DB cluster is created as a read replica.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	ReplicationSourceIdentifier *string `json:"replicationSourceIdentifier,omitempty"`
 	// The date and time to restore the DB cluster to.
 	//
@@ -679,9 +674,6 @@ type DBClusterSpec struct {
 	//   - copy-on-write - The new DB cluster is restored as a clone of the source
 	//     DB cluster.
 	//
-	// Constraints: You can't specify copy-on-write if the engine version of the
-	// source DB cluster is earlier than 1.11.
-	//
 	// If you don't specify a RestoreType value, then the new DB cluster is restored
 	// as a full copy of the source DB cluster.
 	//
@@ -690,7 +682,7 @@ type DBClusterSpec struct {
 	// For DB clusters in serverless DB engine mode, the scaling properties of the
 	// DB cluster.
 	//
-	// Valid for: Aurora DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters only
 	ScalingConfiguration             *ScalingConfiguration             `json:"scalingConfiguration,omitempty"`
 	ServerlessV2ScalingConfiguration *ServerlessV2ScalingConfiguration `json:"serverlessV2ScalingConfiguration,omitempty"`
 	// The identifier for the DB snapshot or DB cluster snapshot to restore from.
@@ -717,28 +709,46 @@ type DBClusterSpec struct {
 	// sent over the wire and is only used for presigning. This value should always
 	// have the same region as the source ARN.
 	SourceRegion *string `json:"sourceRegion,omitempty"`
-	// A value that indicates whether the DB cluster is encrypted.
+	// Specifies whether the DB cluster is encrypted.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	StorageEncrypted *bool `json:"storageEncrypted,omitempty"`
-	// Specifies the storage type to be associated with the DB cluster.
+	// The storage type to associate with the DB cluster.
+	//
+	// For information on storage types for Aurora DB clusters, see Storage configurations
+	// for Amazon Aurora DB clusters (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html#aurora-storage-type).
+	// For information on storage types for Multi-AZ DB clusters, see Settings for
+	// creating Multi-AZ DB clusters (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/create-multi-az-db-cluster.html#create-multi-az-db-cluster-settings).
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
 	//
-	// Valid values: io1
+	// When specified for a Multi-AZ DB cluster, a value for the Iops parameter
+	// is required.
 	//
-	// When specified, a value for the Iops parameter is required.
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
-	// Default: io1
+	// Valid Values:
 	//
-	// Valid for: Multi-AZ DB clusters only
+	//   - Aurora DB clusters - aurora | aurora-iopt1
+	//
+	//   - Multi-AZ DB clusters - io1 | io2 | gp3
+	//
+	// Default:
+	//
+	//   - Aurora DB clusters - aurora
+	//
+	//   - Multi-AZ DB clusters - io1
+	//
+	// When you create an Aurora DB cluster with the storage type set to aurora-iopt1,
+	// the storage type is returned in the response. The storage type isn't returned
+	// when you set it to aurora.
 	StorageType *string `json:"storageType,omitempty"`
 	// Tags to assign to the DB cluster.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	Tags []*Tag `json:"tags,omitempty"`
-	// A value that indicates whether to restore the DB cluster to the latest restorable
-	// backup time. By default, the DB cluster isn't restored to the latest restorable
+	// Specifies whether to restore the DB cluster to the latest restorable backup
+	// time. By default, the DB cluster isn't restored to the latest restorable
 	// backup time.
 	//
 	// Constraints: Can't be specified if RestoreToTime parameter is provided.
@@ -747,7 +757,7 @@ type DBClusterSpec struct {
 	UseLatestRestorableTime *bool `json:"useLatestRestorableTime,omitempty"`
 	// A list of EC2 VPC security groups to associate with this DB cluster.
 	//
-	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	VPCSecurityGroupIDs  []*string                                  `json:"vpcSecurityGroupIDs,omitempty"`
 	VPCSecurityGroupRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"vpcSecurityGroupRefs,omitempty"`
 }
@@ -784,10 +794,10 @@ type DBClusterStatus struct {
 	// The status of the database activity stream.
 	// +kubebuilder:validation:Optional
 	ActivityStreamStatus *string `json:"activityStreamStatus,omitempty"`
-	// Provides a list of the Amazon Web Services Identity and Access Management
-	// (IAM) roles that are associated with the DB cluster. IAM roles that are associated
-	// with a DB cluster grant permission for the DB cluster to access other Amazon
-	// Web Services on your behalf.
+	// A list of the Amazon Web Services Identity and Access Management (IAM) roles
+	// that are associated with the DB cluster. IAM roles that are associated with
+	// a DB cluster grant permission for the DB cluster to access other Amazon Web
+	// Services on your behalf.
 	// +kubebuilder:validation:Optional
 	AssociatedRoles []*DBClusterRole `json:"associatedRoles,omitempty"`
 	// The time when a stopped DB cluster is restarted automatically.
@@ -804,31 +814,30 @@ type DBClusterStatus struct {
 	// in the Amazon Aurora User Guide.
 	// +kubebuilder:validation:Optional
 	Capacity *int64 `json:"capacity,omitempty"`
-	// Identifies the clone group to which the DB cluster is associated.
+	// The ID of the clone group with which the DB cluster is associated.
 	// +kubebuilder:validation:Optional
 	CloneGroupID *string `json:"cloneGroupID,omitempty"`
-	// Specifies the time when the DB cluster was created, in Universal Coordinated
-	// Time (UTC).
+	// The time when the DB cluster was created, in Universal Coordinated Time (UTC).
 	// +kubebuilder:validation:Optional
 	ClusterCreateTime *metav1.Time `json:"clusterCreateTime,omitempty"`
-	// Specifies whether the DB cluster is a clone of a DB cluster owned by a different
+	// Indicates whether the DB cluster is a clone of a DB cluster owned by a different
 	// Amazon Web Services account.
 	// +kubebuilder:validation:Optional
 	CrossAccountClone *bool `json:"crossAccountClone,omitempty"`
-	// Identifies all custom endpoints associated with the cluster.
+	// The custom endpoints associated with the DB cluster.
 	// +kubebuilder:validation:Optional
 	CustomEndpoints []*string `json:"customEndpoints,omitempty"`
-	// Provides the list of instances that make up the DB cluster.
+	// The list of DB instances that make up the DB cluster.
 	// +kubebuilder:validation:Optional
 	DBClusterMembers []*DBClusterMember `json:"dbClusterMembers,omitempty"`
-	// Provides the list of option group memberships for this DB cluster.
+	// The list of option group memberships for this DB cluster.
 	// +kubebuilder:validation:Optional
 	DBClusterOptionGroupMemberships []*DBClusterOptionGroupStatus `json:"dbClusterOptionGroupMemberships,omitempty"`
-	// Specifies the name of the DB cluster parameter group for the DB cluster.
+	// The name of the DB cluster parameter group for the DB cluster.
 	// +kubebuilder:validation:Optional
 	DBClusterParameterGroup *string `json:"dbClusterParameterGroup,omitempty"`
-	// Specifies information on the subnet group associated with the DB cluster,
-	// including the name, description, and subnets in the subnet group.
+	// Information about the subnet group associated with the DB cluster, including
+	// the name, description, and subnets in the subnet group.
 	// +kubebuilder:validation:Optional
 	DBSubnetGroup *string `json:"dbSubnetGroup,omitempty"`
 	// The Amazon Web Services Region-unique, immutable identifier for the DB cluster.
@@ -854,44 +863,41 @@ type DBClusterStatus struct {
 	// in the Amazon Aurora User Guide.
 	// +kubebuilder:validation:Optional
 	EnabledCloudwatchLogsExports []*string `json:"enabledCloudwatchLogsExports,omitempty"`
-	// Specifies the connection endpoint for the primary instance of the DB cluster.
+	// The connection endpoint for the primary instance of the DB cluster.
 	// +kubebuilder:validation:Optional
 	Endpoint *string `json:"endpoint,omitempty"`
-	// Specifies whether you have requested to enable write forwarding for a secondary
-	// cluster in an Aurora global database. Because write forwarding takes time
-	// to enable, check the value of GlobalWriteForwardingStatus to confirm that
-	// the request has completed before using the write forwarding feature for this
-	// cluster.
+	// Indicates whether write forwarding is enabled for a secondary cluster in
+	// an Aurora global database. Because write forwarding takes time to enable,
+	// check the value of GlobalWriteForwardingStatus to confirm that the request
+	// has completed before using the write forwarding feature for this cluster.
 	// +kubebuilder:validation:Optional
 	GlobalWriteForwardingRequested *bool `json:"globalWriteForwardingRequested,omitempty"`
-	// Specifies whether a secondary cluster in an Aurora global database has write
-	// forwarding enabled, not enabled, or is in the process of enabling it.
+	// The status of write forwarding for a secondary cluster in an Aurora global
+	// database.
 	// +kubebuilder:validation:Optional
 	GlobalWriteForwardingStatus *string `json:"globalWriteForwardingStatus,omitempty"`
-	// Specifies the ID that Amazon Route 53 assigns when you create a hosted zone.
+	// The ID that Amazon Route 53 assigns when you create a hosted zone.
 	// +kubebuilder:validation:Optional
 	HostedZoneID *string `json:"hostedZoneID,omitempty"`
-	// A value that indicates whether the HTTP endpoint for an Aurora Serverless
-	// v1 DB cluster is enabled.
+	// Indicates whether the HTTP endpoint is enabled for an Aurora DB cluster.
 	//
 	// When enabled, the HTTP endpoint provides a connectionless web service API
-	// for running SQL queries on the Aurora Serverless v1 DB cluster. You can also
-	// query your database from inside the RDS console with the query editor.
+	// (RDS Data API) for running SQL queries on the DB cluster. You can also query
+	// your database from inside the RDS console with the RDS query editor.
 	//
-	// For more information, see Using the Data API for Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
+	// For more information, see Using RDS Data API (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
 	// in the Amazon Aurora User Guide.
 	// +kubebuilder:validation:Optional
 	HTTPEndpointEnabled *bool `json:"httpEndpointEnabled,omitempty"`
-	// A value that indicates whether the mapping of Amazon Web Services Identity
-	// and Access Management (IAM) accounts to database accounts is enabled.
+	// Indicates whether the mapping of Amazon Web Services Identity and Access
+	// Management (IAM) accounts to database accounts is enabled.
 	// +kubebuilder:validation:Optional
 	IAMDatabaseAuthenticationEnabled *bool `json:"iamDatabaseAuthenticationEnabled,omitempty"`
-	// Specifies the latest time to which a database can be restored with point-in-time
-	// restore.
+	// The latest time to which a database can be restored with point-in-time restore.
 	// +kubebuilder:validation:Optional
 	LatestRestorableTime *metav1.Time `json:"latestRestorableTime,omitempty"`
-	// Contains the secret managed by RDS in Amazon Web Services Secrets Manager
-	// for the master user password.
+	// The secret managed by RDS in Amazon Web Services Secrets Manager for the
+	// master user password.
 	//
 	// For more information, see Password management with Amazon Web Services Secrets
 	// Manager (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html)
@@ -900,19 +906,18 @@ type DBClusterStatus struct {
 	// in the Amazon Aurora User Guide.
 	// +kubebuilder:validation:Optional
 	MasterUserSecret *MasterUserSecret `json:"masterUserSecret,omitempty"`
-	// Specifies whether the DB cluster has instances in multiple Availability Zones.
+	// Indicates whether the DB cluster has instances in multiple Availability Zones.
 	// +kubebuilder:validation:Optional
 	MultiAZ *bool `json:"multiAZ,omitempty"`
-	// A value that specifies that changes to the DB cluster are pending. This element
-	// is only included when changes are pending. Specific changes are identified
+	// Information about pending changes to the DB cluster. This information is
+	// returned only when there are pending changes. Specific changes are identified
 	// by subelements.
 	// +kubebuilder:validation:Optional
 	PendingModifiedValues *ClusterPendingModifiedValues `json:"pendingModifiedValues,omitempty"`
-	// Specifies the progress of the operation as a percentage.
+	// The progress of the operation as a percentage.
 	// +kubebuilder:validation:Optional
 	PercentProgress *string `json:"percentProgress,omitempty"`
-	// True if Performance Insights is enabled for the DB cluster, and otherwise
-	// false.
+	// Indicates whether Performance Insights is enabled for the DB cluster.
 	//
 	// This setting is only for non-Aurora Multi-AZ DB clusters.
 	// +kubebuilder:validation:Optional
@@ -934,12 +939,12 @@ type DBClusterStatus struct {
 	// then reconnect to the reader endpoint.
 	// +kubebuilder:validation:Optional
 	ReaderEndpoint *string `json:"readerEndpoint,omitempty"`
-	// Specifies the current state of this DB cluster.
+	// The current state of this DB cluster.
 	// +kubebuilder:validation:Optional
 	Status *string `json:"status,omitempty"`
 	// +kubebuilder:validation:Optional
 	TagList []*Tag `json:"tagList,omitempty"`
-	// Provides a list of VPC security groups that the DB cluster belongs to.
+	// The list of VPC security groups that the DB cluster belongs to.
 	// +kubebuilder:validation:Optional
 	VPCSecurityGroups []*VPCSecurityGroupMembership `json:"vpcSecurityGroups,omitempty"`
 }

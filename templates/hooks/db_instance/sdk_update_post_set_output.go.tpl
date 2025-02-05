@@ -14,14 +14,14 @@
 	pmv := resp.DBInstance.PendingModifiedValues
 	if pmv != nil {
 		if pmv.AllocatedStorage != nil {
-			ko.Spec.AllocatedStorage = pmv.AllocatedStorage
+			ko.Spec.AllocatedStorage = aws.Int64(int64(*pmv.AllocatedStorage))
 		}
-        // NOTE(jaypipes): Handle when aws-sdk-go update
+		// NOTE(jaypipes): Handle when aws-sdk-go update
 		//if pmv.AutomationMode != nil {
 		//	ko.Spec.AutomationMode = pmv.AutomationMode
 		//}
 		if pmv.BackupRetentionPeriod != nil {
-			ko.Spec.BackupRetentionPeriod = pmv.BackupRetentionPeriod
+			ko.Spec.BackupRetentionPeriod = aws.Int64(int64(*pmv.BackupRetentionPeriod))
 		}
 		if pmv.CACertificateIdentifier != nil {
 			ko.Spec.CACertificateIdentifier = pmv.CACertificateIdentifier
@@ -38,12 +38,12 @@
 		if pmv.EngineVersion != nil {
 			ko.Spec.EngineVersion = pmv.EngineVersion
 		}
-        // NOTE(jaypipes): Handle when aws-sdk-go update
+		// NOTE(jaypipes): Handle when aws-sdk-go update
 		//if pmv.IAMDatabaseAuthenticationEnabled != nil {
 		//	ko.Spec.IAMDatabaseAuthenticationEnabled = pmv.IAMDatabaseAuthenticationEnabled
 		//}
 		if pmv.Iops != nil {
-			ko.Spec.IOPS = pmv.Iops
+			ko.Spec.IOPS = aws.Int64(int64(*pmv.Iops))
 		}
 		if pmv.LicenseModel != nil {
 			ko.Spec.LicenseModel = pmv.LicenseModel
@@ -56,23 +56,23 @@
 		if pmv.MultiAZ != nil {
 			ko.Spec.MultiAZ = pmv.MultiAZ
 		}
-        // NOTE(jaypipes): Handle when aws-sdk-go update
+		// NOTE(jaypipes): Handle when aws-sdk-go update
 		//if pmv.PendingCloudwatchLogsExports != nil {
 		//	ko.Spec.PendingCloudwatchLogsExports = pmv.PendingCloudwatchLogsExports
 		//}
 		if pmv.Port != nil {
-			ko.Spec.Port = pmv.Port
+			ko.Spec.Port = aws.Int64(int64(*pmv.Port))
 		}
-        // NOTE(jaypipes): Handle when aws-sdk-go update
+		// NOTE(jaypipes): Handle when aws-sdk-go update
 		//if pmv.ProcessorFeatures != nil {
 		//	ko.Spec.ProcessorFeatures = pmv.ProcessorFeatures
 		//}
-        // NOTE(jaypipes): Handle when aws-sdk-go update
+		// NOTE(jaypipes): Handle when aws-sdk-go update
 		//if pmv.ResumeFullAutomationModeTime != nil {
 		//	ko.Spec.ResumeFullAutomationModeTime = pmv.ResumeFullAutomationModeTime
 		//}
 		if pmv.StorageThroughput != nil {
-			ko.Spec.StorageThroughput = pmv.StorageThroughput
+			ko.Spec.StorageThroughput = aws.Int64(int64(*pmv.StorageThroughput))
 		}
 		if pmv.StorageType != nil {
 			ko.Spec.StorageType = pmv.StorageType
