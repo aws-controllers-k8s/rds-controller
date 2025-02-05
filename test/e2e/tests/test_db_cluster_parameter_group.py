@@ -51,6 +51,7 @@ def test_crud_aurora_mysql5_7(self, aurora_mysql57_cluster_param_group):
         for condition in resource.get('status', {}).get('conditions', []):
             logging.info(f"    {condition['type']}: {condition['status']} ({condition.get('message', '')})")
 
+    # ... existing code ...
 
     # Test updating with an invalid parameter to verify error handling
     new_params = {
@@ -115,4 +116,59 @@ def test_crud_aurora_mysql5_7(self, aurora_mysql57_cluster_param_group):
                 logging.error(f"Failed to recover from error state: {str(e)}")
                 raise
             logging.info(f"Retry {i+1}/{max_retries}: Waiting for recovery and parameter update...")
+            continue
+
+    # Test adding a parameter that doesn't exist in the parameter family
+    non_existent_params = {
+        "this_parameter_does_not_exist": "123"
+    }
+    updates = {
+        "spec": {
+            "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
+            "parameterOverrides": non_existent_params,
+        },
+    }
+    k8s.patch_custom_resource(ref, updates)
+    time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+    # Verify the resource enters recoverable error state
+    condition.assert_recoverable(ref)
+    # Verify the sync status is Unknown
+    condition.assert_type_status(ref, condition.CONDITION_TYPE_RESOURCE_SYNCED, "Unknown")
+
+    # Remove the invalid parameter by setting empty parameter overrides
+    updates = {
+        "spec": {
+            "tags": tag.clean(db_cluster_parameter_group.get_tags(arn)),
+            "parameterOverrides": {},
+        },
+    }
+    k8s.patch_custom_resource(ref, updates)
+    
+    # Wait and verify recovery from error state
+    max_retries = 5
+    for i in range(max_retries):
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        
+        # Get latest resource state
+        cr = k8s.get_resource(ref)
+        log_resource_status(cr)
+        
+        try:
+            # Verify sync condition
+            condition.assert_synced(ref)
+            
+            # Verify parameters are empty
+            params = db_cluster_parameter_group.get_parameters(resource_name)
+            overridden_params = [p for p in params if p["Source"] == "user"]
+            assert len(overridden_params) == 0, f"Expected no overridden parameters, found: {overridden_params}"
+            
+            logging.info("Successfully recovered from error state after removing invalid parameter")
+            break
+            
+        except AssertionError as e:
+            if i == max_retries - 1:
+                logging.error(f"Failed to recover from error state: {str(e)}")
+                raise
+            logging.info(f"Retry {i+1}/{max_retries}: Waiting for recovery...")
             continue
