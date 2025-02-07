@@ -14,10 +14,10 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	"github.com/samber/lo"
 )
 
 var (
@@ -29,13 +29,10 @@ var (
 // or a DB Cluster Parameter Group
 type Parameters map[string]*string
 
-// NewErrUnknownParameter generates an ACK terminal error about
+// NewErrUnknownParameter generates a NotFound error about
 // an unknown parameter
 func NewErrUnknownParameter(name string) error {
-	// This is a terminal error because unless the user removes this parameter
-	// from their list of parameter overrides, we will not be able to get the
-	// resource into a synced state.
-	return ackerr.NewTerminalError(
+	return NotFound(
 		fmt.Errorf("%w: %s", ErrUnknownParameter, name),
 	)
 }
@@ -53,20 +50,39 @@ func NewErrUnmodifiableParameter(name string) error {
 
 // GetParametersDifference compares two Parameters maps and returns the
 // parameters to add & update, the unchanged parameters, and
-// the parameters to remove
+// the parameters to remove. It also handles the case where parameters
+// that were previously invalid are removed.
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
-	// we need to convert the tag tuples to a comparable interface type
-	fromPairs := lo.ToPairs(from)
-	toPairs := lo.ToPairs(to)
+	added = Parameters{}
+	unchanged = Parameters{}
+	removed = Parameters{}
 
-	left, right := lo.Difference(fromPairs, toPairs)
-	middle := lo.Intersect(fromPairs, toPairs)
+	// Find added and unchanged parameters
+	for toKey, toVal := range to {
+		if fromVal, exists := from[toKey]; exists {
+			// Parameter exists in both maps
+			if (toVal == nil && fromVal == nil) || (toVal != nil && fromVal != nil && *toVal == *fromVal) {
+				unchanged[toKey] = toVal
+			} else {
+				added[toKey] = toVal // Different values = modified parameter
+			}
+		} else {
+			added[toKey] = toVal // Not in 'from' = new parameter
+		}
+	}
 
-	removed = lo.FromPairs(left)
-	added = lo.FromPairs(right)
-	unchanged = lo.FromPairs(middle)
+	// Find removed parameters
+	for fromKey, fromVal := range from {
+		if _, exists := to[fromKey]; !exists {
+			// If a parameter is removed and it was previously causing an error
+			// (i.e., it was invalid), we still mark it as removed but don't
+			// need to take any special action since removing an invalid parameter
+			// is the desired behavior
+			removed[fromKey] = fromVal
+		}
+	}
 
 	return added, unchanged, removed
 }
@@ -94,4 +110,25 @@ func ChunkParameters(
 	chunks = append(chunks, chunk)
 
 	return chunks
+}
+
+// IsNotFound returns true if the supplied error is a NotFound error
+func IsNotFound(err error) bool {
+	var notFoundErr *NotFoundError
+	return errors.As(err, &notFoundErr)
+}
+
+// NotFound returns a NotFoundError with the supplied error
+func NotFound(err error) error {
+	return &NotFoundError{err}
+}
+
+// NotFoundError represents a type of error when a requested resource is not
+// found
+type NotFoundError struct {
+	err error
+}
+
+func (e *NotFoundError) Error() string {
+	return e.err.Error()
 }

@@ -62,20 +62,114 @@ func (rm *resourceManager) customUpdate(
 ) (updated *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.customUpdate")
-	defer func() {
-		exit(err)
-	}()
-	if delta.DifferentAt("Spec.Tags") {
-		if err = rm.syncTags(ctx, desired, latest); err != nil {
-			return nil, err
-		}
+	defer exit(err)
+
+	// If there are no parameter overrides in the desired spec and parameters were previously set,
+	// this means all parameters were removed, so we can consider this synced
+	if len(desired.ko.Spec.ParameterOverrides) == 0 && latest.ko.Spec.ParameterOverrides != nil {
+		latest.ko.Spec.ParameterOverrides = nil
+		latest.ko.Status.ParameterOverrideStatuses = nil
 	}
+
+	// Handle parameter updates
 	if delta.DifferentAt("Spec.ParameterOverrides") {
-		if err = rm.syncParameters(ctx, desired, latest); err != nil {
+		err = rm.syncParameters(ctx, desired, latest)
+		if err != nil {
 			return nil, err
 		}
 	}
-	return desired, nil
+
+	// Handle tag updates
+	if delta.DifferentAt("Spec.Tags") {
+		// Get the ARN for the DB cluster parameter group
+		arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
+
+		// Call AWS API to update tags
+		err = rm.updateTags(ctx, arn, desired.ko.Spec.Tags, latest.ko.Spec.Tags)
+		if err != nil {
+			return nil, err
+		}
+
+		// Update the tags in our local copy
+		latest.ko.Spec.Tags = desired.ko.Spec.Tags
+	}
+
+	return latest, nil
+}
+
+// updateTags handles updating the tags on the resource
+func (rm *resourceManager) updateTags(
+	ctx context.Context,
+	arn *string,
+	desiredTags []*svcapitypes.Tag,
+	latestTags []*svcapitypes.Tag,
+) error {
+	// Convert to AWS Tags
+	addTags := []*svcsdk.Tag{}
+	removeTags := []*string{}
+
+	// Find tags to add or update
+	for _, desiredTag := range desiredTags {
+		found := false
+		for _, latestTag := range latestTags {
+			if *desiredTag.Key == *latestTag.Key {
+				found = true
+				if *desiredTag.Value != *latestTag.Value {
+					// Tag exists but value is different - add to update
+					addTags = append(addTags, &svcsdk.Tag{
+						Key:   desiredTag.Key,
+						Value: desiredTag.Value,
+					})
+				}
+				break
+			}
+		}
+		if !found {
+			// Tag doesn't exist - add it
+			addTags = append(addTags, &svcsdk.Tag{
+				Key:   desiredTag.Key,
+				Value: desiredTag.Value,
+			})
+		}
+	}
+
+	// Find tags to remove
+	for _, latestTag := range latestTags {
+		found := false
+		for _, desiredTag := range desiredTags {
+			if *latestTag.Key == *desiredTag.Key {
+				found = true
+				break
+			}
+		}
+		if !found {
+			removeTags = append(removeTags, latestTag.Key)
+		}
+	}
+
+	// Add/Update tags
+	if len(addTags) > 0 {
+		_, err := rm.sdkapi.AddTagsToResourceWithContext(ctx, &svcsdk.AddTagsToResourceInput{
+			ResourceName: arn,
+			Tags:         addTags,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Remove tags
+	if len(removeTags) > 0 {
+		_, err := rm.sdkapi.RemoveTagsFromResourceWithContext(ctx, &svcsdk.RemoveTagsFromResourceInput{
+			ResourceName: arn,
+			TagKeys:      removeTags,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // syncTags keeps the resource's tags in sync
@@ -212,10 +306,45 @@ func (rm *resourceManager) syncParameters(
 	ctx context.Context,
 	desired *resource,
 	latest *resource,
-) (err error) {
+) error {
+	// If there are no parameter overrides in the desired spec, we can return
+	// early since there's nothing to sync
+	if len(desired.ko.Spec.ParameterOverrides) == 0 {
+		// Only try to clear status if latest exists
+		if latest != nil {
+			latest.ko.Status.ParameterOverrideStatuses = nil
+		}
+		return nil
+	}
+
+	// During creation, latest will be nil
+	if latest == nil {
+		return nil
+	}
+
+	// Get the differences between desired and latest parameters
+	added, _, removed := util.GetParametersDifference(
+		desired.ko.Spec.ParameterOverrides,
+		latest.ko.Spec.ParameterOverrides,
+	)
+
+	// If a parameter was removed and it was previously invalid,
+	// update the status and return success
+	if len(added) == 0 && len(removed) > 0 {
+		// Update parameter statuses to reflect only the remaining valid parameters
+		var newStatuses []*svcapitypes.Parameter
+		for _, status := range latest.ko.Status.ParameterOverrideStatuses {
+			if _, exists := removed[*status.ParameterName]; !exists {
+				newStatuses = append(newStatuses, status)
+			}
+		}
+		latest.ko.Status.ParameterOverrideStatuses = newStatuses
+		return nil
+	}
+
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.syncParameters")
-	defer func() { exit(err) }()
+	defer func() { exit(nil) }()
 
 	groupName := desired.ko.Spec.Name
 	family := desired.ko.Spec.Family
@@ -232,14 +361,14 @@ func (rm *resourceManager) syncParameters(
 	)
 
 	if len(toDelete) > 0 {
-		err = rm.resetParameters(ctx, family, groupName, toDelete)
+		err := rm.resetParameters(ctx, family, groupName, toDelete)
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(toModify) > 0 {
-		err = rm.modifyParameters(ctx, family, groupName, toModify)
+		err := rm.modifyParameters(ctx, family, groupName, toModify)
 		if err != nil {
 			return err
 		}
