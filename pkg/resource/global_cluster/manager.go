@@ -102,6 +102,7 @@ func (rm *resourceManager) ReadOne(
 		panic("resource manager's ReadOne() method received resource with nil CR object")
 	}
 	observed, err := rm.sdkFind(ctx, r)
+	mirrorAWSTags(r, observed)
 	if err != nil {
 		if observed != nil {
 			return rm.onError(observed, err)
@@ -284,6 +285,31 @@ func (rm *resourceManager) EnsureTags(
 ) error {
 
 	return nil
+}
+
+// FilterAWSTags ignores tags that have keys that start with "aws:"
+// is needed to ensure the controller does not attempt to remove
+// tags set by AWS. This function needs to be called after each Read
+// operation.
+// Eg. resources created with cloudformation have tags that cannot be
+// removed by an ACK controller
+func (rm *resourceManager) FilterSystemTags(res acktypes.AWSResource) {
+
+}
+
+// mirrorAWSTags ensures that AWS tags are included in the desired resource
+// if they are present in the latest resource. This will ensure that the
+// aws tags are not present in a diff. The logic of the controller will
+// ensure these tags aren't patched to the resource in the cluster, and
+// will only be present to make sure we don't try to remove these tags.
+//
+// Although there are a lot of similarities between this function and
+// EnsureTags, they are very much different.
+// While EnsureTags tries to make sure the resource contains the controller
+// tags, mirrowAWSTags tries to make sure tags injected by AWS are mirrored
+// from the latest resoruce to the desired resource.
+func mirrorAWSTags(a *resource, b *resource) {
+
 }
 
 // newResourceManager returns a new struct implementing
