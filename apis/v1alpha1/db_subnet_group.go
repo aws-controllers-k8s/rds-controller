@@ -29,26 +29,33 @@ import (
 type DBSubnetGroupSpec struct {
 
 	// The description for the DB subnet group.
+
 	// +kubebuilder:validation:Required
+
 	Description *string `json:"description"`
 	// The name for the DB subnet group. This value is stored as a lowercase string.
 	//
 	// Constraints:
 	//
-	//   - Must contain no more than 255 letters, numbers, periods, underscores,
-	//     spaces, or hyphens.
+	//    * Must contain no more than 255 letters, numbers, periods, underscores,
+	//    spaces, or hyphens.
 	//
-	//   - Must not be default.
+	//    * Must not be default.
 	//
-	//   - First character must be a letter.
+	//    * First character must be a letter.
 	//
 	// Example: mydbsubnetgroup
+
 	// +kubebuilder:validation:Required
+
 	Name *string `json:"name"`
 	// The EC2 Subnet IDs for the DB subnet group.
-	SubnetIDs  []*string                                  `json:"subnetIDs,omitempty"`
+
+	SubnetIDs []*string `json:"subnetIDs,omitempty"`
+
 	SubnetRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"subnetRefs,omitempty"`
 	// Tags to assign to the DB subnet group.
+
 	Tags []*Tag `json:"tags,omitempty"`
 }
 
@@ -59,7 +66,7 @@ type DBSubnetGroupStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

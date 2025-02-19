@@ -31,25 +31,30 @@ type DBSnapshotSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must match the identifier of an existing DBInstance.
-	DBInstanceIdentifier    *string                                  `json:"dbInstanceIdentifier,omitempty"`
+	//    * Must match the identifier of an existing DBInstance.
+
+	DBInstanceIdentifier *string `json:"dbInstanceIdentifier,omitempty"`
+
 	DBInstanceIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbInstanceIdentifierRef,omitempty"`
 	// The identifier for the DB snapshot.
 	//
 	// Constraints:
 	//
-	//   - Can't be null, empty, or blank
+	//    * Can't be null, empty, or blank
 	//
-	//   - Must contain from 1 to 255 letters, numbers, or hyphens
+	//    * Must contain from 1 to 255 letters, numbers, or hyphens
 	//
-	//   - First character must be a letter
+	//    * First character must be a letter
 	//
-	//   - Can't end with a hyphen or contain two consecutive hyphens
+	//    * Can't end with a hyphen or contain two consecutive hyphens
 	//
 	// Example: my-snapshot-id
+
 	// +kubebuilder:validation:Required
+
 	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier"`
-	Tags                 []*Tag  `json:"tags,omitempty"`
+
+	Tags []*Tag `json:"tags,omitempty"`
 }
 
 // DBSnapshotStatus defines the observed state of DBSnapshot
@@ -59,7 +64,7 @@ type DBSnapshotStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource

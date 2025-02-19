@@ -43,73 +43,18 @@ spec:
               A data type representing an Aurora global database.
             properties:
               databaseName:
-                description: |-
-                  The name for your database of up to 64 alphanumeric characters. If you don't
-                  specify a name, Amazon Aurora doesn't create a database in the global database
-                  cluster.
-
-                  Constraints:
-
-                     * Can't be specified if SourceDBClusterIdentifier is specified. In this
-                     case, Amazon Aurora uses the database name from the source DB cluster.
                 type: string
               deletionProtection:
-                description: |-
-                  Specifies whether to enable deletion protection for the new global database
-                  cluster. The global database can't be deleted when deletion protection is
-                  enabled.
                 type: boolean
               engine:
-                description: |-
-                  The database engine to use for this global database cluster.
-
-                  Valid Values: aurora-mysql | aurora-postgresql
-
-                  Constraints:
-
-                     * Can't be specified if SourceDBClusterIdentifier is specified. In this
-                     case, Amazon Aurora uses the engine of the source DB cluster.
                 type: string
               engineVersion:
-                description: |-
-                  The engine version to use for this global database cluster.
-
-                  Constraints:
-
-                     * Can't be specified if SourceDBClusterIdentifier is specified. In this
-                     case, Amazon Aurora uses the engine version of the source DB cluster.
                 type: string
               globalClusterIdentifier:
-                description: |-
-                  The cluster identifier for this global database cluster. This parameter is
-                  stored as a lowercase string.
                 type: string
               sourceDBClusterIdentifier:
-                description: |-
-                  The Amazon Resource Name (ARN) to use as the primary cluster of the global
-                  database.
-
-                  If you provide a value for this parameter, don't specify values for the following
-                  settings because Amazon Aurora uses the values from the specified source
-                  DB cluster:
-
-                     * DatabaseName
-
-                     * Engine
-
-                     * EngineVersion
-
-                     * StorageEncrypted
                 type: string
               storageEncrypted:
-                description: |-
-                  Specifies whether to enable storage encryption for the new global database
-                  cluster.
-
-                  Constraints:
-
-                     * Can't be specified if SourceDBClusterIdentifier is specified. In this
-                     case, Amazon Aurora uses the setting from the source DB cluster.
                 type: boolean
             type: object
           status:
@@ -146,7 +91,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource

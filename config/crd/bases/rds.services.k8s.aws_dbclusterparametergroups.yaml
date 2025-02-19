@@ -47,83 +47,16 @@ spec:
               action.
             properties:
               description:
-                description: The description for the DB cluster parameter group.
                 type: string
               family:
-                description: |-
-                  The DB cluster parameter group family name. A DB cluster parameter group
-                  can be associated with one and only one DB cluster parameter group family,
-                  and can be applied only to a DB cluster running a database engine and engine
-                  version compatible with that DB cluster parameter group family.
-
-                  Aurora MySQL
-
-                  Example: aurora-mysql5.7, aurora-mysql8.0
-
-                  Aurora PostgreSQL
-
-                  Example: aurora-postgresql14
-
-                  RDS for MySQL
-
-                  Example: mysql8.0
-
-                  RDS for PostgreSQL
-
-                  Example: postgres13
-
-                  To list all of the available parameter group families for a DB engine, use
-                  the following command:
-
-                  aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
-                  --engine
-
-                  For example, to list all of the available parameter group families for the
-                  Aurora PostgreSQL DB engine, use the following command:
-
-                  aws rds describe-db-engine-versions --query "DBEngineVersions[].DBParameterGroupFamily"
-                  --engine aurora-postgresql
-
-                  The output contains duplicates.
-
-                  The following are the valid DB engine values:
-
-                     * aurora-mysql
-
-                     * aurora-postgresql
-
-                     * mysql
-
-                     * postgres
                 type: string
               name:
-                description: |-
-                  The name of the DB cluster parameter group.
-
-                  Constraints:
-
-                     * Must not match the name of an existing DB cluster parameter group.
-
-                  This value is stored as a lowercase string.
                 type: string
               parameterOverrides:
                 additionalProperties:
                   type: string
                 type: object
               parameters:
-                description: |-
-                  A list of parameters in the DB cluster parameter group to modify.
-
-                  Valid Values (for the application method): immediate | pending-reboot
-
-                  You can use the immediate value with dynamic parameters only. You can use
-                  the pending-reboot value for both dynamic and static parameters.
-
-                  When the application method is immediate, changes to dynamic parameters are
-                  applied immediately to the DB clusters associated with the parameter group.
-                  When the application method is pending-reboot, changes to dynamic and static
-                  parameters are applied after a reboot without failover to the DB clusters
-                  associated with the parameter group.
                 items:
                   description: |-
                     This data type is used as a request parameter in the ModifyDBParameterGroup
@@ -159,7 +92,6 @@ spec:
                   type: object
                 type: array
               tags:
-                description: Tags to assign to the DB cluster parameter group.
                 items:
                   description: |-
                     Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
@@ -215,7 +147,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource
