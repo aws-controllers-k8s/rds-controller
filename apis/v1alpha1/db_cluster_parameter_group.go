@@ -29,28 +29,26 @@ import (
 type DBClusterParameterGroupSpec struct {
 
 	// The description for the DB cluster parameter group.
-
 	// +kubebuilder:validation:Required
-
 	Description *string `json:"description"`
 	// The DB cluster parameter group family name. A DB cluster parameter group
 	// can be associated with one and only one DB cluster parameter group family,
 	// and can be applied only to a DB cluster running a database engine and engine
 	// version compatible with that DB cluster parameter group family.
 	//
-	// Aurora MySQL
+	// # Aurora MySQL
 	//
 	// Example: aurora-mysql5.7, aurora-mysql8.0
 	//
-	// Aurora PostgreSQL
+	// # Aurora PostgreSQL
 	//
 	// Example: aurora-postgresql14
 	//
-	// RDS for MySQL
+	// # RDS for MySQL
 	//
 	// Example: mysql8.0
 	//
-	// RDS for PostgreSQL
+	// # RDS for PostgreSQL
 	//
 	// Example: postgres13
 	//
@@ -70,29 +68,25 @@ type DBClusterParameterGroupSpec struct {
 	//
 	// The following are the valid DB engine values:
 	//
-	//    * aurora-mysql
+	//   - aurora-mysql
 	//
-	//    * aurora-postgresql
+	//   - aurora-postgresql
 	//
-	//    * mysql
+	//   - mysql
 	//
-	//    * postgres
-
+	//   - postgres
+	//
 	// +kubebuilder:validation:Required
-
 	Family *string `json:"family"`
 	// The name of the DB cluster parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must not match the name of an existing DB cluster parameter group.
+	//   - Must not match the name of an existing DB cluster parameter group.
 	//
 	// This value is stored as a lowercase string.
-
 	// +kubebuilder:validation:Required
-
-	Name *string `json:"name"`
-
+	Name               *string            `json:"name"`
 	ParameterOverrides map[string]*string `json:"parameterOverrides,omitempty"`
 	// A list of parameters in the DB cluster parameter group to modify.
 	//
@@ -106,10 +100,8 @@ type DBClusterParameterGroupSpec struct {
 	// When the application method is pending-reboot, changes to dynamic and static
 	// parameters are applied after a reboot without failover to the DB clusters
 	// associated with the parameter group.
-
 	Parameters []*Parameter `json:"parameters,omitempty"`
 	// Tags to assign to the DB cluster parameter group.
-
 	Tags []*Tag `json:"tags,omitempty"`
 }
 
