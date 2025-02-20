@@ -33,31 +33,26 @@ type DBClusterSnapshotSpec struct {
 	//
 	// Constraints:
 	//
-	//    * Must match the identifier of an existing DBCluster.
+	//   - Must match the identifier of an existing DBCluster.
 	//
 	// Example: my-cluster1
-
-	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
-
+	DBClusterIdentifier    *string                                  `json:"dbClusterIdentifier,omitempty"`
 	DBClusterIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterIdentifierRef,omitempty"`
 	// The identifier of the DB cluster snapshot. This parameter is stored as a
 	// lowercase string.
 	//
 	// Constraints:
 	//
-	//    * Must contain from 1 to 63 letters, numbers, or hyphens.
+	//   - Must contain from 1 to 63 letters, numbers, or hyphens.
 	//
-	//    * First character must be a letter.
+	//   - First character must be a letter.
 	//
-	//    * Can't end with a hyphen or contain two consecutive hyphens.
+	//   - Can't end with a hyphen or contain two consecutive hyphens.
 	//
 	// Example: my-cluster1-snapshot1
-
 	// +kubebuilder:validation:Required
-
 	DBClusterSnapshotIdentifier *string `json:"dbClusterSnapshotIdentifier"`
 	// The tags to be assigned to the DB cluster snapshot.
-
 	Tags []*Tag `json:"tags,omitempty"`
 }
 

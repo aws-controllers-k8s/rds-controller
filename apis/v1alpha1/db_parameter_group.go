@@ -29,9 +29,7 @@ import (
 type DBParameterGroupSpec struct {
 
 	// The description for the DB parameter group.
-
 	// +kubebuilder:validation:Required
-
 	Description *string `json:"description"`
 	// The DB parameter group family name. A DB parameter group can be associated
 	// with one and only one DB parameter group family, and can be applied only
@@ -54,56 +52,51 @@ type DBParameterGroupSpec struct {
 	//
 	// The following are the valid DB engine values:
 	//
-	//    * aurora-mysql
+	//   - aurora-mysql
 	//
-	//    * aurora-postgresql
+	//   - aurora-postgresql
 	//
-	//    * db2-ae
+	//   - db2-ae
 	//
-	//    * db2-se
+	//   - db2-se
 	//
-	//    * mysql
+	//   - mysql
 	//
-	//    * oracle-ee
+	//   - oracle-ee
 	//
-	//    * oracle-ee-cdb
+	//   - oracle-ee-cdb
 	//
-	//    * oracle-se2
+	//   - oracle-se2
 	//
-	//    * oracle-se2-cdb
+	//   - oracle-se2-cdb
 	//
-	//    * postgres
+	//   - postgres
 	//
-	//    * sqlserver-ee
+	//   - sqlserver-ee
 	//
-	//    * sqlserver-se
+	//   - sqlserver-se
 	//
-	//    * sqlserver-ex
+	//   - sqlserver-ex
 	//
-	//    * sqlserver-web
-
+	//   - sqlserver-web
+	//
 	// +kubebuilder:validation:Required
-
 	Family *string `json:"family"`
 	// The name of the DB parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must be 1 to 255 letters, numbers, or hyphens.
+	//   - Must be 1 to 255 letters, numbers, or hyphens.
 	//
-	//    * First character must be a letter
+	//   - First character must be a letter
 	//
-	//    * Can't end with a hyphen or contain two consecutive hyphens
+	//   - Can't end with a hyphen or contain two consecutive hyphens
 	//
 	// This value is stored as a lowercase string.
-
 	// +kubebuilder:validation:Required
-
-	Name *string `json:"name"`
-
+	Name               *string            `json:"name"`
 	ParameterOverrides map[string]*string `json:"parameterOverrides,omitempty"`
 	// Tags to assign to the DB parameter group.
-
 	Tags []*Tag `json:"tags,omitempty"`
 }
 
