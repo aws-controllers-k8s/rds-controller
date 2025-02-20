@@ -42,6 +42,13 @@ type ParamMetaCache struct {
 	Cache  map[string]map[string]ParamMeta
 }
 
+// ClearFamily removes the cached parameter information for a specific family
+func (c *ParamMetaCache) ClearFamily(family string) {
+	c.Lock()
+	defer c.Unlock()
+	delete(c.Cache, family)
+}
+
 // Get retrieves the metadata for a named parameter group family and parameter
 // name.
 func (c *ParamMetaCache) Get(
@@ -70,6 +77,9 @@ func (c *ParamMetaCache) Get(
 	}
 	meta, found = metas[name]
 	if !found {
+		// Clear the cache for this family when a parameter is not found
+		// This ensures the next reconciliation will fetch fresh metadata
+		c.ClearFamily(family)
 		return nil, NewErrUnknownParameter(name)
 	}
 	c.Hits++

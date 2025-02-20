@@ -260,17 +260,6 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	return latest
 }
 
-// IsSynced returns true if the resource is synced.
-func (rm *resourceManager) IsSynced(ctx context.Context, res acktypes.AWSResource) (bool, error) {
-	r := rm.concreteResource(res)
-	if r.ko == nil {
-		// Should never happen... if it does, it's buggy code.
-		panic("resource manager's IsSynced() method received resource with nil CR object")
-	}
-
-	return true, nil
-}
-
 // EnsureTags ensures that tags are present inside the AWSResource.
 // If the AWSResource does not have any existing resource tags, the 'tags'
 // field is initialized and the controller tags are added.
@@ -401,4 +390,16 @@ func (rm *resourceManager) onSuccess(
 		return r, nil
 	}
 	return r1, nil
+}
+
+// IsSynced returns true if the resource is synced
+func (rm *resourceManager) IsSynced(
+	ctx context.Context,
+	latest acktypes.AWSResource,
+) (bool, error) {
+	latestResource := latest.(*resource)
+	return latestResource.ko.Status.ACKResourceMetadata != nil &&
+		latestResource.ko.Status.ACKResourceMetadata.ARN != nil &&
+		latestResource.ko.Status.ACKResourceMetadata.OwnerAccountID != nil &&
+		latestResource.ko.Status.Conditions == nil, nil
 }

@@ -15,9 +15,6 @@ package util
 
 import (
 	"fmt"
-
-	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	"github.com/samber/lo"
 )
 
 var (
@@ -29,26 +26,20 @@ var (
 // or a DB Cluster Parameter Group
 type Parameters map[string]*string
 
-// NewErrUnknownParameter generates an ACK terminal error about
+// NewErrUnknownParameter generates an ACK error about
 // an unknown parameter
 func NewErrUnknownParameter(name string) error {
-	// This is a terminal error because unless the user removes this parameter
-	// from their list of parameter overrides, we will not be able to get the
-	// resource into a synced state.
-	return ackerr.NewTerminalError(
-		fmt.Errorf("%w: %s", ErrUnknownParameter, name),
-	)
+	// Changed from Terminal to regular error since it should be
+	// recoverable when the parameter is removed from the spec
+	return fmt.Errorf("%w: %s", ErrUnknownParameter, name)
 }
 
-// NewErrUnmodifiableParameter generates an ACK terminal error about
+// NewErrUnmodifiableParameter generates an ACK error about
 // a parameter that may not be modified
 func NewErrUnmodifiableParameter(name string) error {
-	// This is a terminal error because unless the user removes this parameter
-	// from their list of parameter overrides, we will not be able to get the
-	// resource into a synced state.
-	return ackerr.NewTerminalError(
-		fmt.Errorf("%w: %s", ErrUnmodifiableParameter, name),
-	)
+	// Changed from Terminal to regular error since it should be
+	// recoverable when the parameter is removed from the spec
+	return fmt.Errorf("%w: %s", ErrUnmodifiableParameter, name)
 }
 
 // GetParametersDifference compares two Parameters maps and returns the
@@ -57,16 +48,62 @@ func NewErrUnmodifiableParameter(name string) error {
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
-	// we need to convert the tag tuples to a comparable interface type
-	fromPairs := lo.ToPairs(from)
-	toPairs := lo.ToPairs(to)
+	added = Parameters{}
+	unchanged = Parameters{}
+	removed = Parameters{}
 
-	left, right := lo.Difference(fromPairs, toPairs)
-	middle := lo.Intersect(fromPairs, toPairs)
+	// Handle nil maps
+	if to == nil {
+		to = Parameters{}
+	}
+	if from == nil {
+		from = Parameters{}
+	}
 
-	removed = lo.FromPairs(left)
-	added = lo.FromPairs(right)
-	unchanged = lo.FromPairs(middle)
+	// If both maps are empty, return early
+	if len(to) == 0 && len(from) == 0 {
+		return added, unchanged, removed
+	}
+
+	// If 'from' is empty, all 'to' parameters are additions
+	if len(from) == 0 {
+		return to, unchanged, removed
+	}
+
+	// If 'to' is empty, all 'from' parameters are removals
+	if len(to) == 0 {
+		return added, unchanged, from
+	}
+
+	// Find added and unchanged parameters
+	for toKey, toVal := range to {
+		if fromVal, exists := from[toKey]; exists {
+			// Parameter exists in both maps
+			if toVal == nil && fromVal == nil {
+				// Both values are nil, consider unchanged
+				unchanged[toKey] = nil
+			} else if toVal == nil || fromVal == nil {
+				// One value is nil, the other isn't - consider it a modification
+				added[toKey] = toVal
+			} else if *toVal == *fromVal {
+				// Both values are non-nil and equal
+				unchanged[toKey] = toVal
+			} else {
+				// Both values are non-nil but different
+				added[toKey] = toVal
+			}
+		} else {
+			// Not in 'from' = new parameter
+			added[toKey] = toVal
+		}
+	}
+
+	// Find removed parameters
+	for fromKey, fromVal := range from {
+		if _, exists := to[fromKey]; !exists {
+			removed[fromKey] = fromVal
+		}
+	}
 
 	return added, unchanged, removed
 }
