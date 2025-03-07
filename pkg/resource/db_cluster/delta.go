@@ -21,6 +21,7 @@ import (
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 // Hack to avoid import errors during build...
@@ -43,6 +44,16 @@ func newResourceDelta(
 		return delta
 	}
 	compareTags(delta, a, b)
+
+	// Handle special case for StorageType field for Aurora engines
+	// When StorageType is set to "aurora" (default), the API doesn't return it
+
+	isAuroraEngine := (b.ko.Spec.Engine != nil && (*b.ko.Spec.Engine == "aurora-mysql" || *b.ko.Spec.Engine == "aurora-postgresql"))
+
+	if isAuroraEngine && (a.ko.Spec.StorageType != nil && *a.ko.Spec.StorageType == "aurora" && b.ko.Spec.StorageType == nil) {
+		b.ko.Spec.StorageType = aws.String("aurora")
+	}
+
 	compareSecretReferenceChanges(delta, a, b)
 
 	if ackcompare.HasNilDifference(a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage) {
