@@ -14,15 +14,16 @@
 import os
 import pytest
 import boto3
+import logging
 
 from acktest import k8s
+from e2e.resource_cleanup import cleanup_old_resources
 
-
-def pytest_addoption(parser):
-    parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
-
-
+# Increase default timeouts to handle AWS API latency
 def pytest_configure(config):
+    # Set longer timeouts for tests
+    os.environ['PYTEST_TIMEOUT'] = '900'  # 15 minutes
+    
     config.addinivalue_line(
         "markers", "canary: mark test to also run in canary tests"
     )
@@ -32,6 +33,24 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: mark test as slow to run"
     )
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Clean up any old test resources that might be lingering
+    try:
+        logging.info("Running pre-test cleanup of stale AWS resources...")
+        cleanup_old_resources()
+    except Exception as e:
+        logging.warning(f"Error during pre-test resource cleanup: {str(e)}")
+
+
+def pytest_addoption(parser):
+    parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
+
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--runslow"):

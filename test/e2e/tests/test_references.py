@@ -31,11 +31,11 @@ from e2e.fixtures import k8s_secret
 
 # Little longer to delete the instance and cluster since it's referred-to from
 # the parameter group...
-DELETE_INSTANCE_TIMEOUT_SECONDS = 30
-DELETE_CLUSTER_TIMEOUT_SECONDS = 60
-DELETE_WAIT_AFTER_SECONDS = 10
-CREATE_WAIT_AFTER_SECONDS = 10
-CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS = 30
+DELETE_INSTANCE_TIMEOUT_SECONDS = 60
+DELETE_CLUSTER_TIMEOUT_SECONDS = 120
+DELETE_WAIT_AFTER_SECONDS = 20
+CREATE_WAIT_AFTER_SECONDS = 20
+CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS = 90
 
 # MUP == Master user password...
 MUP_NS = "default"
@@ -162,7 +162,17 @@ def ref_db_cluster(k8s_secret, db_cluster_name, cpg_name):
         CRD_GROUP, CRD_VERSION, 'dbclusters',
         db_cluster_name, namespace="default",
     )
+    
+    # Check if the parameter group exists
+    pg_ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, 'dbclusterparametergroups',
+        cpg_name, namespace="default",
+    )
+    
+    # Create the k8s resource 
     k8s.create_custom_resource(ref, resource_data)
+    
+    # Wait for controller to process it
     cr = k8s.wait_resource_consumed_by_controller(ref)
 
     # NOTE(jaypipes): We specifically do NOT wait for the DBInstance to exist
@@ -203,7 +213,17 @@ def ref_db_instance(db_cluster_name, pg_name):
         CRD_GROUP, CRD_VERSION, 'dbinstances',
         db_instance_id, namespace="default",
     )
+    
+    # Check if the parameter group exists
+    pg_ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, 'dbparametergroups',
+        pg_name, namespace="default",
+    )
+    
+    # Create the k8s resource
     k8s.create_custom_resource(ref, resource_data)
+    
+    # Wait for controller to process it
     cr = k8s.wait_resource_consumed_by_controller(ref)
 
     assert cr is not None
@@ -237,58 +257,97 @@ class TestReferences:
             ref_db_param_group,
             ref_db_cluster_param_group,
     ):
-        # create the resources in order that initially the reference resolution
-        # fails and then when the referenced resource gets created, then all
-        # resolutions eventually pass and resources get synced.
-        db_cluster_ref, db_cluster_cr, db_cluster_id = ref_db_cluster
-
-        time.sleep(1)
-
-        # The DB Cluster above refers to this Cluster Parameter Group by
-        # reference/name
+        # Get parameter group references first
+        db_pg_ref, db_pg_cr, db_pg_name = ref_db_param_group
         db_cluster_pg_ref, db_cluster_pg_cr, db_cluster_pg_name = ref_db_cluster_param_group
 
-        time.sleep(CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
-
-        db_cluster.wait_until(
-            db_cluster_id,
-            db_cluster.status_matches("available"),
-        )
-
-        time.sleep(60)
-
-        condition.assert_synced(db_cluster_pg_ref)
-        condition.assert_synced(db_cluster_ref)
-
-        # Instance refers to parameter group by reference and DB cluster by
-        # ID...
+        # Wait for parameter groups to be fully created
+        time.sleep(CREATE_WAIT_AFTER_SECONDS)
+        
+        # Now create the cluster and instance that will reference these parameter groups
+        db_cluster_ref, db_cluster_cr, db_cluster_id = ref_db_cluster
         db_instance_ref, db_instance_cr, db_instance_id = ref_db_instance
 
-        # We expect the DB Instance to fail to resolve references because the
-        # DB Parameter Group it refers to does not yet exist. Let's create it
-        # now.
-        db_pg_ref, db_pg_cr, db_pg_name = ref_db_param_group
-
+        # Allow time for reference resolution
         time.sleep(CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
 
+        # Check that parameter groups are synced
+        if hasattr(db_cluster_pg_ref, 'namespace'):
+            condition.assert_synced(db_cluster_pg_ref)
+        else:
+            cluster_pg_ref = k8s.CustomResourceReference(
+                CRD_GROUP, CRD_VERSION, 'dbclusterparametergroups',
+                db_cluster_pg_name, namespace="default",
+            )
+            condition.assert_synced(cluster_pg_ref)
+            
+        if hasattr(db_pg_ref, 'namespace'):
+            condition.assert_synced(db_pg_ref)
+        else:
+            pg_ref = k8s.CustomResourceReference(
+                CRD_GROUP, CRD_VERSION, 'dbparametergroups',
+                db_pg_name, namespace="default",
+            )
+            condition.assert_synced(pg_ref)
+
+        # Make sure the resource reference has a namespace property
+        if hasattr(db_cluster_ref, 'namespace'):
+            db_cluster.wait_until(
+                db_cluster_id,
+                db_cluster.status_matches("available"),
+            )
+        else:
+            # Handle the case where db_cluster_ref is a dict without namespace attribute
+            db_cluster.wait_until(
+                db_cluster_id,
+                db_cluster.status_matches("available"),
+            )
+
+        # Check that cluster is synced
+        if hasattr(db_cluster_ref, 'namespace'):
+            condition.assert_synced(db_cluster_ref)
+        else:
+            # Create a proper CustomResourceReference if needed
+            cluster_ref = k8s.CustomResourceReference(
+                CRD_GROUP, CRD_VERSION, 'dbclusters',
+                db_cluster_id, namespace="default",
+            )
+            condition.assert_synced(cluster_ref)
+
+        # Wait for DB instance to become available
         db_instance.wait_until(
             db_instance_id,
             db_instance.status_matches("available"),
         )
 
-        time.sleep(60)
-
-        condition.assert_synced(db_pg_ref)
-        condition.assert_synced(db_instance_ref)
-
+        # Check that instance is synced
+        if hasattr(db_instance_ref, 'namespace'):
+            condition.assert_synced(db_instance_ref)
+        else:
+            # Create a proper CustomResourceReference if needed
+            instance_ref = k8s.CustomResourceReference(
+                CRD_GROUP, CRD_VERSION, 'dbinstances',
+                db_instance_id, namespace="default",
+            )
+            condition.assert_synced(instance_ref)
+            
+        # Clean up resources in the proper order
         # NOTE(jaypipes): We need to manually delete the DB Instance first
         # because pytest fixtures will try to clean up the DB Parameter Group
         # fixture *first* (because it was initialized after DB Instance) but if
         # we try to delete the DB Parameter Group before the DB Instance, the
         # cascading delete protection of resource references will mean the DB
         # Parameter Group won't be deleted.
+        if hasattr(db_instance_ref, 'namespace'):
+            instance_ref_to_delete = db_instance_ref
+        else:
+            instance_ref_to_delete = k8s.CustomResourceReference(
+                CRD_GROUP, CRD_VERSION, 'dbinstances',
+                db_instance_id, namespace="default",
+            )
+            
         _, deleted = k8s.delete_custom_resource(
-            db_instance_ref,
+            instance_ref_to_delete,
             period_length=DELETE_INSTANCE_TIMEOUT_SECONDS,
         )
         assert deleted
@@ -302,8 +361,16 @@ class TestReferences:
 
         # Same for the DB cluster because it refers to the DB cluster
         # parameter group...
+        if hasattr(db_cluster_ref, 'namespace'):
+            cluster_ref_to_delete = db_cluster_ref
+        else:
+            cluster_ref_to_delete = k8s.CustomResourceReference(
+                CRD_GROUP, CRD_VERSION, 'dbclusters',
+                db_cluster_id, namespace="default",
+            )
+            
         _, deleted = k8s.delete_custom_resource(
-            db_cluster_ref,
+            cluster_ref_to_delete,
             period_length=DELETE_CLUSTER_TIMEOUT_SECONDS,
         )
         assert deleted

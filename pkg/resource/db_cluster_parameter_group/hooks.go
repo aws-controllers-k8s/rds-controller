@@ -220,6 +220,12 @@ func (rm *resourceManager) syncParameters(
 	groupName := desired.ko.Spec.Name
 	family := desired.ko.Spec.Family
 
+	// If there are no parameter overrides in the desired state,
+	// consider this a valid state and return success
+	if len(desired.ko.Spec.ParameterOverrides) == 0 {
+		return nil
+	}
+
 	desiredOverrides := desired.ko.Spec.ParameterOverrides
 	latestOverrides := util.Parameters{}
 	// In the create code paths, we pass a nil latest...

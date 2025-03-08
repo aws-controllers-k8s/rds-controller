@@ -16,13 +16,16 @@
 import datetime
 import time
 import typing
+import logging
+import botocore.exceptions
 
 import boto3
 import pytest
+from e2e.retry_util import retry_on_api_error
 
-DEFAULT_WAIT_UNTIL_TIMEOUT_SECONDS = 60*10
+DEFAULT_WAIT_UNTIL_TIMEOUT_SECONDS = 60*20  # Increased from 60*10
 DEFAULT_WAIT_UNTIL_INTERVAL_SECONDS = 15
-DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*10
+DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*20  # Increased from 60*10
 DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
 
 ClusterMatchFunc = typing.NewType(
@@ -42,7 +45,6 @@ class AttributeMatcher:
 
 def status_matches(status: str) -> ClusterMatchFunc:
     return AttributeMatcher("Status", status)
-
 
 def wait_until(
         db_cluster_id: str,
@@ -66,11 +68,36 @@ def wait_until(
     """
     now = datetime.datetime.now()
     timeout = now + datetime.timedelta(seconds=timeout_seconds)
-
-    while not match_fn(get(db_cluster_id)):
+    
+    logging.info(f"Waiting for DB cluster {db_cluster_id} to match condition...")
+    
+    last_status = None
+    attempts = 0
+    
+    while True:
+        attempts += 1
         if datetime.datetime.now() >= timeout:
-            pytest.fail("failed to match DBCluster before timeout")
-        time.sleep(interval_seconds)
+            pytest.fail(f"Failed to match DBCluster '{db_cluster_id}' before timeout ({timeout_seconds}s). Last status: {last_status}")
+            
+        try:
+            cluster = get(db_cluster_id)
+            
+            if cluster is not None and 'Status' in cluster:
+                current_status = cluster['Status']
+                if current_status != last_status:
+                    logging.info(f"DB cluster {db_cluster_id} status changed to: {current_status}")
+                    last_status = current_status
+                    
+            if match_fn(cluster):
+                logging.info(f"DB cluster {db_cluster_id} matched condition after {attempts} attempts")
+                return
+                
+        except Exception as e:
+            logging.warning(f"Error checking DB cluster status (attempt {attempts}): {str(e)}")
+            
+        # Exponential backoff capped at interval_seconds
+        sleep_time = min(interval_seconds, 2 ** (min(attempts, 6)))
+        time.sleep(sleep_time)
 
 
 def wait_until_deleted(
@@ -92,24 +119,43 @@ def wait_until_deleted(
     """
     now = datetime.datetime.now()
     timeout = now + datetime.timedelta(seconds=timeout_seconds)
-
+    
+    logging.info(f"Waiting for DB cluster {db_cluster_id} to be deleted...")
+    
+    last_status = None
+    attempts = 0
+    
     while True:
+        attempts += 1
         if datetime.datetime.now() >= timeout:
             pytest.fail(
-                "Timed out waiting for DB cluster to be "
-                "deleted in RDS API"
+                f"Timed out waiting for DB cluster '{db_cluster_id}' to be "
+                f"deleted in RDS API after {timeout_seconds}s. Last status: {last_status}"
             )
-        time.sleep(interval_seconds)
+        
+        try:
+            latest = get(db_cluster_id)
+            if latest is None:
+                logging.info(f"DB cluster {db_cluster_id} successfully deleted after {attempts} attempts")
+                break
 
-        latest = get(db_cluster_id)
-        if latest is None:
-            break
-
-        if latest['Status'] != "deleting":
-            pytest.fail(
-                "Status is not 'deleting' for DB cluster that was "
-                "deleted. Status is " + latest['Status']
-            )
+            current_status = latest.get('Status', 'unknown')
+            if current_status != last_status:
+                logging.info(f"DB cluster {db_cluster_id} status changed to: {current_status}")
+                last_status = current_status
+                
+            if current_status != "deleting":
+                pytest.fail(
+                    f"Status is not 'deleting' for DB cluster '{db_cluster_id}' that was "
+                    f"deleted. Status is '{current_status}'"
+                )
+                
+        except Exception as e:
+            logging.warning(f"Error checking DB cluster deletion status (attempt {attempts}): {str(e)}")
+            
+        # Exponential backoff capped at interval_seconds
+        sleep_time = min(interval_seconds, 2 ** (min(attempts, 6)))
+        time.sleep(sleep_time)
 
 
 def get(db_cluster_id):
@@ -117,13 +163,19 @@ def get(db_cluster_id):
 
     If no such DB cluster exists, returns None.
     """
-    c = boto3.client('rds')
-    try:
-        resp = c.describe_db_clusters(DBClusterIdentifier=db_cluster_id)
-        assert len(resp['DBClusters']) == 1
-        return resp['DBClusters'][0]
-    except c.exceptions.DBClusterNotFoundFault:
-        return None
+    def _get_cluster(cluster_id):
+        c = boto3.client('rds')
+        try:
+            resp = c.describe_db_clusters(DBClusterIdentifier=cluster_id)
+            assert len(resp['DBClusters']) == 1
+            return resp['DBClusters'][0]
+        except c.exceptions.DBClusterNotFoundFault:
+            return None
+        except Exception as e:
+            logging.warning(f"Error getting DB cluster {cluster_id}: {str(e)}")
+            raise
+
+    return retry_on_api_error(_get_cluster, db_cluster_id)
 
 
 def get_tags(db_cluster_arn):
@@ -131,11 +183,17 @@ def get_tags(db_cluster_arn):
 
     If no such DB cluster exists, returns None.
     """
-    c = boto3.client('rds')
-    try:
-        resp = c.list_tags_for_resource(
-            ResourceName=db_cluster_arn,
-        )
-        return resp['TagList']
-    except c.exceptions.DBClusterNotFoundFault:
-        return None
+    def _get_tags(arn):
+        c = boto3.client('rds')
+        try:
+            resp = c.list_tags_for_resource(
+                ResourceName=arn,
+            )
+            return resp['TagList']
+        except c.exceptions.DBClusterNotFoundFault:
+            return None
+        except Exception as e:
+            logging.warning(f"Error getting tags for DB cluster {arn}: {str(e)}")
+            raise
+            
+    return retry_on_api_error(_get_tags, db_cluster_arn)

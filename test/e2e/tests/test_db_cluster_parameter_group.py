@@ -161,3 +161,43 @@ class TestDBClusterParameterGroup:
                 assert "ParameterValue" in tp, f"No ParameterValue in parameter of name 'aurora_read_replica_read_committed': {tp}"
                 assert tp["ParameterValue"] == "ON", f"Wrong value for parameter of name 'aurora_read_replica_read_committed': {tp}"
         assert found == 2, f"Did not find parameters with names 'aurora_binlog_read_buffer_size' and 'aurora_read_replica_read_committed': {test_params}"
+
+        # Now let's try to set an instance-level parameter and verify error recovery
+        instance_level_params = {
+            "auto_increment_increment": "2",  # This is an instance-level parameter
+            "aurora_binlog_read_buffer_size": "5242880",
+        }
+        updates = {
+            "spec": {
+                "parameterOverrides": instance_level_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # Check that the resource has an error condition
+        cr = k8s.get_resource(ref)
+        condition.assert_synced(cr)
+        conditions = cr["status"]["conditions"]
+        error_found = False
+        for c in conditions:
+            if c["type"] == "ACK.ResourceSynced" and c["status"] == "False":
+                assert "auto_increment_increment" in c["message"]
+                error_found = True
+        assert error_found, "Expected to find error condition for instance-level parameter"
+
+        # Now fix the parameter by removing the instance-level one
+        valid_params = {
+            "aurora_binlog_read_buffer_size": "5242880",
+        }
+        updates = {
+            "spec": {
+                "parameterOverrides": valid_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # Verify the error condition is cleared
+        cr = k8s.get_resource(ref)
+        condition.assert_synced(cr)
