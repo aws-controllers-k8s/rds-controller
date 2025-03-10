@@ -6,4 +6,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: public.ecr.aws/aws-controllers-k8s/rds-controller
-  newTag: 1.4.13
+  newTag: 1.4.14
