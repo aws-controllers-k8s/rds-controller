@@ -1681,7 +1681,8 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"InvalidParameterValue",
 		"InvalidParameterCombination",
 		"InvalidSubnet",
-		"StorageQuotaExceeded":
+		"StorageQuotaExceeded",
+		"StorageTypeNotAvailableFault":
 		return true
 	default:
 		return false

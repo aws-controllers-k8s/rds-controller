@@ -571,6 +571,9 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 	if desired.ko.Spec.OptionGroupName != nil && delta.DifferentAt("Spec.OptionGroupName") {
 		res.OptionGroupName = desired.ko.Spec.OptionGroupName
 	}
+	if desired.ko.Spec.StorageType != nil && delta.DifferentAt("Spec.StorageType") {
+		res.StorageType = desired.ko.Spec.StorageType
+	}
 	if desired.ko.Spec.Port != nil && delta.DifferentAt("Spec.Port") {
 		res.Port = aws.Int32(int32(*desired.ko.Spec.Port))
 	}
