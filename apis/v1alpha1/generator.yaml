@@ -170,6 +170,7 @@ resources:
         - InvalidParameterCombination
         - InvalidSubnet
         - StorageQuotaExceeded
+        - StorageTypeNotAvailableFault
     fields:
       DestinationRegion:
         set:
