@@ -57,6 +57,8 @@ spec:
         - "$(ACK_RESOURCE_TAGS)"
         - --watch-namespace
         - "$(ACK_WATCH_NAMESPACE)"
+        - --watch-selectors
+        - "$(ACK_WATCH_SELECTORS)"
         - --deletion-policy
         - "$(DELETION_POLICY)"
 {{- if .Values.leaderElection.enabled }}
@@ -103,6 +105,8 @@ spec:
           value: {{ .Values.aws.endpoint_url | quote }}
         - name: ACK_WATCH_NAMESPACE
           value: {{ include "ack-rds-controller.watch-namespace" . }}
+        - name: ACK_WATCH_SELECTORS
+          value: {{ .Values.watchSelectors }}
         - name: DELETION_POLICY
           value: {{ .Values.deletionPolicy }}
         - name: LEADER_ELECTION_NAMESPACE
