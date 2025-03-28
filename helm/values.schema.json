@@ -210,7 +210,10 @@
     },
     "watchNamespace": {
       "type": "string"
-    },    
+    },
+    "watchSelectors": {
+      "type": "string"
+    },
     "resourceTags": {
       "type": "array",
       "items": {

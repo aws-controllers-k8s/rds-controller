@@ -113,11 +113,20 @@ func main() {
 	for _, namespace := range namespaces {
 		watchNamespaces[namespace] = ctrlrtcache.Config{}
 	}
+	watchSelectors, err := ackCfg.ParseWatchSelectors()
+	if err != nil {
+		setupLog.Error(
+			err, "Unable to parse watch selectors.",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
 	mgr, err := ctrlrt.NewManager(ctrlrt.GetConfigOrDie(), ctrlrt.Options{
 		Scheme: scheme,
 		Cache: ctrlrtcache.Options{
-			Scheme:            scheme,
-			DefaultNamespaces: watchNamespaces,
+			Scheme:               scheme,
+			DefaultNamespaces:    watchNamespaces,
+			DefaultLabelSelector: watchSelectors,
 		},
 		WebhookServer: &ctrlrtwebhook.DefaultServer{
 			Options: ctrlrtwebhook.Options{
