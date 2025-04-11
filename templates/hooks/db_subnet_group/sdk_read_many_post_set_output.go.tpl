@@ -7,10 +7,12 @@
         ko.Spec.Tags = tags
 	}
 
-        if ko.Status.Subnets != nil {
-                for _, subnetIdIter := range ko.Status.Subnets {
-                        if subnetIdIter.SubnetIdentifier != nil {
-                                ko.Spec.SubnetIDs = append(ko.Spec.SubnetIDs, subnetIdIter.SubnetIdentifier)
-                        }
-                }
-        }
+	if ko.Status.Subnets != nil {
+		f0 := []*string{}
+		for _, subnetIdIter := range ko.Status.Subnets {
+			if subnetIdIter.SubnetIdentifier != nil {
+				f0 = append(f0, subnetIdIter.SubnetIdentifier)
+			}
+		}
+		ko.Spec.SubnetIDs = f0
+	}
