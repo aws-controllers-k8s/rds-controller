@@ -19,6 +19,7 @@ import (
 	"math"
 	"regexp"
 	"slices"
+	"strconv"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -33,7 +34,8 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
-var r = regexp.MustCompile(`[0-9]*$`)
+// regex: 14.15 -> [14.15, 14, 15]
+var versionRegex = regexp.MustCompile(`^(\d+)\.(\d+)`)
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/917. The Input shape
@@ -97,6 +99,7 @@ func (rm *resourceManager) customUpdate(
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
+	desiredEngineVersion := desired.ko.Spec.EngineVersion
 
 	if resp.DBCluster.ActivityStreamKinesisStreamName != nil {
 		ko.Status.ActivityStreamKinesisStreamName = resp.DBCluster.ActivityStreamKinesisStreamName
@@ -325,7 +328,16 @@ func (rm *resourceManager) customUpdate(
 		ko.Spec.EngineMode = nil
 	}
 	if resp.DBCluster.EngineVersion != nil {
-		ko.Spec.EngineVersion = resp.DBCluster.EngineVersion
+		// special case during update do not patch 
+		canUpdate, err := requireEngineVersionUpdate(desiredEngineVersion, resp.DBCluster.EngineVersion, *resp.DBCluster.AutoMinorVersionUpgrade)
+		if err != nil {
+			return nil, err
+		}
+		if desiredEngineVersion != nil && canUpdate {
+			ko.Spec.EngineVersion = desiredEngineVersion
+		} else {
+			ko.Spec.EngineVersion = resp.DBCluster.EngineVersion
+		}
 	} else {
 		ko.Spec.EngineVersion = nil
 	}
@@ -551,12 +563,29 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		res.EnableIAMDatabaseAuthentication = desired.ko.Spec.EnableIAMDatabaseAuthentication
 	}
 	if desired.ko.Spec.EngineVersion != nil && delta.DifferentAt("Spec.EngineVersion") {
+		rlog := ackrtlog.FromContext(ctx)
 		autoMinorVersionUpgrade := true
 		if desired.ko.Spec.AutoMinorVersionUpgrade != nil {
 			autoMinorVersionUpgrade = *desired.ko.Spec.AutoMinorVersionUpgrade
 		}
-		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
+
+		shouldUpdate, err := requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade)
+		if err != nil {
+			rlog.Debug("error checking engine version update", "error", err.Error())
+			// Don't return error, just don't include engine version in update
+		} 
+		
+		if shouldUpdate {
+			rlog.Debug("including engine version in update",
+				"desired", *desired.ko.Spec.EngineVersion,
+				"latest", *latest.ko.Spec.EngineVersion)
 			res.EngineVersion = desired.ko.Spec.EngineVersion
+		} 
+
+		if !shouldUpdate {
+			rlog.Debug("skipping engine version update",
+				"desired", *desired.ko.Spec.EngineVersion,
+				"latest", *latest.ko.Spec.EngineVersion)
 		}
 	}
 	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
@@ -650,8 +679,71 @@ func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired 
 	return logsTypesToEnable, logsTypesToDisable
 }
 
-func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
-	desiredMajorEngineVersion := r.ReplaceAllString(*desiredEngineVersion, "${1}")
-	latestMajorEngineVersion := r.ReplaceAllString(*latestEngineVersion, "${1}")
-	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
+// requireEngineVersionUpdate determines whether an engine version update should be included
+func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) (bool, error) {
+	
+	// what should we do if 
+	if latestEngineVersion == nil {
+		return false, fmt.Errorf("engine versions cannot be nil")
+	}
+
+	// Check if versions are already identical
+	if *desiredEngineVersion == *latestEngineVersion {
+		return false, nil
+	}
+
+	// Parse the desired version
+	// desiredMatches[0] is the entire string
+	desiredMatches := versionRegex.FindStringSubmatch(*desiredEngineVersion)
+	latestMatches := versionRegex.FindStringSubmatch(*latestEngineVersion)
+
+	// possible patterms with 2 or more dots....
+	if len(desiredMatches) < 3 {
+		return false, fmt.Errorf("invalid desired engine version format: %s", *desiredEngineVersion)
+	}
+	if len(latestMatches) < 3 {
+		return false, fmt.Errorf("invalid latest engine version format: %s", *latestEngineVersion)
+	}
+
+	desiredMajor, err := strconv.Atoi(desiredMatches[1])
+	if err != nil {
+		return false, fmt.Errorf("invalid desired major version: %s", desiredMatches[1])
+	}
+
+	desiredMinor, err := strconv.Atoi(desiredMatches[2])
+	if err != nil {
+		return false, fmt.Errorf("invalid desired minor version: %s", desiredMatches[2])
+	}
+
+	latestMajor, err := strconv.Atoi(latestMatches[1])
+	if err != nil {
+		return false, fmt.Errorf("invalid latest major version: %s", latestMatches[1])
+	}
+
+	latestMinor, err := strconv.Atoi(latestMatches[2])
+	if err != nil {
+		return false, fmt.Errorf("invalid latest minor version: %s", latestMatches[2])
+	}
+
+	// Check for downgrade attempts - this should raise an error to prevent
+	// confusing error messages 
+	if desiredMajor < latestMajor || (desiredMajor == latestMajor && desiredMinor < latestMinor) {
+		return false, fmt.Errorf("downgrading engine version from %s to %s is not supported",
+			*latestEngineVersion, *desiredEngineVersion)
+	}
+
+	// Handle major version upgrades - always require explicit update
+	if desiredMajor > latestMajor {
+		return true, nil
+	}
+
+	// Handle minor version upgrades
+	if desiredMajor == latestMajor && desiredMinor > latestMinor {
+		// If autoMinorVersionUpgrade is false, we should explicitly handle minor version upgrades
+		// If true, AWS will handle it automatically
+		return !autoMinorVersionUpgrade, nil
+	}
+
+	// Versions are identical (should have been caught above, but keeping as a safeguard)
+	return false, nil
 }
