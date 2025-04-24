@@ -10,6 +10,7 @@ rules:
   - rds.services.k8s.aws
   resources:
   - dbclusters
+  - dbclusterendpoints
   - dbclusterparametergroups
   - dbclustersnapshots
   - dbinstances
@@ -30,6 +31,7 @@ rules:
   - rds.services.k8s.aws
   resources:
   - dbclusters
+  - dbclusterendpoints
   - dbclusterparametergroups
   - dbclustersnapshots
   - dbinstances

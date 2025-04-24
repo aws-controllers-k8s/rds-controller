@@ -90,6 +90,7 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbclusterendpoints
   - dbclusterparametergroups
   - dbclusters
   - dbclustersnapshots
@@ -110,6 +111,7 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbclusterendpoints/status
   - dbclusterparametergroups/status
   - dbclusters/status
   - dbclustersnapshots/status

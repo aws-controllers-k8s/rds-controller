@@ -300,14 +300,13 @@ type DBClusterAutomatedBackup struct {
 //
 // For the data structure that represents Amazon RDS DB instance endpoints,
 // see Endpoint.
-type DBClusterEndpoint struct {
+type DBClusterEndpoint_SDK struct {
 	CustomEndpointType                  *string   `json:"customEndpointType,omitempty"`
 	DBClusterEndpointARN                *string   `json:"dbClusterEndpointARN,omitempty"`
 	DBClusterEndpointIdentifier         *string   `json:"dbClusterEndpointIdentifier,omitempty"`
 	DBClusterEndpointResourceIdentifier *string   `json:"dbClusterEndpointResourceIdentifier,omitempty"`
 	DBClusterIdentifier                 *string   `json:"dbClusterIdentifier,omitempty"`
 	Endpoint                            *string   `json:"endpoint,omitempty"`
-	EndpointType                        *string   `json:"endpointType,omitempty"`
 	ExcludedMembers                     []*string `json:"excludedMembers,omitempty"`
 	StaticMembers                       []*string `json:"staticMembers,omitempty"`
 	Status                              *string   `json:"status,omitempty"`

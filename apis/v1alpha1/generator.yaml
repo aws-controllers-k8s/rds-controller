@@ -4,7 +4,7 @@ ignore:
     - CustomAvailabilityZone
     - CustomDBEngineVersion
     #- DBCluster
-    - DBClusterEndpoint
+    # - DBClusterEndpoint
     #- DBClusterParameterGroup
     # DBClusterSnapshot
     #- DBInstance
@@ -99,6 +99,9 @@ ignore:
     - CreateGlobalClusterOutput.GlobalCluster.TagList
     - CreateGlobalClusterOutput.GlobalCluster.FailoverState.IsDataLossAllowed
     - GlobalClusterMember.SynchronizationStatus
+    - CreateDBClusterEndpointOutput.EndpointType
+    - ModifyDBClusterEndpointOutput.EndpointType
+    - DBClusterEndpoint.EndpointType
 operations:
   ModifyDBCluster:
     override_values:
@@ -578,3 +581,36 @@ resources:
         template_path: hooks/db_cluster_snapshot/sdk_read_many_post_set_output.go.tpl
     update_operation:
       custom_method_name: customUpdateDBClusterSnapshot
+  DBClusterEndpoint:
+    renames:
+      operations:
+        CreateDBClusterEndpoint:
+          output_fields:
+            CustomEndpointType: EndpointType
+        DescribeDBClusterEndpoints:
+          output_fields:
+            CustomEndpointType: EndpointType
+        ModifyDBClusterEndpoint:
+          output_fields:
+            CustomEndpointType: EndpointType
+    fields:
+      # i would rename this to Name, or ID..probably name makes more sense since it's in
+      # the spec...but i also want to keep the standard we have..
+      # any thoughts?
+      DBClusterEndpointIdentifier:
+        is_primary_key: true
+      DBClusterIdentifier:
+        references:
+          resource: DBCluster
+          path: Spec.DBClusterIdentifier
+      Tags:
+        compare:
+          # We have a custom comparison function...
+          is_ignored: true
+    hooks:
+      sdk_read_many_post_set_output:
+        template_path: hooks/db_cluster_endpoint/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_set_output:
+        template_path: hooks/db_cluster_endpoint/sdk_update_pre_set_output.go.tpl
+      delta_pre_compare:
+        template_path: hooks/db_cluster_endpoint/delta_pre_compare.go.tpl
