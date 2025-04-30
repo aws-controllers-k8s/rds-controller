@@ -324,11 +324,6 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Spec.EngineMode = nil
 	}
-	if resp.DBCluster.EngineVersion != nil {
-		ko.Spec.EngineVersion = resp.DBCluster.EngineVersion
-	} else {
-		ko.Spec.EngineVersion = nil
-	}
 	if resp.DBCluster.GlobalWriteForwardingRequested != nil {
 		ko.Status.GlobalWriteForwardingRequested = resp.DBCluster.GlobalWriteForwardingRequested
 	} else {
