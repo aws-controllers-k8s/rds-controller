@@ -35,7 +35,8 @@ DELETE_WAIT_AFTER_SECONDS = 10
 MODIFY_WAIT_AFTER_SECONDS = 120
 DBINSTANCE_MAX_WAIT_FOR_SYNCED_SECONDS = 20
 
-ENDPOINT_TYPE = "READER"
+ENDPOINT_TYPE = "ANY"
+UPDATED_ENDPOINT_TYPE = "READER"
 
 @pytest.fixture
 def db_cluster_endpoint_resource(aurora_mysql_cluster):
@@ -109,6 +110,7 @@ class TestDBClusterEndpoint:
         ]
         updates = {
             "spec": {
+                "endpointType": UPDATED_ENDPOINT_TYPE,
                 "tags": new_tags
             }
         }
@@ -123,3 +125,7 @@ class TestDBClusterEndpoint:
         ]
         latest_tags = tag.clean(db_cluster_endpoint.get_tags(endpoint_arn))
         assert expected_tags == latest_tags
+
+        latest = db_cluster_endpoint.get(resource_name)
+        assert latest is not None
+        assert latest['CustomEndpointType'] == UPDATED_ENDPOINT_TYPE
