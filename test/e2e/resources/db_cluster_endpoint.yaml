@@ -1,0 +1,11 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBClusterEndpoint
+metadata:
+  name: $DB_CLUSTER_ENDPOINT_IDENTIFIER
+spec:
+  dbClusterEndpointIdentifier: $DB_CLUSTER_ENDPOINT_IDENTIFIER
+  dbClusterIdentifier: $DB_CLUSTER_IDENTIFIER
+  endpointType: $ENDPOINT_TYPE
+  tags:
+    - key: environment
+      value: dev

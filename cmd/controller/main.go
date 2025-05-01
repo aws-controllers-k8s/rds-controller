@@ -42,6 +42,7 @@ import (
 	svcresource "github.com/aws-controllers-k8s/rds-controller/pkg/resource"
 
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_cluster"
+	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_cluster_endpoint"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_cluster_parameter_group"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_cluster_snapshot"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_instance"
