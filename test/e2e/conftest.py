@@ -14,15 +14,19 @@
 import os
 import pytest
 import boto3
+import logging
 
 from acktest import k8s
+from e2e.resource_cleanup import cleanup_old_resources
 
-
-def pytest_addoption(parser):
-    parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
-
-
+# Increase default timeouts to handle AWS API latency
 def pytest_configure(config):
+    # Set longer timeouts for tests
+    os.environ['PYTEST_TIMEOUT'] = '1800'  # 30 minutes (increased from 15)
+    
+    # Configure longer shutdown timeout to allow proper cleanup
+    config.option.shutdown_timeout = 300  # 5 minutes to allow AWS resources to clean up
+    
     config.addinivalue_line(
         "markers", "canary: mark test to also run in canary tests"
     )
@@ -32,6 +36,24 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: mark test as slow to run"
     )
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Clean up any old test resources that might be lingering
+    try:
+        logging.info("Running pre-test cleanup of stale AWS resources...")
+        cleanup_old_resources()
+    except Exception as e:
+        logging.warning(f"Error during pre-test resource cleanup: {str(e)}")
+
+
+def pytest_addoption(parser):
+    parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
+
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--runslow"):
@@ -57,3 +79,22 @@ def rds_resource():
 @pytest.fixture(scope='module')
 def sts_client():
     return boto3.client('sts')
+
+def pytest_sessionfinish(session, exitstatus):
+    """Run at the end of the test session to ensure proper cleanup.
+    
+    This function will run regardless of whether tests passed or failed,
+    ensuring that AWS resources are cleaned up properly.
+    """
+    logging.info(f"Test session finished with exit status: {exitstatus}")
+    
+    if exitstatus != 0:
+        # Tests failed, perform additional cleanup to prevent resources from being orphaned
+        try:
+            from e2e.resource_cleanup import force_cleanup_test_resources
+            logging.info("Running forced cleanup due to test failures...")
+            force_cleanup_test_resources()
+        except Exception as e:
+            logging.warning(f"Error during forced cleanup: {str(e)}")
+            
+    logging.info("Test session cleanup completed")

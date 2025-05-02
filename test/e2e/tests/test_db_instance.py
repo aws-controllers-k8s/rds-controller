@@ -29,7 +29,7 @@ from e2e import tag
 
 RESOURCE_PLURAL = 'dbinstances'
 
-DELETE_WAIT_AFTER_SECONDS = 60*2
+DELETE_WAIT_AFTER_SECONDS = 60*5
 
 # Time we wait after resource becoming available in RDS and checking the CR's
 # Status has been updated.

@@ -16,13 +16,16 @@
 import datetime
 import time
 import typing
+import logging
+import botocore.exceptions
 
 import boto3
 import pytest
+from e2e.retry_util import retry_on_api_error
 
-DEFAULT_WAIT_UNTIL_TIMEOUT_SECONDS = 60*30
+DEFAULT_WAIT_UNTIL_TIMEOUT_SECONDS = 60*40
 DEFAULT_WAIT_UNTIL_INTERVAL_SECONDS = 15
-DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*20
+DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*30
 DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
 
 InstanceMatchFunc = typing.NewType(
@@ -65,11 +68,36 @@ def wait_until(
     """
     now = datetime.datetime.now()
     timeout = now + datetime.timedelta(seconds=timeout_seconds)
-
-    while not match_fn(get(db_instance_id)):
+    
+    logging.info(f"Waiting for DB instance {db_instance_id} to match condition...")
+    
+    last_status = None
+    attempts = 0
+    
+    while True:
+        attempts += 1
         if datetime.datetime.now() >= timeout:
-            pytest.fail("failed to match DBInstance before timeout")
-        time.sleep(interval_seconds)
+            pytest.fail(f"Failed to match DBInstance '{db_instance_id}' before timeout ({timeout_seconds}s). Last status: {last_status}")
+            
+        try:
+            instance = get(db_instance_id)
+            
+            if instance is not None and 'DBInstanceStatus' in instance:
+                current_status = instance['DBInstanceStatus']
+                if current_status != last_status:
+                    logging.info(f"DB instance {db_instance_id} status changed to: {current_status}")
+                    last_status = current_status
+                    
+            if match_fn(instance):
+                logging.info(f"DB instance {db_instance_id} matched condition after {attempts} attempts")
+                return
+                
+        except Exception as e:
+            logging.warning(f"Error checking DB instance status (attempt {attempts}): {str(e)}")
+            
+        # Exponential backoff capped at interval_seconds
+        sleep_time = min(interval_seconds, 2 ** (min(attempts, 6)))
+        time.sleep(sleep_time)
 
 
 def wait_until_deleted(
@@ -91,24 +119,43 @@ def wait_until_deleted(
     """
     now = datetime.datetime.now()
     timeout = now + datetime.timedelta(seconds=timeout_seconds)
-
+    
+    logging.info(f"Waiting for DB instance {db_instance_id} to be deleted...")
+    
+    last_status = None
+    attempts = 0
+    
     while True:
+        attempts += 1
         if datetime.datetime.now() >= timeout:
             pytest.fail(
-                "Timed out waiting for DB instance to be "
-                "deleted in RDS API"
+                f"Timed out waiting for DB instance '{db_instance_id}' to be "
+                f"deleted in RDS API after {timeout_seconds}s. Last status: {last_status}"
             )
-        time.sleep(interval_seconds)
-
-        latest = get(db_instance_id)
-        if latest is None:
-            break
-
-        if latest['DBInstanceStatus'] != "deleting":
-            pytest.fail(
-                "Status is not 'deleting' for DB instance that was "
-                "deleted. Status is " + latest['DBInstanceStatus']
-            )
+            
+        try:
+            latest = get(db_instance_id)
+            if latest is None:
+                logging.info(f"DB instance {db_instance_id} successfully deleted after {attempts} attempts")
+                break
+    
+            current_status = latest.get('DBInstanceStatus', 'unknown')
+            if current_status != last_status:
+                logging.info(f"DB instance {db_instance_id} status changed to: {current_status}")
+                last_status = current_status
+                
+            if current_status != "deleting":
+                pytest.fail(
+                    f"Status is not 'deleting' for DB instance '{db_instance_id}' that was "
+                    f"deleted. Status is '{current_status}'"
+                )
+                
+        except Exception as e:
+            logging.warning(f"Error checking DB instance deletion status (attempt {attempts}): {str(e)}")
+            
+        # Exponential backoff capped at interval_seconds
+        sleep_time = min(interval_seconds, 2 ** (min(attempts, 6)))
+        time.sleep(sleep_time)
 
 
 def get(db_instance_id):
@@ -116,13 +163,19 @@ def get(db_instance_id):
 
     If no such DB instance exists, returns None.
     """
-    c = boto3.client('rds')
-    try:
-        resp = c.describe_db_instances(DBInstanceIdentifier=db_instance_id)
-        assert len(resp['DBInstances']) == 1
-        return resp['DBInstances'][0]
-    except c.exceptions.DBInstanceNotFoundFault:
-        return None
+    def _get_instance(instance_id):
+        c = boto3.client('rds')
+        try:
+            resp = c.describe_db_instances(DBInstanceIdentifier=instance_id)
+            assert len(resp['DBInstances']) == 1
+            return resp['DBInstances'][0]
+        except c.exceptions.DBInstanceNotFoundFault:
+            return None
+        except Exception as e:
+            logging.warning(f"Error getting DB instance {instance_id}: {str(e)}")
+            raise
+    
+    return retry_on_api_error(_get_instance, db_instance_id)
 
 
 def get_tags(db_instance_arn):
@@ -130,11 +183,17 @@ def get_tags(db_instance_arn):
 
     If no such DB instance exists, returns None.
     """
-    c = boto3.client('rds')
-    try:
-        resp = c.list_tags_for_resource(
-            ResourceName=db_instance_arn,
-        )
-        return resp['TagList']
-    except c.exceptions.DBInstanceNotFoundFault:
-        return None
+    def _get_tags(arn):
+        c = boto3.client('rds')
+        try:
+            resp = c.list_tags_for_resource(
+                ResourceName=arn,
+            )
+            return resp['TagList']
+        except c.exceptions.DBInstanceNotFoundFault:
+            return None
+        except Exception as e:
+            logging.warning(f"Error getting tags for DB instance {arn}: {str(e)}")
+            raise
+            
+    return retry_on_api_error(_get_tags, db_instance_arn)
