@@ -298,6 +298,8 @@ resources:
     hooks:
       delta_pre_compare:
         template_path: hooks/db_instance/delta_pre_compare.go.tpl
+      # sdk_delete_post_request:
+      #   code: return r, fmt.Errorf("wait for delete")
       sdk_create_pre_build_request:
         template_path: hooks/db_instance/sdk_create_pre_build_request.go.tpl
       sdk_create_post_set_output:
@@ -327,11 +329,61 @@ resources:
         is_immutable: true
       DBInstanceIdentifier:
         is_primary_key: true
+        set:
+        - method: Update
+          ignore: true
       DBInstanceStatus:
         print:
           name: "STATUS"
       MasterUserPassword:
         is_secret: true
+        set:
+        - method: Update
+          ignore: true
+      AllocatedStorage:
+        set:
+        - method: Update
+          ignore: true
+      BackupRetentionPeriod:
+        set:
+        - method: Update
+          ignore: true
+      CACertificateIdentifier:
+        set:
+        - method: Update
+          ignore: true
+      DBInstanceClass:
+        set:
+        - method: Update
+          ignore: true
+      EngineVersion:
+        set:
+        - method: Update
+          ignore: true
+      Iops:
+        set:
+        - method: Update
+          ignore: true
+      MultiAZ:
+        set:
+        - method: Update
+          ignore: true
+      Port:
+        set:
+        - method: Update
+          ignore: true
+      PubliclyAccessible:
+        set:
+        - method: Update
+          ignore: true
+      StorageThroughput:
+        set:
+        - method: Update
+          ignore: true
+      StorageType:
+        set:
+        - method: Update
+          ignore: true
       KmsKeyId:
         references:
           resource: Key
