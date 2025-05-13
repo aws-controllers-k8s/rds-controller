@@ -59,6 +59,8 @@ spec:
         - "$(ACK_WATCH_NAMESPACE)"
         - --watch-selectors
         - "$(ACK_WATCH_SELECTORS)"
+        - --reconcile-resources
+        - "$(RECONCILE_RESOURCES)"
         - --deletion-policy
         - "$(DELETION_POLICY)"
 {{- if .Values.leaderElection.enabled }}
@@ -107,6 +109,8 @@ spec:
           value: {{ include "ack-rds-controller.watch-namespace" . }}
         - name: ACK_WATCH_SELECTORS
           value: {{ .Values.watchSelectors }}
+        - name: RECONCILE_RESOURCES
+          value: {{ join "," .Values.reconcile.resources | quote }}
         - name: DELETION_POLICY
           value: {{ .Values.deletionPolicy }}
         - name: LEADER_ELECTION_NAMESPACE

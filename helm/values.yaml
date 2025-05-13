@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.4.17
+  tag: 1.4.18
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -137,6 +137,21 @@ reconcile:
   # An object representing the reconcile max concurrent syncs configuration for each specific
   # resource.
   resourceMaxConcurrentSyncs: {}
+  
+  # Set the value of resources to specify which resource kinds to reconcile.
+  # If empty, all resources will be reconciled.
+  # If specified, only the listed resource kinds will be reconciled.
+  resources:
+    - DBCluster
+    - DBClusterEndpoint
+    - DBClusterParameterGroup
+    - DBClusterSnapshot
+    - DBInstance
+    - DBParameterGroup
+    - DBProxy
+    - DBSnapshot
+    - DBSubnetGroup
+    - GlobalCluster
 
 serviceAccount:
   # Specifies whether a service account should be created
