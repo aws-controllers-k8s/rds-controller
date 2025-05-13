@@ -1990,6 +1990,12 @@ func (rm *resourceManager) sdkUpdate(
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
+	ko.Status = latest.ko.Status
+	setLastAppliedSecretReferenceAnnotation(&resource{ko})
+	// Setting resource synced condition to false will trigger a requeue of
+	// the resource. No need to return a requeue error here.
+	ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
+	return &resource{ko}, nil
 
 	if resp.DBInstance.ActivityStreamEngineNativeAuditFieldsIncluded != nil {
 		ko.Status.ActivityStreamEngineNativeAuditFieldsIncluded = resp.DBInstance.ActivityStreamEngineNativeAuditFieldsIncluded
@@ -2607,19 +2613,6 @@ func (rm *resourceManager) sdkUpdate(
 	}
 
 	rm.setStatusDefaults(ko)
-	// When ModifyDBInstance API is successful, it asynchronously
-	// updates the DBInstanceStatus. Requeue to find the current
-	// DBInstance status and set Synced condition accordingly
-	if err == nil {
-		// set the last-applied-secret-reference annotation on the DB instance
-		// resource.
-		r := &resource{ko}
-		setLastAppliedSecretReferenceAnnotation(r)
-		// Setting resource synced condition to false will trigger a requeue of
-		// the resource. No need to return a requeue error here.
-		ackcondition.SetSynced(r, corev1.ConditionFalse, nil, nil)
-	}
-
 	return &resource{ko}, nil
 }
 
