@@ -2,11 +2,18 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "ack-rds-controller.app.fullname" . }}
+  name: {{ include "ack-rds-controller.app.fullname" . }}-rolebinding
+  labels:
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
-  name: ack-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}
 subjects:
 - kind: ServiceAccount
   name: {{ include "ack-rds-controller.service-account.name" . }}
@@ -17,17 +24,26 @@ subjects:
 {{ $fullname := include "ack-rds-controller.app.fullname" . }}
 {{ $releaseNamespace := .Release.Namespace }}
 {{ $serviceAccountName := include "ack-rds-controller.service-account.name" . }}
+{{ $chartVersion := include "ack-rds-controller.chart.name-version" . }}
+{{ $appVersion := .Chart.AppVersion | quote }}
 {{ range $namespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ $fullname }}
+  name: {{ $fullname }}-{{ . }}
   namespace: {{ . }}
+  labels:
+    app.kubernetes.io/name: {{ $fullname }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ $appVersion }}
+    k8s-app: {{ $fullname }}
+    helm.sh/chart: {{ $chartVersion }}
 roleRef:
   kind: Role
   apiGroup: rbac.authorization.k8s.io
-  name: ack-rds-controller
+  name: {{ $fullname }}-{{ . }}
 subjects:
 - kind: ServiceAccount
   name: {{ $serviceAccountName }}
