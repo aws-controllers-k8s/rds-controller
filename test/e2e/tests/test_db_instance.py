@@ -315,9 +315,11 @@ class TestDBInstance:
         assert latest is not None
         assert latest['PerformanceInsightsEnabled'] is True
 
-        # TODO: Ensure that the server side defaults
-        # (PerformanceInsightsRetentionPeriod and PerformanceInsightsKMSKeyID)
-        # are also persisted back into the spec. This currently does not work
+        cr = k8s.get_resource(ref)
+        assert 'performanceInsightsRetentionPeriod' in cr['spec']
+        assert 'performanceInsightsKMSKeyID' in cr['spec']
+        assert latest['PerformanceInsightsRetentionPeriod'] == cr['spec']['performanceInsightsRetentionPeriod']
+        assert latest['PerformanceInsightsKMSKeyId'] == cr['spec']['performanceInsightsKMSKeyID']
 
     def test_state_field_flapping(
             self,
