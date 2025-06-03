@@ -1,7 +1,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ack-namespaces-cache-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}-namespaces-cache
+  labels:
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 rules:
 - apiGroups:
   - ""
@@ -15,8 +22,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ack-configmaps-cache-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}-configmaps-cache
   namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 rules:
 - apiGroups:
   - ""

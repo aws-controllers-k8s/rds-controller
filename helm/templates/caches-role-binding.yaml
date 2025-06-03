@@ -1,11 +1,18 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ack-namespaces-cache-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}-namespace-caches
+  labels:
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
-  name: ack-namespaces-cache-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}-namespace-caches
 subjects:
 - kind: ServiceAccount
   name: {{ include "ack-rds-controller.service-account.name" . }}
@@ -14,12 +21,19 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ack-configmaps-cache-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}-configmaps-cache
   namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
 roleRef:
   kind: Role
   apiGroup: rbac.authorization.k8s.io
-  name: ack-configmaps-cache-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}-configmaps-cache
 subjects:
 - kind: ServiceAccount
   name: {{ include "ack-rds-controller.service-account.name" . }}

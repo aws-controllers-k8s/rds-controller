@@ -1,11 +1,20 @@
 {{ $labels := .Values.role.labels }}
+{{ $appVersion := .Chart.AppVersion | quote }}
 {{ $rbacRules := include "ack-rds-controller.rbac-rules" . }}
+{{ $fullname := include "ack-rds-controller.app.fullname" . }}
+{{ $chartVersion := include "ack-rds-controller.chart.name-version" . }}
 {{ if eq .Values.installScope "cluster" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ack-rds-controller
+  name: {{ include "ack-rds-controller.app.fullname" . }}
   labels:
+    app.kubernetes.io/name: {{ include "ack-rds-controller.app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    k8s-app: {{ include "ack-rds-controller.app.name" . }}
+    helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
   {{- range $key, $value := $labels }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
@@ -18,9 +27,15 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ack-rds-controller
+  name: {{ $fullname }}-{{ . }}
   namespace: {{ . }}
   labels:
+    app.kubernetes.io/name: {{ $fullname }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ $appVersion }}
+    k8s-app: {{ $fullname }}
+    helm.sh/chart: {{ $chartVersion }}
   {{- range $key, $value := $labels }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
