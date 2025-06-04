@@ -440,6 +440,8 @@ type DBInstanceSpec struct {
 	// Example: mydbsubnetgroup
 	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
 	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
+	// Specifies the mode of Database Insights to enable for the instance.
+	DatabaseInsightsMode *string `json:"databaseInsightsMode,omitempty"`
 	// Specifies whether the DB instance has deletion protection enabled. The database
 	// can't be deleted when deletion protection is enabled. By default, deletion
 	// protection isn't enabled. For more information, see Deleting a DB Instance

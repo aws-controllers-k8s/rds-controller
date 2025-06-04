@@ -24,7 +24,6 @@ ignore:
   field_paths:
     - CreateDBClusterInput.CACertificateIdentifier
     - CreateDBClusterInput.ClusterScalabilityType
-    - CreateDBClusterInput.DatabaseInsightsMode
     - CreateDBClusterInput.EngineLifecycleSupport
     - CreateDBClusterInput.EnableLimitlessDatabase
     - CreateDBClusterInput.EnableLocalWriteForwarding
@@ -37,20 +36,17 @@ ignore:
     - CreateDBClusterOutput.DBCluster.AwsBackupRecoveryPointArn
     - CreateDBClusterOutput.DBCluster.CertificateDetails
     - CreateDBClusterOutput.DBCluster.ClusterScalabilityType
-    - CreateDBClusterOutput.DBCluster.DatabaseInsightsMode
     - CreateDBClusterOutput.DBCluster.EngineLifecycleSupport
     - CreateDBInstanceInput.DBSecurityGroups
     - CreateDBInstanceInput.DomainAuthSecretArn
     - CreateDBInstanceInput.DomainDnsIps
     - CreateDBInstanceInput.MultiTenant
     - CreateDBInstanceInput.DedicatedLogVolume
-    - CreateDBInstanceInput.DatabaseInsightsMode
     - CreateDBInstanceInput.DBSystemId
     - CreateDBInstanceInput.DomainFqdn
     - CreateDBInstanceInput.DomainOu
     - CreateDBInstanceInput.EngineLifecycleSupport
     - CreateDBInstanceOutput.DBInstance.PercentProgress
-    - CreateDBInstanceOutput.DBInstance.DatabaseInsightsMode
     - CreateDBInstanceOutput.DBInstance.DedicatedLogVolume
     - CreateDBInstanceOutput.DBInstance.EngineLifecycleSupport
     - CreateDBInstanceOutput.DBInstance.IsStorageConfigUpgradeAvailable

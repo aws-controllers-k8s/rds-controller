@@ -146,6 +146,13 @@ func newResourceDelta(
 			delta.Add("Spec.DBSystemID", a.ko.Spec.DBSystemID, b.ko.Spec.DBSystemID)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
+		delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+	} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
+		if *a.ko.Spec.DatabaseInsightsMode != *b.ko.Spec.DatabaseInsightsMode {
+			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DatabaseName, b.ko.Spec.DatabaseName) {
 		delta.Add("Spec.DatabaseName", a.ko.Spec.DatabaseName, b.ko.Spec.DatabaseName)
 	} else if a.ko.Spec.DatabaseName != nil && b.ko.Spec.DatabaseName != nil {
