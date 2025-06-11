@@ -2,8 +2,8 @@ github.com/aws-controllers-k8s/ec2-controller v1.1.2 h1:Bry62L279S7mJofk0sS4o7T7
 github.com/aws-controllers-k8s/ec2-controller v1.1.2/go.mod h1:XZOZcSk0tzplY+A0dADqD4NK4a8g8Jqwf/Ouv2Sz/eQ=
 github.com/aws-controllers-k8s/kms-controller v1.0.8 h1:nDPYQhsgD2s14rEMNmGCwkm+e0Emjo/Usl3is7e9EFk=
 github.com/aws-controllers-k8s/kms-controller v1.0.8/go.mod h1:HjSBjtiljNL1yFzrOizxeQe2+88tW3mHD5fnEGwVYGE=
-github.com/aws-controllers-k8s/runtime v0.47.0 h1:pWzMLrwAFrAmMuSukYDLrQp5Yw594w1ke6XWGmI3uyo=
-github.com/aws-controllers-k8s/runtime v0.47.0/go.mod h1:G2UMBKA7qgXG4JV16NTIUp715uqvUEvWaa7TG1I527U=
+github.com/aws-controllers-k8s/runtime v0.48.0 h1:DnbLQ7gbhQfpOTviR+r+svLjvKhRhxRuNEZo6okZYro=
+github.com/aws-controllers-k8s/runtime v0.48.0/go.mod h1:XNEBK9jN8n19dtHrprn+WlBq9wUc0RspuCmeT4nXb0s=
 github.com/aws/aws-sdk-go v1.49.0 h1:g9BkW1fo9GqKfwg2+zCD+TW/D36Ux+vtfJ8guF4AYmY=
 github.com/aws/aws-sdk-go v1.49.0/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/aws/aws-sdk-go-v2 v1.34.0 h1:9iyL+cjifckRGEVpRKZP3eIxVlL06Qk1Tk13vreaVQU=
@@ -177,8 +177,8 @@ golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn
 golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20200226121028-0de0cce0169b/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
-golang.org/x/net v0.37.0 h1:1zLorHbz+LYj7MQlSf1+2tPIIgibq2eL5xkrGk6f+2c=
-golang.org/x/net v0.37.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
+golang.org/x/net v0.38.0 h1:vRMAPTMaeGqVhG5QyLJHqNDwecKTomGeqbnfZyKlBI8=
+golang.org/x/net v0.38.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
 golang.org/x/oauth2 v0.23.0 h1:PbgcYx2W7i4LvjJWEbf0ngHV6qJYr86PkAV3bXdLEbs=
 golang.org/x/oauth2 v0.23.0/go.mod h1:XYTD2NtWslqkgxebSiOHnXEap4TF09sJSc7H1sXbhtI=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=

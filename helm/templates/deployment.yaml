@@ -204,3 +204,6 @@ spec:
 {{- if .Values.deployment.extraVolumes }}
 {{ toYaml .Values.deployment.extraVolumes | indent 8}}
 {{- end }}
+  {{- with .Values.deployment.strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
