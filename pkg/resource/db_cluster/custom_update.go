@@ -572,7 +572,7 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 	if desired.ko.Spec.Port != nil && delta.DifferentAt("Spec.Port") {
 		res.Port = aws.Int32(int32(*desired.ko.Spec.Port))
 	}
-	if desired.ko.Spec.PreferredBackupWindow != nil && delta.DifferentAt("Spec.PreferredBackupkWindow") {
+	if desired.ko.Spec.PreferredBackupWindow != nil && delta.DifferentAt("Spec.PreferredBackupWindow") {
 		res.PreferredBackupWindow = desired.ko.Spec.PreferredBackupWindow
 	}
 	if desired.ko.Spec.PreferredMaintenanceWindow != nil && delta.DifferentAt("Spec.PreferredMaintenanceWindow") {
