@@ -1,8 +1,8 @@
 apiVersion: v1
 name: rds-chart
 description: A Helm chart for the ACK service controller for Amazon Relational Database Service (RDS)
-version: 1.4.21
-appVersion: 1.4.21
+version: 1.4.22
+appVersion: 1.4.22
 home: https://github.com/aws-controllers-k8s/rds-controller
 icon: https://raw.githubusercontent.com/aws/eks-charts/master/docs/logo/aws.png
 sources:
