@@ -1907,26 +1907,29 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	res := desired.ko.DeepCopy()
+	res.Status = latest.ko.Status
+
 	if instanceDeleting(latest) {
 		msg := "DB instance is currently being deleted"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitWhileDeleting
+		ackcondition.SetSynced(&resource{res}, corev1.ConditionFalse, &msg, nil)
+		return &resource{res}, requeueWaitWhileDeleting
 	}
 	if instanceCreating(latest) {
 		msg := "DB instance is currently being created"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
+		ackcondition.SetSynced(&resource{res}, corev1.ConditionFalse, &msg, nil)
+		return &resource{res}, requeueWaitUntilCanModify(latest)
 	}
 	if instanceHasTerminalStatus(latest) {
 		msg := "DB instance is in '" + *latest.ko.Status.DBInstanceStatus + "' status"
-		ackcondition.SetTerminal(desired, corev1.ConditionTrue, &msg, nil)
-		ackcondition.SetSynced(desired, corev1.ConditionTrue, nil, nil)
-		return desired, nil
+		ackcondition.SetTerminal(&resource{res}, corev1.ConditionTrue, &msg, nil)
+		ackcondition.SetSynced(&resource{res}, corev1.ConditionTrue, nil, nil)
+		return &resource{res}, nil
 	}
 	if !instanceAvailable(latest) && !needStorageUpdate(latest, delta) {
 		msg := "DB instance cannot be modifed while in '" + *latest.ko.Status.DBInstanceStatus + "' status"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
+		ackcondition.SetSynced(&resource{res}, corev1.ConditionFalse, &msg, nil)
+		return &resource{res}, requeueWaitUntilCanModify(latest)
 	}
 	if delta.DifferentAt("Spec.Tags") {
 		if err = rm.syncTags(ctx, desired, latest); err != nil {
@@ -1987,6 +1990,12 @@ func (rm *resourceManager) sdkUpdate(
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
+	ko.Status = latest.ko.Status
+	setLastAppliedSecretReferenceAnnotation(&resource{ko})
+	// Setting resource synced condition to false will trigger a requeue of
+	// the resource. No need to return a requeue error here.
+	ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
+	return &resource{ko}, nil
 
 	if resp.DBInstance.ActivityStreamEngineNativeAuditFieldsIncluded != nil {
 		ko.Status.ActivityStreamEngineNativeAuditFieldsIncluded = resp.DBInstance.ActivityStreamEngineNativeAuditFieldsIncluded
@@ -2017,12 +2026,6 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ActivityStreamStatus = aws.String(string(resp.DBInstance.ActivityStreamStatus))
 	} else {
 		ko.Status.ActivityStreamStatus = nil
-	}
-	if resp.DBInstance.AllocatedStorage != nil {
-		allocatedStorageCopy := int64(*resp.DBInstance.AllocatedStorage)
-		ko.Spec.AllocatedStorage = &allocatedStorageCopy
-	} else {
-		ko.Spec.AllocatedStorage = nil
 	}
 	if resp.DBInstance.AssociatedRoles != nil {
 		f7 := []*svcapitypes.DBInstanceRole{}
@@ -2068,21 +2071,10 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.AWSBackupRecoveryPointARN = nil
 	}
-	if resp.DBInstance.BackupRetentionPeriod != nil {
-		backupRetentionPeriodCopy := int64(*resp.DBInstance.BackupRetentionPeriod)
-		ko.Spec.BackupRetentionPeriod = &backupRetentionPeriodCopy
-	} else {
-		ko.Spec.BackupRetentionPeriod = nil
-	}
 	if resp.DBInstance.BackupTarget != nil {
 		ko.Spec.BackupTarget = resp.DBInstance.BackupTarget
 	} else {
 		ko.Spec.BackupTarget = nil
-	}
-	if resp.DBInstance.CACertificateIdentifier != nil {
-		ko.Spec.CACertificateIdentifier = resp.DBInstance.CACertificateIdentifier
-	} else {
-		ko.Spec.CACertificateIdentifier = nil
 	}
 	if resp.DBInstance.CertificateDetails != nil {
 		f16 := &svcapitypes.CertificateDetails{}
@@ -2140,16 +2132,6 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.DBInstanceAutomatedBackupsReplications = f23
 	} else {
 		ko.Status.DBInstanceAutomatedBackupsReplications = nil
-	}
-	if resp.DBInstance.DBInstanceClass != nil {
-		ko.Spec.DBInstanceClass = resp.DBInstance.DBInstanceClass
-	} else {
-		ko.Spec.DBInstanceClass = nil
-	}
-	if resp.DBInstance.DBInstanceIdentifier != nil {
-		ko.Spec.DBInstanceIdentifier = resp.DBInstance.DBInstanceIdentifier
-	} else {
-		ko.Spec.DBInstanceIdentifier = nil
 	}
 	if resp.DBInstance.DBInstanceStatus != nil {
 		ko.Status.DBInstanceStatus = resp.DBInstance.DBInstanceStatus
@@ -2298,11 +2280,6 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.Engine = nil
 	}
-	if resp.DBInstance.EngineVersion != nil {
-		ko.Spec.EngineVersion = resp.DBInstance.EngineVersion
-	} else {
-		ko.Spec.EngineVersion = nil
-	}
 	if resp.DBInstance.EnhancedMonitoringResourceArn != nil {
 		ko.Status.EnhancedMonitoringResourceARN = resp.DBInstance.EnhancedMonitoringResourceArn
 	} else {
@@ -2317,12 +2294,6 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.InstanceCreateTime = &metav1.Time{*resp.DBInstance.InstanceCreateTime}
 	} else {
 		ko.Status.InstanceCreateTime = nil
-	}
-	if resp.DBInstance.Iops != nil {
-		iopsCopy := int64(*resp.DBInstance.Iops)
-		ko.Spec.IOPS = &iopsCopy
-	} else {
-		ko.Spec.IOPS = nil
 	}
 	if resp.DBInstance.KmsKeyId != nil {
 		ko.Spec.KMSKeyID = resp.DBInstance.KmsKeyId
@@ -2391,11 +2362,6 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.MonitoringRoleARN = resp.DBInstance.MonitoringRoleArn
 	} else {
 		ko.Spec.MonitoringRoleARN = nil
-	}
-	if resp.DBInstance.MultiAZ != nil {
-		ko.Spec.MultiAZ = resp.DBInstance.MultiAZ
-	} else {
-		ko.Spec.MultiAZ = nil
 	}
 	if resp.DBInstance.NcharCharacterSetName != nil {
 		ko.Spec.NcharCharacterSetName = resp.DBInstance.NcharCharacterSetName
@@ -2557,11 +2523,6 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.PromotionTier = nil
 	}
-	if resp.DBInstance.PubliclyAccessible != nil {
-		ko.Spec.PubliclyAccessible = resp.DBInstance.PubliclyAccessible
-	} else {
-		ko.Spec.PubliclyAccessible = nil
-	}
 	if resp.DBInstance.ReadReplicaDBClusterIdentifiers != nil {
 		ko.Status.ReadReplicaDBClusterIdentifiers = aws.StringSlice(resp.DBInstance.ReadReplicaDBClusterIdentifiers)
 	} else {
@@ -2624,17 +2585,6 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.StorageEncrypted = nil
 	}
-	if resp.DBInstance.StorageThroughput != nil {
-		storageThroughputCopy := int64(*resp.DBInstance.StorageThroughput)
-		ko.Spec.StorageThroughput = &storageThroughputCopy
-	} else {
-		ko.Spec.StorageThroughput = nil
-	}
-	if resp.DBInstance.StorageType != nil {
-		ko.Spec.StorageType = resp.DBInstance.StorageType
-	} else {
-		ko.Spec.StorageType = nil
-	}
 	if resp.DBInstance.TdeCredentialArn != nil {
 		ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
 	} else {
@@ -2663,99 +2613,6 @@ func (rm *resourceManager) sdkUpdate(
 	}
 
 	rm.setStatusDefaults(ko)
-	// ModifyDBInstance returns a DBInstance struct that contains the
-	// *previously set* values for various mutable fields. This is problematic
-	// because it causes a "flopping" behaviour when the user has modified a
-	// Spec field from value A to value B but the output shape from
-	// ModifyDBInstance for that field contains value A, the standard SetOutput
-	// Go code generated above will set the Spec field to the *old* value
-	// again. The next time the reconciler runs, it will attempt to modify the
-	// field from value B to value A again, causing a flop loop.
-	//
-	// Luckily, the Output shape's DBInstance struct contains a
-	// `PendingModifiedValues` struct which contains those field values that
-	// the user specified. So, we can use these to "reset" the Spec back to the
-	// appropriate user-specific values.
-	pmv := resp.DBInstance.PendingModifiedValues
-	if pmv != nil {
-		if pmv.AllocatedStorage != nil {
-			ko.Spec.AllocatedStorage = aws.Int64(int64(*pmv.AllocatedStorage))
-		}
-		// NOTE(jaypipes): Handle when aws-sdk-go update
-		//if pmv.AutomationMode != nil {
-		//	ko.Spec.AutomationMode = pmv.AutomationMode
-		//}
-		if pmv.BackupRetentionPeriod != nil {
-			ko.Spec.BackupRetentionPeriod = aws.Int64(int64(*pmv.BackupRetentionPeriod))
-		}
-		if pmv.CACertificateIdentifier != nil {
-			ko.Spec.CACertificateIdentifier = pmv.CACertificateIdentifier
-		}
-		if pmv.DBInstanceClass != nil {
-			ko.Spec.DBInstanceClass = pmv.DBInstanceClass
-		}
-		if pmv.DBInstanceIdentifier != nil {
-			ko.Spec.DBInstanceIdentifier = pmv.DBInstanceIdentifier
-		}
-		if pmv.DBSubnetGroupName != nil {
-			ko.Spec.DBSubnetGroupName = pmv.DBSubnetGroupName
-		}
-		if pmv.EngineVersion != nil {
-			ko.Spec.EngineVersion = pmv.EngineVersion
-		}
-		// NOTE(jaypipes): Handle when aws-sdk-go update
-		//if pmv.IAMDatabaseAuthenticationEnabled != nil {
-		//	ko.Spec.IAMDatabaseAuthenticationEnabled = pmv.IAMDatabaseAuthenticationEnabled
-		//}
-		if pmv.Iops != nil {
-			ko.Spec.IOPS = aws.Int64(int64(*pmv.Iops))
-		}
-		if pmv.LicenseModel != nil {
-			ko.Spec.LicenseModel = pmv.LicenseModel
-		}
-		if pmv.MasterUserPassword != nil {
-			// NOTE(jaypipes): Type mismatch with Spec and
-			// PendingModifiedValues, so just reset to the desired...
-			ko.Spec.MasterUserPassword = desired.ko.Spec.MasterUserPassword
-		}
-		if pmv.MultiAZ != nil {
-			ko.Spec.MultiAZ = pmv.MultiAZ
-		}
-		// NOTE(jaypipes): Handle when aws-sdk-go update
-		//if pmv.PendingCloudwatchLogsExports != nil {
-		//	ko.Spec.PendingCloudwatchLogsExports = pmv.PendingCloudwatchLogsExports
-		//}
-		if pmv.Port != nil {
-			ko.Spec.Port = aws.Int64(int64(*pmv.Port))
-		}
-		// NOTE(jaypipes): Handle when aws-sdk-go update
-		//if pmv.ProcessorFeatures != nil {
-		//	ko.Spec.ProcessorFeatures = pmv.ProcessorFeatures
-		//}
-		// NOTE(jaypipes): Handle when aws-sdk-go update
-		//if pmv.ResumeFullAutomationModeTime != nil {
-		//	ko.Spec.ResumeFullAutomationModeTime = pmv.ResumeFullAutomationModeTime
-		//}
-		if pmv.StorageThroughput != nil {
-			ko.Spec.StorageThroughput = aws.Int64(int64(*pmv.StorageThroughput))
-		}
-		if pmv.StorageType != nil {
-			ko.Spec.StorageType = pmv.StorageType
-		}
-	}
-	// When ModifyDBInstance API is successful, it asynchronously
-	// updates the DBInstanceStatus. Requeue to find the current
-	// DBInstance status and set Synced condition accordingly
-	if err == nil {
-		// set the last-applied-secret-reference annotation on the DB instance
-		// resource.
-		r := &resource{ko}
-		setLastAppliedSecretReferenceAnnotation(r)
-		// Setting resource synced condition to false will trigger a requeue of
-		// the resource. No need to return a requeue error here.
-		ackcondition.SetSynced(r, corev1.ConditionFalse, nil, nil)
-	}
-
 	return &resource{ko}, nil
 }
 
