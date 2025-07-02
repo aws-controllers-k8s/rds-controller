@@ -349,6 +349,7 @@ resources:
         - method: Update
           ignore: true
       CACertificateIdentifier:
+        late_initialize: {}
         set:
         - method: Update
           ignore: true
@@ -360,7 +361,8 @@ resources:
         set:
         - method: Update
           ignore: true
-      Iops:
+      IOPS:
+        late_initialize: {}
         set:
         - method: Update
           ignore: true
@@ -377,6 +379,7 @@ resources:
         - method: Update
           ignore: true
       StorageThroughput:
+        late_initialize: {}
         set:
         - method: Update
           ignore: true
@@ -384,7 +387,8 @@ resources:
         set:
         - method: Update
           ignore: true
-      KmsKeyId:
+      KMSKeyID:
+        late_initialize: {}
         references:
           resource: Key
           service_name: kms
@@ -447,6 +451,10 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
+      PerformanceInsightsKMSKeyID:
+        late_initialize: {}
+      PerformanceInsightsRetentionPeriod:
+        late_initialize: {}
       Tags:
         compare:
           # We have a custom comparison function...

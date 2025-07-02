@@ -174,16 +174,6 @@ func instanceDeleting(r *resource) bool {
 	return dbis == StatusDeleting
 }
 
-func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
-	if a.ko.Spec.PerformanceInsightsKMSKeyID == nil {
-		a.ko.Spec.PerformanceInsightsKMSKeyID = b.ko.Spec.PerformanceInsightsKMSKeyID
-	}
-
-	if a.ko.Spec.PerformanceInsightsRetentionPeriod == nil {
-		a.ko.Spec.PerformanceInsightsRetentionPeriod = b.ko.Spec.PerformanceInsightsRetentionPeriod
-	}
-}
-
 // function to create restoreDbInstanceFromDbSnapshot payload and call restoreDbInstanceFromDbSnapshot API
 func (rm *resourceManager) restoreDbInstanceFromDbSnapshot(
 	ctx context.Context,
