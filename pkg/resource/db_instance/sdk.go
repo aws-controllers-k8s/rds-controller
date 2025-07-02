@@ -2027,6 +2027,12 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.ActivityStreamStatus = nil
 	}
+	if resp.DBInstance.AllocatedStorage != nil {
+		allocatedStorageCopy := int64(*resp.DBInstance.AllocatedStorage)
+		ko.Spec.AllocatedStorage = &allocatedStorageCopy
+	} else {
+		ko.Spec.AllocatedStorage = nil
+	}
 	if resp.DBInstance.AssociatedRoles != nil {
 		f7 := []*svcapitypes.DBInstanceRole{}
 		for _, f7iter := range resp.DBInstance.AssociatedRoles {
@@ -2071,10 +2077,21 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.AWSBackupRecoveryPointARN = nil
 	}
+	if resp.DBInstance.BackupRetentionPeriod != nil {
+		backupRetentionPeriodCopy := int64(*resp.DBInstance.BackupRetentionPeriod)
+		ko.Spec.BackupRetentionPeriod = &backupRetentionPeriodCopy
+	} else {
+		ko.Spec.BackupRetentionPeriod = nil
+	}
 	if resp.DBInstance.BackupTarget != nil {
 		ko.Spec.BackupTarget = resp.DBInstance.BackupTarget
 	} else {
 		ko.Spec.BackupTarget = nil
+	}
+	if resp.DBInstance.CACertificateIdentifier != nil {
+		ko.Spec.CACertificateIdentifier = resp.DBInstance.CACertificateIdentifier
+	} else {
+		ko.Spec.CACertificateIdentifier = nil
 	}
 	if resp.DBInstance.CertificateDetails != nil {
 		f16 := &svcapitypes.CertificateDetails{}
@@ -2132,6 +2149,16 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.DBInstanceAutomatedBackupsReplications = f23
 	} else {
 		ko.Status.DBInstanceAutomatedBackupsReplications = nil
+	}
+	if resp.DBInstance.DBInstanceClass != nil {
+		ko.Spec.DBInstanceClass = resp.DBInstance.DBInstanceClass
+	} else {
+		ko.Spec.DBInstanceClass = nil
+	}
+	if resp.DBInstance.DBInstanceIdentifier != nil {
+		ko.Spec.DBInstanceIdentifier = resp.DBInstance.DBInstanceIdentifier
+	} else {
+		ko.Spec.DBInstanceIdentifier = nil
 	}
 	if resp.DBInstance.DBInstanceStatus != nil {
 		ko.Status.DBInstanceStatus = resp.DBInstance.DBInstanceStatus
@@ -2280,6 +2307,11 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.Engine = nil
 	}
+	if resp.DBInstance.EngineVersion != nil {
+		ko.Spec.EngineVersion = resp.DBInstance.EngineVersion
+	} else {
+		ko.Spec.EngineVersion = nil
+	}
 	if resp.DBInstance.EnhancedMonitoringResourceArn != nil {
 		ko.Status.EnhancedMonitoringResourceARN = resp.DBInstance.EnhancedMonitoringResourceArn
 	} else {
@@ -2294,6 +2326,12 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.InstanceCreateTime = &metav1.Time{*resp.DBInstance.InstanceCreateTime}
 	} else {
 		ko.Status.InstanceCreateTime = nil
+	}
+	if resp.DBInstance.Iops != nil {
+		iopsCopy := int64(*resp.DBInstance.Iops)
+		ko.Spec.IOPS = &iopsCopy
+	} else {
+		ko.Spec.IOPS = nil
 	}
 	if resp.DBInstance.KmsKeyId != nil {
 		ko.Spec.KMSKeyID = resp.DBInstance.KmsKeyId
@@ -2362,6 +2400,11 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.MonitoringRoleARN = resp.DBInstance.MonitoringRoleArn
 	} else {
 		ko.Spec.MonitoringRoleARN = nil
+	}
+	if resp.DBInstance.MultiAZ != nil {
+		ko.Spec.MultiAZ = resp.DBInstance.MultiAZ
+	} else {
+		ko.Spec.MultiAZ = nil
 	}
 	if resp.DBInstance.NcharCharacterSetName != nil {
 		ko.Spec.NcharCharacterSetName = resp.DBInstance.NcharCharacterSetName
@@ -2523,6 +2566,11 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.PromotionTier = nil
 	}
+	if resp.DBInstance.PubliclyAccessible != nil {
+		ko.Spec.PubliclyAccessible = resp.DBInstance.PubliclyAccessible
+	} else {
+		ko.Spec.PubliclyAccessible = nil
+	}
 	if resp.DBInstance.ReadReplicaDBClusterIdentifiers != nil {
 		ko.Status.ReadReplicaDBClusterIdentifiers = aws.StringSlice(resp.DBInstance.ReadReplicaDBClusterIdentifiers)
 	} else {
@@ -2584,6 +2632,17 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.StorageEncrypted = resp.DBInstance.StorageEncrypted
 	} else {
 		ko.Spec.StorageEncrypted = nil
+	}
+	if resp.DBInstance.StorageThroughput != nil {
+		storageThroughputCopy := int64(*resp.DBInstance.StorageThroughput)
+		ko.Spec.StorageThroughput = &storageThroughputCopy
+	} else {
+		ko.Spec.StorageThroughput = nil
+	}
+	if resp.DBInstance.StorageType != nil {
+		ko.Spec.StorageType = resp.DBInstance.StorageType
+	} else {
+		ko.Spec.StorageType = nil
 	}
 	if resp.DBInstance.TdeCredentialArn != nil {
 		ko.Spec.TDECredentialARN = resp.DBInstance.TdeCredentialArn
