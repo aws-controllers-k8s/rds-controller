@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AvailabilityZone", "BackupTarget", "CACertificateIdentifier", "IOPS", "KMSKeyID", "NetworkType", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "StorageThroughput"}
+var lateInitializeFieldNames = []string{"AvailabilityZone", "BackupTarget", "NetworkType", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -255,25 +255,7 @@ func (rm *resourceManager) incompleteLateInitialization(
 	if ko.Spec.BackupTarget == nil {
 		return true
 	}
-	if ko.Spec.CACertificateIdentifier == nil {
-		return true
-	}
-	if ko.Spec.IOPS == nil {
-		return true
-	}
-	if ko.Spec.KMSKeyID == nil {
-		return true
-	}
 	if ko.Spec.NetworkType == nil {
-		return true
-	}
-	if ko.Spec.PerformanceInsightsKMSKeyID == nil {
-		return true
-	}
-	if ko.Spec.PerformanceInsightsRetentionPeriod == nil {
-		return true
-	}
-	if ko.Spec.StorageThroughput == nil {
 		return true
 	}
 	return false
@@ -293,15 +275,6 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	if observedKo.Spec.BackupTarget != nil && latestKo.Spec.BackupTarget == nil {
 		latestKo.Spec.BackupTarget = observedKo.Spec.BackupTarget
 	}
-	if observedKo.Spec.CACertificateIdentifier != nil && latestKo.Spec.CACertificateIdentifier == nil {
-		latestKo.Spec.CACertificateIdentifier = observedKo.Spec.CACertificateIdentifier
-	}
-	if observedKo.Spec.IOPS != nil && latestKo.Spec.IOPS == nil {
-		latestKo.Spec.IOPS = observedKo.Spec.IOPS
-	}
-	if observedKo.Spec.KMSKeyID != nil && latestKo.Spec.KMSKeyID == nil {
-		latestKo.Spec.KMSKeyID = observedKo.Spec.KMSKeyID
-	}
 	if observedKo.Spec.NetworkType != nil && latestKo.Spec.NetworkType == nil {
 		latestKo.Spec.NetworkType = observedKo.Spec.NetworkType
 	}
@@ -310,9 +283,6 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.PerformanceInsightsRetentionPeriod != nil && latestKo.Spec.PerformanceInsightsRetentionPeriod == nil {
 		latestKo.Spec.PerformanceInsightsRetentionPeriod = observedKo.Spec.PerformanceInsightsRetentionPeriod
-	}
-	if observedKo.Spec.StorageThroughput != nil && latestKo.Spec.StorageThroughput == nil {
-		latestKo.Spec.StorageThroughput = observedKo.Spec.StorageThroughput
 	}
 	return &resource{latestKo}
 }

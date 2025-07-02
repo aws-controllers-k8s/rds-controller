@@ -65,7 +65,7 @@ func newResourceDelta(
 	}
 	if a.ko.Spec.PerformanceInsightsEnabled == nil &&
 		b.ko.Spec.PerformanceInsightsEnabled != nil {
-		a.ko.Spec.PerformanceInsightsEnabled = func() *bool {a := false; return &a }()
+		a.ko.Spec.PerformanceInsightsEnabled = func() *bool { a := false; return &a }()
 	}
 
 	// RDS will choose preferred engine minor version if only
