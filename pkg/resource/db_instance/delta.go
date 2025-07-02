@@ -42,7 +42,6 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
-	customPreCompare(delta, a, b)
 	// Do not consider any of the following fields for delta if they are missing in
 	// desired(a) but are present in latest(b) because each of these fields is
 	// late-initialized
