@@ -315,9 +315,11 @@ class TestDBInstance:
         assert latest is not None
         assert latest['PerformanceInsightsEnabled'] is True
 
-        # TODO: Ensure that the server side defaults
-        # (PerformanceInsightsRetentionPeriod and PerformanceInsightsKMSKeyID)
-        # are also persisted back into the spec. This currently does not work
+        cr = k8s.get_resource(ref)
+        assert 'performanceInsightsRetentionPeriod' in cr['spec']
+        assert 'performanceInsightsKMSKeyID' in cr['spec']
+        assert latest['PerformanceInsightsRetentionPeriod'] == cr['spec']['performanceInsightsRetentionPeriod']
+        assert latest['PerformanceInsightsKMSKeyId'] == cr['spec']['performanceInsightsKMSKeyID']
 
     def test_state_field_flapping(
             self,
@@ -408,3 +410,59 @@ class TestDBInstance:
             assert "PendingModifiedValues" in latest
             assert "MultiAZ" in latest["PendingModifiedValues"]
             assert bool(latest["PendingModifiedValues"]["MultiAZ"])
+
+    def test_crud_postgres14_update_multiAZ(
+            self,
+            postgres14_t3_micro_instance,
+    ):
+        (ref, cr, _) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] == 'creating'
+        condition.assert_not_synced(ref)
+
+        # Assert that the last-applied-secret-reference annotation is set
+        assert 'metadata' in cr
+        assert 'annotations' in cr['metadata']
+        assert 'rds.services.k8s.aws/last-applied-secret-reference' in cr['metadata']['annotations']
+
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After the resource is synced, assert that DBInstanceStatus is available
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['MultiAZ'] is False
+
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'spec' in cr
+        assert 'multiAZ' in cr['spec']
+        assert cr['spec']['multiAZ'] is False
+        condition.assert_synced(ref)
+
+        # Let's now update the DBInstance MultiAZ to be true
+        updates = {
+            "spec": {
+                "multiAZ": True
+            },
+        }
+
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(35)
+        condition.assert_not_synced(ref)
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'spec' in cr
+        assert 'multiAZ' in cr['spec']
+        assert cr['spec']['multiAZ'] is True
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['MultiAZ'] is True
