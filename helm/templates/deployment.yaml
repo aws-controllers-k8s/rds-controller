@@ -148,6 +148,7 @@ spec:
         {{- if .Values.deployment.extraEnvVars -}}
           {{ toYaml .Values.deployment.extraEnvVars | nindent 8 }}
         {{- end }}
+        {{- if or .Values.aws.credentials.secretName .Values.deployment.extraVolumeMounts }} 
         volumeMounts:
         {{- if .Values.aws.credentials.secretName }}
           - name: {{ .Values.aws.credentials.secretName }}
@@ -156,6 +157,7 @@ spec:
         {{- end }}
         {{- if .Values.deployment.extraVolumeMounts -}}
           {{ toYaml .Values.deployment.extraVolumeMounts | nindent 10 }}
+        {{- end }}
         {{- end }}
         securityContext:
           allowPrivilegeEscalation: false
@@ -195,15 +197,17 @@ spec:
       hostPID: false
       hostNetwork: {{ .Values.deployment.hostNetwork }}
       dnsPolicy: {{ .Values.deployment.dnsPolicy }}
+      {{- if or .Values.aws.credentials.secretName .Values.deployment.extraVolumes }}
       volumes:
       {{- if .Values.aws.credentials.secretName }}
         - name: {{ .Values.aws.credentials.secretName }}
           secret:
             secretName: {{ .Values.aws.credentials.secretName }}
       {{- end }}
-{{- if .Values.deployment.extraVolumes }}
-{{ toYaml .Values.deployment.extraVolumes | indent 8}}
-{{- end }}
+      {{- if .Values.deployment.extraVolumes }}
+        {{ toYaml .Values.deployment.extraVolumes | indent 8 }}
+      {{- end }}
+      {{- end }}
   {{- with .Values.deployment.strategy }}
   strategy: {{- toYaml . | nindent 4 }}
   {{- end }}
