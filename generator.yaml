@@ -308,8 +308,8 @@ resources:
         template_path: hooks/db_instance/sdk_update_pre_build_request.go.tpl
       sdk_update_post_build_request:
         template_path: hooks/db_instance/sdk_update_post_build_request.go.tpl
-      sdk_update_post_set_output:
-        template_path: hooks/db_instance/sdk_update_post_set_output.go.tpl
+      sdk_update_pre_set_output:
+        template_path: hooks/db_instance/sdk_update_pre_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
       sdk_delete_post_build_request:
@@ -332,7 +332,7 @@ resources:
           name: "STATUS"
       MasterUserPassword:
         is_secret: true
-      KmsKeyId:
+      KMSKeyId:
         references:
           resource: Key
           service_name: kms
@@ -395,6 +395,12 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
+      PerformanceInsightsKMSKeyID:
+        late_initialize:
+          skip_incomplete_check: {}
+      PerformanceInsightsRetentionPeriod:
+        late_initialize:
+          skip_incomplete_check: {}
       Tags:
         compare:
           # We have a custom comparison function...

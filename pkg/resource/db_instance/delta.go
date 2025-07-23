@@ -63,14 +63,9 @@ func newResourceDelta(
 		*b.ko.Spec.NetworkType == ServiceDefaultNetworkType {
 		a.ko.Spec.NetworkType = b.ko.Spec.NetworkType
 	}
-	if a.ko.Spec.PerformanceInsightsRetentionPeriod == nil &&
-		b.ko.Spec.PerformanceInsightsRetentionPeriod != nil &&
-		*b.ko.Spec.PerformanceInsightsRetentionPeriod == ServiceDefaultInsightsRetentionPeriod {
-		a.ko.Spec.PerformanceInsightsRetentionPeriod = b.ko.Spec.PerformanceInsightsRetentionPeriod
-	}
-	if a.ko.Spec.PerformanceInsightsKMSKeyID == nil &&
-		b.ko.Spec.PerformanceInsightsKMSKeyID != nil {
-		a.ko.Spec.PerformanceInsightsKMSKeyID = b.ko.Spec.PerformanceInsightsKMSKeyID
+	if a.ko.Spec.PerformanceInsightsEnabled == nil &&
+		b.ko.Spec.PerformanceInsightsEnabled != nil {
+		a.ko.Spec.PerformanceInsightsEnabled = func() *bool { a := false; return &a }()
 	}
 
 	// RDS will choose preferred engine minor version if only
