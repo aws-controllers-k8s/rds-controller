@@ -1,0 +1,12 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBClusterParameterGroup
+metadata:
+  name: $DB_CLUSTER_PARAMETER_GROUP_NAME
+spec:
+  name: $DB_CLUSTER_PARAMETER_GROUP_NAME
+  description: $DB_CLUSTER_PARAMETER_GROUP_DESC
+  family: $DB_CLUSTER_PARAMETER_GROUP_FAMILY
+  parameterOverrides:
+    slow_query_log: "$PARAM_SLOW_QUERY_LOG_VALUE"
+    long_query_time: "$PARAM_LONG_QUERY_TIME_VALUE"
+    log_queries_not_using_indexes: "$PARAM_LOG_QUERIES_NOT_USING_INDEXES_VALUE"

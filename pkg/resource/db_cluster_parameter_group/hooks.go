@@ -37,8 +37,14 @@ const (
 )
 
 var (
-	// cache of parameter defaults
+	// cache of parameter defaults for cluster parameters
 	cachedParamMeta = util.ParamMetaCache{
+		Cache: map[string]map[string]util.ParamMeta{},
+	}
+
+	// cache of parameter defaults for instance parameters
+	// Used as fallback when cluster parameter validation fails
+	instanceParamMeta = util.ParamMetaCache{
 		Cache: map[string]map[string]util.ParamMeta{},
 	}
 
@@ -208,6 +214,11 @@ func sdkTagsFromResourceTags(
 // RDS does not have a DeleteParameter or DeleteParameterFromParameterGroup API
 // call. Instead, you need to call ResetDBClusterParameterGroup with a list of
 // DB Cluster Parameters that you want RDS to reset to a default value.
+//
+// Note(rushmash91): This function uses fallback parameter validation to work around an AWS API
+// limitation where DescribeEngineDefaultClusterParameters may not return all valid
+// cluster parameters (e.g., MySQL logging parameters like slow_query_log). See
+// getParameterMeta() for details on the fallback mechanism.
 func (rm *resourceManager) syncParameters(
 	ctx context.Context,
 	desired *resource,
@@ -307,9 +318,7 @@ func (rm *resourceManager) resetParameters(
 		// default to this if something goes wrong looking up parameter
 		// defaults
 		applyMethod := svcsdktypes.ApplyMethodImmediate
-		pMeta, err = cachedParamMeta.Get(
-			ctx, *family, paramName, rm.getFamilyParameters,
-		)
+		pMeta, err = rm.getParameterMeta(ctx, *family, paramName)
 		if err != nil {
 			return err
 		}
@@ -360,9 +369,7 @@ func (rm *resourceManager) modifyParameters(
 	for paramName, paramValue := range toModify {
 		// default to "immediate" if something goes wrong looking up defaults
 		applyMethod := svcsdktypes.ApplyMethodImmediate
-		pMeta, err = cachedParamMeta.Get(
-			ctx, *family, paramName, rm.getFamilyParameters,
-		)
+		pMeta, err = rm.getParameterMeta(ctx, *family, paramName)
 		if err != nil {
 			return err
 		}
@@ -432,4 +439,69 @@ func (rm *resourceManager) getFamilyParameters(
 		}
 	}
 	return familyMeta, nil
+}
+
+// getInstanceFamilyParameters calls the RDS DescribeEngineDefaultParameters API to
+// retrieve the set of parameter information for a DB instance parameter group family.
+// This is used as a fallback when cluster parameter validation fails, as some valid
+// cluster parameters may only be listed in the instance parameter defaults.
+func (rm *resourceManager) getInstanceFamilyParameters(
+	ctx context.Context,
+	family string,
+) (map[string]util.ParamMeta, error) {
+	var marker *string
+	familyMeta := map[string]util.ParamMeta{}
+
+	for {
+		resp, err := rm.sdkapi.DescribeEngineDefaultParameters(
+			ctx,
+			&svcsdk.DescribeEngineDefaultParametersInput{
+				DBParameterGroupFamily: aws.String(family),
+				Marker:                 marker,
+			},
+		)
+		rm.metrics.RecordAPICall("GET", "DescribeEngineDefaultParameters", err)
+		if err != nil {
+			return nil, err
+		}
+		for _, param := range resp.EngineDefaults.Parameters {
+			pName := *param.ParameterName
+			familyMeta[pName] = util.ParamMeta{
+				IsModifiable: *param.IsModifiable,
+				IsDynamic:    *param.ApplyType != applyTypeStatic,
+			}
+		}
+		marker = resp.EngineDefaults.Marker
+		if marker == nil {
+			break
+		}
+	}
+	return familyMeta, nil
+}
+
+// getParameterMeta retrieves parameter metadata with fallback validation.
+// First tries cluster-level parameter validation, then falls back to instance-level
+// validation if the parameter is not found. This works around the AWS API limitation
+// where DescribeEngineDefaultClusterParameters may not return all valid cluster
+// parameters (e.g., MySQL logging parameters like slow_query_log).
+func (rm *resourceManager) getParameterMeta(
+	ctx context.Context,
+	family string,
+	paramName string,
+) (*util.ParamMeta, error) {
+	// Try cluster-level parameters first
+	pMeta, err := cachedParamMeta.Get(ctx, family, paramName, rm.getFamilyParameters)
+	if err == nil {
+		return pMeta, nil
+	}
+
+	// If not found in cluster parameters, try instance-level parameters
+	// Some valid cluster parameters may only be listed in instance defaults
+	instanceMeta, instanceErr := instanceParamMeta.Get(ctx, family, paramName, rm.getInstanceFamilyParameters)
+	if instanceErr == nil {
+		return instanceMeta, nil
+	}
+
+	// Return original error if not found in either
+	return nil, err
 }

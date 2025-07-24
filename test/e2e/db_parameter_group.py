@@ -88,6 +88,42 @@ def get_parameters(db_parameter_group_name):
         return None
 
 
+def get_engine_default_parameters(db_parameter_group_family):
+    """Returns a dict containing the engine default parameters for a given parameter group family
+    
+    This function calls DescribeEngineDefaultParameters to get the default parameter metadata
+    that's used as fallback validation in cluster parameter groups.
+    """
+    c = boto3.client('rds')
+    try:
+        all_parameters = []
+        marker = None
+        
+        while True:
+            if marker:
+                resp = c.describe_engine_default_parameters(
+                    DBParameterGroupFamily=db_parameter_group_family,
+                    Marker=marker
+                )
+            else:
+                resp = c.describe_engine_default_parameters(
+                    DBParameterGroupFamily=db_parameter_group_family,
+                )
+            
+            parameters = resp['EngineDefaults']['Parameters']
+            all_parameters.extend(parameters)
+            
+            # Check if there are more results
+            if 'Marker' in resp['EngineDefaults']:
+                marker = resp['EngineDefaults']['Marker']
+            else:
+                break
+                
+        return all_parameters
+    except Exception as e:
+        return None
+
+
 def get_tags(db_parameter_group_arn):
     """Returns a dict containing the DB parameter group's tag records from the
     RDS API.

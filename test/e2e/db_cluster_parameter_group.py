@@ -74,9 +74,9 @@ def get(db_cluster_parameter_group_name):
         return None
 
 def get_parameters(db_cluster_parameter_group_name):
-    """Returns a dict containing the paramters of a given parameter group
+    """Returns a dict containing the parameters of a given parameter group
 
-    If no such DB cluster parameter group exists, returns None.
+    If no such DB cluster parameter group exists, returns empty list.
     """
     c = boto3.client('rds')
     try:
@@ -84,8 +84,40 @@ def get_parameters(db_cluster_parameter_group_name):
             DBClusterParameterGroupName=db_cluster_parameter_group_name,
         )
         return resp['Parameters']
-    except c.exceptions.DBClusterParameterGroupNotFoundFault:
-        return None
+    except c.exceptions.DBParameterGroupNotFoundFault:
+        return []
+
+def get_user_defined_parameters(db_cluster_parameter_group_name):
+    """Returns a dict containing the user-defined parameters of a given cluster parameter group
+
+    If no such DB cluster parameter group exists, returns empty list.
+    Uses Source="user" to get only user-defined parameters (like the controller does).
+    """
+    c = boto3.client('rds')
+    try:
+        all_parameters = []
+        marker = None
+        
+        while True:
+            params = {
+                'DBClusterParameterGroupName': db_cluster_parameter_group_name,
+                'Source': 'user'
+            }
+            if marker:
+                params['Marker'] = marker
+                
+            resp = c.describe_db_cluster_parameters(**params)
+            all_parameters.extend(resp['Parameters'])
+            
+            # Check if there are more results
+            if 'Marker' in resp:
+                marker = resp['Marker']
+            else:
+                break
+                
+        return all_parameters
+    except c.exceptions.DBParameterGroupNotFoundFault:
+        return []
 
 def get_tags(db_cluster_parameter_group_arn):
     """Returns a dict containing the DB cluster parameter group's tag records
