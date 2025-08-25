@@ -271,6 +271,10 @@ spec:
                   and your VPC (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-setup-orcl.html#custom-setup-orcl.iam-vpc)
                   in the Amazon RDS User Guide.
                 type: string
+              databaseInsightsMode:
+                description: Specifies the mode of Database Insights to enable for
+                  the instance.
+                type: string
               dbClusterIdentifier:
                 description: |-
                   The identifier of the DB cluster that this DB instance will belong to.

@@ -204,6 +204,11 @@ func (rm *resourceManager) customUpdate(
 		arn := ackv1alpha1.AWSResourceName(*resp.DBCluster.DBClusterArn)
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
+	if resp.DBCluster.DatabaseInsightsMode != "" {
+		ko.Spec.DatabaseInsightsMode = aws.String(string(resp.DBCluster.DatabaseInsightsMode))
+	} else {
+		ko.Spec.DatabaseInsightsMode = nil
+	}
 	if resp.DBCluster.DBClusterIdentifier != nil {
 		ko.Spec.DBClusterIdentifier = resp.DBCluster.DBClusterIdentifier
 	} else {
@@ -407,6 +412,21 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Spec.Port = nil
 	}
+	if resp.DBCluster.PerformanceInsightsEnabled != nil {
+		ko.Spec.EnablePerformanceInsights = resp.DBCluster.PerformanceInsightsEnabled
+	} else {
+		ko.Spec.EnablePerformanceInsights = nil
+	}
+	if resp.DBCluster.PerformanceInsightsKMSKeyId != nil {
+		ko.Spec.PerformanceInsightsKMSKeyID = resp.DBCluster.PerformanceInsightsKMSKeyId
+	} else {
+		ko.Spec.PerformanceInsightsKMSKeyID = nil
+	}
+	if resp.DBCluster.PerformanceInsightsRetentionPeriod != nil {
+		ko.Spec.PerformanceInsightsRetentionPeriod = aws.Int64(int64(*resp.DBCluster.PerformanceInsightsRetentionPeriod))
+	} else {
+		ko.Spec.PerformanceInsightsRetentionPeriod = nil
+	}
 	if resp.DBCluster.PreferredBackupWindow != nil {
 		ko.Spec.PreferredBackupWindow = resp.DBCluster.PreferredBackupWindow
 	} else {
@@ -474,6 +494,7 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.VPCSecurityGroups = nil
 	}
+
 	rm.setStatusDefaults(ko)
 	// When ModifyDBInstance API is successful, it asynchronously
 	// updates the DBInstanceStatus. Requeue to find the current
@@ -625,6 +646,24 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		res.CloudwatchLogsExportConfiguration = f24
 	}
+
+	// ModifyDBCluster does not take into account current values when setting these.
+	// If one is in the delta need to send all of them even if they have not changed.
+	if delta.DifferentAt("Spec.DatabaseInsightsMode") ||
+		delta.DifferentAt("Spec.PerformanceInsightsRetentionPeriod") ||
+		delta.DifferentAt("Spec.PerformanceInsightsEnabled") ||
+		delta.DifferentAt("Spec.PerformanceInsightsKMSKeyID") {
+		if desired.ko.Spec.DatabaseInsightsMode != nil {
+			res.DatabaseInsightsMode = svcsdktypes.DatabaseInsightsMode(*desired.ko.Spec.DatabaseInsightsMode)
+		}
+		if desired.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+			res.PerformanceInsightsRetentionPeriod = aws.Int32(int32(*desired.ko.Spec.PerformanceInsightsRetentionPeriod))
+		}
+
+		res.EnablePerformanceInsights = desired.ko.Spec.EnablePerformanceInsights
+		res.PerformanceInsightsKMSKeyId = desired.ko.Spec.PerformanceInsightsKMSKeyID
+	}
+
 	return res, nil
 }
 

@@ -1701,6 +1701,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DatabaseInsightsMode != nil {
+		in, out := &in.DatabaseInsightsMode, &out.DatabaseInsightsMode
+		*out = new(string)
+		**out = **in
+	}
 	if in.DatabaseName != nil {
 		in, out := &in.DatabaseName, &out.DatabaseName
 		*out = new(string)
@@ -2439,6 +2444,11 @@ func (in *DBCluster_SDK) DeepCopyInto(out *DBCluster_SDK) {
 	}
 	if in.DBSystemID != nil {
 		in, out := &in.DBSystemID, &out.DBSystemID
+		*out = new(string)
+		**out = **in
+	}
+	if in.DatabaseInsightsMode != nil {
+		in, out := &in.DatabaseInsightsMode, &out.DatabaseInsightsMode
 		*out = new(string)
 		**out = **in
 	}
@@ -3235,6 +3245,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.DatabaseInsightsMode != nil {
+		in, out := &in.DatabaseInsightsMode, &out.DatabaseInsightsMode
+		*out = new(string)
+		**out = **in
+	}
 	if in.DeletionProtection != nil {
 		in, out := &in.DeletionProtection, &out.DeletionProtection
 		*out = new(bool)
@@ -4001,6 +4016,11 @@ func (in *DBInstance_SDK) DeepCopyInto(out *DBInstance_SDK) {
 	}
 	if in.DBSystemID != nil {
 		in, out := &in.DBSystemID, &out.DBSystemID
+		*out = new(string)
+		**out = **in
+	}
+	if in.DatabaseInsightsMode != nil {
+		in, out := &in.DatabaseInsightsMode, &out.DatabaseInsightsMode
 		*out = new(string)
 		**out = **in
 	}

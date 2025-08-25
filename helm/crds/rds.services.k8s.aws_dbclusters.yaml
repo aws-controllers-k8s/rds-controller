@@ -135,6 +135,10 @@ spec:
 
                   Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
                 type: boolean
+              databaseInsightsMode:
+                description: Specifies the mode of Database Insights to enable for
+                  the cluster.
+                type: string
               databaseName:
                 description: |-
                   The name for your database of up to 64 alphanumeric characters. A database

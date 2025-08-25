@@ -15,6 +15,7 @@
 """
 
 import time
+import logging
 
 import pytest
 from acktest.k8s import resource as k8s
@@ -23,6 +24,8 @@ from e2e import (CRD_GROUP, CRD_VERSION, condition, db_cluster,
                  load_rds_resource, service_marker, tag)
 from e2e.fixtures import k8s_secret
 from e2e.replacement_values import REPLACEMENT_VALUES
+
+logger = logging.getLogger(__name__)
 
 RESOURCE_PLURAL = 'dbclusters'
 
@@ -197,7 +200,7 @@ def aurora_postgres_cluster_log_exports(k8s_secret):
     db_cluster.wait_until_deleted(db_cluster_id)
 
 @service_marker
-@pytest.mark.canary
+@pytest.mark.target
 class TestDBCluster:
     def test_crud_mysql_serverless(
             self, aurora_mysql_cluster,
@@ -448,3 +451,44 @@ class TestDBCluster:
             pass
 
         db_cluster.wait_until_deleted(db_cluster_id)
+
+    def test_enable_advanced_database_insights(
+        self, aurora_postgres_cluster,
+    ):
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+
+        databaseInsightsMode = current.get("DatabaseInsightsMode", None)
+        enabledPerformanceInsights = current.get("PerformanceInsightsEnabled", None)
+        performanceInsightsRetentionPeriod = current.get("PerformanceInsightsRetentionPeriod", None)
+        assert databaseInsightsMode == "standard"
+        assert enabledPerformanceInsights is None
+        assert performanceInsightsRetentionPeriod is None
+
+        k8s.patch_custom_resource(
+            ref,
+            {
+                "spec": {
+                    "databaseInsightsMode": "advanced"
+                    ,"enablePerformanceInsights": True
+                    ,"performanceInsightsRetentionPeriod": 465
+                }
+            },
+        )
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.AttributeMatcher("DatabaseInsightsMode", "advanced"),
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest["DatabaseInsightsMode"] == "advanced"
+        assert latest["PerformanceInsightsEnabled"] == True
+        assert latest["PerformanceInsightsRetentionPeriod"] == 465

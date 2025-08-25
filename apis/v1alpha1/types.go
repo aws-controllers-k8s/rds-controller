@@ -454,6 +454,7 @@ type DBCluster_SDK struct {
 	DBClusterParameterGroup          *string                       `json:"dbClusterParameterGroup,omitempty"`
 	DBSubnetGroup                    *string                       `json:"dbSubnetGroup,omitempty"`
 	DBSystemID                       *string                       `json:"dbSystemID,omitempty"`
+	DatabaseInsightsMode             *string                       `json:"databaseInsightsMode,omitempty"`
 	DatabaseName                     *string                       `json:"databaseName,omitempty"`
 	DBClusterResourceID              *string                       `json:"dbClusterResourceID,omitempty"`
 	DeletionProtection               *bool                         `json:"deletionProtection,omitempty"`
@@ -668,6 +669,7 @@ type DBInstance_SDK struct {
 	// action.
 	DBSubnetGroup                *DBSubnetGroup_SDK  `json:"dbSubnetGroup,omitempty"`
 	DBSystemID                   *string             `json:"dbSystemID,omitempty"`
+	DatabaseInsightsMode         *string             `json:"databaseInsightsMode,omitempty"`
 	DBInstancePort               *int64              `json:"dbInstancePort,omitempty"`
 	DBIResourceID                *string             `json:"dbiResourceID,omitempty"`
 	DeletionProtection           *bool               `json:"deletionProtection,omitempty"`
