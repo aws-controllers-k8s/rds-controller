@@ -400,3 +400,19 @@ func setDeleteDBClusterInput(
 	input.DeleteAutomatedBackups = params.DeleteAutomatedBackup
 	return nil
 }
+
+// RDS will choose preferred engine minor version if only
+// engine major version is provided and controler should not
+// treat them as different, such as spec has 14, status has 14.1
+// controller should treat them as same
+func reconcileDBClusterEngineVersion(
+	a *resource,
+	b *resource,
+) {
+	if a != nil && b != nil &&
+		a.ko.Spec.EngineVersion != nil && b.ko.Spec.EngineVersion != nil &&
+		strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) &&
+		b.ko.Spec.AutoMinorVersionUpgrade != nil && *b.ko.Spec.AutoMinorVersionUpgrade {
+		a.ko.Spec.EngineVersion = b.ko.Spec.EngineVersion
+	}
+}
