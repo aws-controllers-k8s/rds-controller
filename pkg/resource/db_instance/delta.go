@@ -202,7 +202,9 @@ func newResourceDelta(
 		delta.Add("Spec.DBSubnetGroupRef", a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
-		delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+		if a.ko.Spec.DatabaseInsightsMode != nil {
+			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+		}
 	} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
 		if *a.ko.Spec.DatabaseInsightsMode != *b.ko.Spec.DatabaseInsightsMode {
 			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
