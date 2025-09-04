@@ -107,11 +107,11 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 
 // PopulateResourceFromAnnotation populates the fields passed from adoption annotation
 func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
-	tmp, ok := fields["dbClusterSnapshotIdentifier"]
+	primaryKey, ok := fields["dbClusterSnapshotIdentifier"]
 	if !ok {
 		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: dbClusterSnapshotIdentifier"))
 	}
-	r.ko.Spec.DBClusterSnapshotIdentifier = &tmp
+	r.ko.Spec.DBClusterSnapshotIdentifier = &primaryKey
 
 	f0, f0ok := fields["dbClusterIdentifier"]
 	if f0ok {

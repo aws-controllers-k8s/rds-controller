@@ -2927,6 +2927,10 @@ func (rm *resourceManager) sdkDelete(
 	_ = resp
 	resp, err = rm.sdkapi.DeleteDBInstance(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBInstance", err)
+	if err == nil {
+		_ = resp
+		err = ackrequeue.Needed(fmt.Errorf("wait for DBInstance deletion"))
+	}
 	return nil, err
 }
 

@@ -1562,6 +1562,10 @@ func (rm *resourceManager) sdkDelete(
 	_ = resp
 	resp, err = rm.sdkapi.DeleteDBCluster(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteDBCluster", err)
+	if err == nil {
+		_ = resp
+		err = ackrequeue.Needed(fmt.Errorf("wait for DBInstance deletion"))
+	}
 	return nil, err
 }
 

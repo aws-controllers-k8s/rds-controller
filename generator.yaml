@@ -157,6 +157,8 @@ resources:
         template_path: hooks/db_cluster/sdk_delete_pre_build_request.go.tpl
       sdk_delete_post_build_request:
         template_path: hooks/db_cluster/sdk_delete_post_build_request.go.tpl
+      sdk_delete_post_request:
+        template_path: hooks/common/sdk_delete_post_request.go.tpl
       sdk_file_end:
         template_path: hooks/db_cluster/sdk_file_end.go.tpl
     exceptions:
@@ -310,6 +312,8 @@ resources:
         template_path: hooks/db_instance/sdk_delete_pre_build_request.go.tpl
       sdk_delete_post_build_request:
         template_path: hooks/db_instance/sdk_delete_post_build_request.go.tpl
+      sdk_delete_post_request:
+        template_path: hooks/common/sdk_delete_post_request.go.tpl
       sdk_file_end:
         template_path: hooks/db_instance/sdk_file_end.go.tpl
     exceptions:

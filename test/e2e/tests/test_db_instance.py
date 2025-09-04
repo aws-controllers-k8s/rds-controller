@@ -94,12 +94,11 @@ def postgres14_t3_micro_instance(k8s_secret):
 
     yield (ref, cr, secret.name)
 
-    # Try to delete, if doesn't already exist
-    try:
-        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
-    except:
-        pass
+    k8s.delete_custom_resource(ref)
+    assert k8s.get_resource_exists(ref)
     db_instance.wait_until_deleted(db_instance_id)
+    time.sleep(60)
+    assert not k8s.get_resource_exists(ref)
 
 @service_marker
 @pytest.mark.canary

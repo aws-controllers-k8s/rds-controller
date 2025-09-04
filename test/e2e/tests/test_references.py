@@ -287,25 +287,24 @@ class TestReferences:
         # we try to delete the DB Parameter Group before the DB Instance, the
         # cascading delete protection of resource references will mean the DB
         # Parameter Group won't be deleted.
-        _, deleted = k8s.delete_custom_resource(
-            db_instance_ref,
-            period_length=DELETE_INSTANCE_TIMEOUT_SECONDS,
-        )
-        assert deleted
+        k8s.delete_custom_resource(db_instance_ref)
+        # ensure db_instance does not disappear immidiately from k8s
+        assert k8s.get_resource_exists(db_instance_ref)
 
         # Wait a bit before trying to delete the cluster since the instance is
         # part of the cluster and sometimes the delete cluster complains if
         # it's too soon after deleting the last DB instance in it.
-        time.sleep(60)
-
         db_instance.wait_until_deleted(db_instance_id)
+        time.sleep(60)
+        # ensure db_instance is removed from k8s once it is removed from AWS
+        assert not k8s.get_resource_exists(db_instance_ref)
+
 
         # Same for the DB cluster because it refers to the DB cluster
         # parameter group...
-        _, deleted = k8s.delete_custom_resource(
-            db_cluster_ref,
-            period_length=DELETE_CLUSTER_TIMEOUT_SECONDS,
-        )
-        assert deleted
+        k8s.delete_custom_resource(db_cluster_ref)
+        assert k8s.get_resource_exists(db_cluster_ref)
 
         db_cluster.wait_until_deleted(db_cluster_id)
+        time.sleep(60)
+        assert not k8s.get_resource_exists(db_cluster_ref)
