@@ -318,6 +318,23 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if !clusterEndpointReadyForUpdate(latest) {
+		msg := "DB cluster is not available for modification in '" +
+			*latest.ko.Status.Status + "' status"
+		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
+		return desired, requeueWaitUntilCanModify(latest)
+	}
+
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+
+	if !delta.DifferentExcept("Spec.Tags") {
+		return desired, nil
+	}
+
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
@@ -333,15 +350,6 @@ func (rm *resourceManager) sdkUpdate(
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
-	if delta.DifferentAt("Spec.Tags") {
-		if err = rm.syncTags(ctx, desired, latest); err != nil {
-			return nil, err
-		}
-	}
-
-	if !delta.DifferentExcept("Spec.Tags") {
-		return desired, nil
-	}
 
 	if resp.CustomEndpointType != nil {
 		ko.Spec.EndpointType = resp.CustomEndpointType
