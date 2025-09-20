@@ -15,8 +15,11 @@ package db_cluster_endpoint
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
+	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -25,6 +28,37 @@ import (
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
+
+const (
+	StatusAvailable = "available"
+	StatusInactive  = "inactive"
+)
+
+func clusterEndpointReadyForUpdate(r *resource) bool {
+	if r.ko.Status.Status == nil {
+		return false
+	}
+	dbcs := *r.ko.Status.Status
+	return dbcs == StatusAvailable || dbcs == StatusInactive
+}
+
+// requeueWaitUntilCanModify returns a `ackrequeue.RequeueNeededAfter` struct
+// explaining the DB instance cannot be modified until it reaches an available
+// status.
+func requeueWaitUntilCanModify(r *resource) *ackrequeue.RequeueNeededAfter {
+	if r.ko.Status.Status == nil {
+		return nil
+	}
+	status := *r.ko.Status.Status
+	msg := fmt.Sprintf(
+		"DB cluster in '%s' state, cannot be modified until '%s'.",
+		status, StatusAvailable,
+	)
+	return ackrequeue.NeededAfter(
+		errors.New(msg),
+		ackrequeue.DefaultRequeueAfterDuration,
+	)
+}
 
 // syncTags keeps the resource's tags in sync
 func (rm *resourceManager) syncTags(

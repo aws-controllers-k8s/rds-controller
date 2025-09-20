@@ -10,6 +10,9 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
     k8s-app: {{ include "ack-rds-controller.app.name" . }}
     helm.sh/chart: {{ include "ack-rds-controller.chart.name-version" . }}
+{{- range $key, $value := .Values.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+{{- end }}
 spec:
   replicas: {{ .Values.deployment.replicas }}
   selector:
@@ -88,6 +91,7 @@ spec:
         - --feature-gates
         - "$(FEATURE_GATES)"
 {{- end }}
+        - --enable-carm={{ .Values.enableCARM }}
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: controller
