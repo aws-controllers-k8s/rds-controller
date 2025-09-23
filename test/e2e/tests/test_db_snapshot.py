@@ -37,7 +37,7 @@ def postgres_db_snapshot(postgres14_t3_micro_instance):
     (ref, cr, _) = postgres14_t3_micro_instance
 
     # Wait for the dbinstance to get synced
-    assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=DBINSTANCE_MAX_WAIT_FOR_SYNCED_MINUTES)
+    assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=DBINSTANCE_MAX_WAIT_FOR_SYNCED_MINUTES)
 
     db_instance_id = cr["spec"]["dbInstanceIdentifier"]
     db_snapshot_id = random_suffix_name("snapshot", 20)
@@ -84,12 +84,12 @@ class TestDBSnapshot:
         assert 'status' in cr
         assert 'status' in cr['status']
         assert cr['status']['status'] == 'creating'
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
 
         db_snapshot_id = cr["spec"]["dbSnapshotIdentifier"]
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that DBSnapshotStatus is available
         latest = db_snapshot.get(db_snapshot_id)
@@ -97,7 +97,7 @@ class TestDBSnapshot:
         assert latest['Status'] == 'available'
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         arn = latest['DBSnapshotArn']
         expect_tags = [
