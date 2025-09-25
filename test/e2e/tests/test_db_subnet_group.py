@@ -60,7 +60,7 @@ def subnet_group_2az():
 
     assert cr is not None
     assert k8s.get_resource_exists(ref)
-    condition.assert_synced(ref)
+    condition.assert_ready(ref)
 
     yield ref, cr, resource_name
 

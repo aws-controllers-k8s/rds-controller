@@ -107,7 +107,7 @@ class TestDBProxy:
 
         assert k8s.wait_on_condition(
             ref,
-            condition.CONDITION_TYPE_RESOURCE_SYNCED,
+            condition.CONDITION_TYPE_READY,
             "True",
             wait_periods=5,
             period_length=3

@@ -95,7 +95,7 @@ def aurora_mysql_cluster(k8s_secret):
     assert 'status' in cr
     assert 'status' in cr['status']
     assert cr['status']['status'] == 'creating'
-    condition.assert_not_synced(ref)
+    condition.assert_not_ready(ref)
 
     yield (ref, cr, db_cluster_id)
 
@@ -140,7 +140,7 @@ def aurora_postgres_cluster(k8s_secret):
     assert 'status' in cr
     assert 'status' in cr['status']
     assert cr['status']['status'] == 'creating'
-    condition.assert_not_synced(ref)
+    condition.assert_not_ready(ref)
 
     yield (ref, cr, db_cluster_id, secret.name)
 
@@ -185,7 +185,7 @@ def aurora_postgres_cluster_log_exports(k8s_secret):
     assert 'status' in cr
     assert 'status' in cr['status']
     assert cr['status']['status'] == 'creating'
-    condition.assert_not_synced(ref)
+    condition.assert_not_ready(ref)
 
     yield (ref, cr, db_cluster_id)
 
@@ -227,7 +227,7 @@ class TestDBCluster:
         assert 'status' in cr
         assert 'status' in cr['status']
         assert cr['status']['status'] != 'creating'
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
 
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
@@ -381,7 +381,7 @@ class TestDBCluster:
             MUP_SEC_KEY,
             MUP_SEC_VAL,
         )
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=20)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=20)
 
         updates = {
             "spec": {
@@ -396,7 +396,7 @@ class TestDBCluster:
         k8s.patch_custom_resource(ref, updates)
         time.sleep(35)
 
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
         cr = k8s.get_resource(ref)
         
         assert cr is not None

@@ -37,7 +37,7 @@ def aurora_mysql_db_cluster_snapshot(aurora_mysql_cluster):
     (ref, cr, _) = aurora_mysql_cluster
 
     # Wait for the dbinstance to get synced
-    assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=DBINSTANCE_MAX_WAIT_FOR_SYNCED_MINUTES)
+    assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=DBINSTANCE_MAX_WAIT_FOR_SYNCED_MINUTES)
 
     db_cluster_id = cr["spec"]["dbClusterIdentifier"]
     db_cluster_snapshot_id = random_suffix_name("cluster-snapshot", 20)
@@ -83,12 +83,12 @@ class TestDBClusterSnapshot:
         assert 'status' in cr
         assert 'status' in cr['status']
         assert cr['status']['status'] == 'creating'
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
 
         db_cluster_snapshot_id = cr["spec"]["dbClusterSnapshotIdentifier"]
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that DBSnapshotStatus is available
         latest = db_cluster_snapshot.get(db_cluster_snapshot_id)
@@ -96,7 +96,7 @@ class TestDBClusterSnapshot:
         assert latest['Status'] == 'available'
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         arn = latest['DBClusterSnapshotArn']
         expect_tags = [

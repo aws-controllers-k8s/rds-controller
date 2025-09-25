@@ -42,7 +42,7 @@ UPDATED_ENDPOINT_TYPE = "READER"
 def db_cluster_endpoint_resource(aurora_mysql_cluster):
     cluster_ref, _, cluster_id = aurora_mysql_cluster
 
-    assert k8s.wait_on_condition(cluster_ref, "ACK.ResourceSynced", "True", wait_periods=DBINSTANCE_MAX_WAIT_FOR_SYNCED_SECONDS)
+    assert k8s.wait_on_condition(cluster_ref, "Ready", "True", wait_periods=DBINSTANCE_MAX_WAIT_FOR_SYNCED_SECONDS)
     
     resource_name = random_suffix_name("custom-endpoint", 24)
     
@@ -116,7 +116,7 @@ class TestDBClusterEndpoint:
         }
         k8s.patch_custom_resource(ref, updates)
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=5)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=5)
         
         # Verify tags were updated
         expected_tags = [

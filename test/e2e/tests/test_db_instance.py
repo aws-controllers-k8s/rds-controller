@@ -114,10 +114,10 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that DBInstanceStatus is available
         latest = db_instance.get(db_instance_id)
@@ -138,7 +138,7 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] != 'creating'
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
 
         # We're now going to modify the CopyTagsToSnapshot field of the DB
         # instance, wait some time and verify that the RDS server-side resource
@@ -153,7 +153,7 @@ class TestDBInstance:
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = db_instance.get(db_instance_id)
@@ -167,7 +167,7 @@ class TestDBInstance:
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = db_instance.get(db_instance_id)
@@ -215,7 +215,7 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
 
         # Assert that the last-applied-secret-reference annotation is set
         assert 'metadata' in cr
@@ -225,7 +225,7 @@ class TestDBInstance:
         assert lastAppliedSecretRef == f"{MUP_NS}/{secret_name}.{MUP_SEC_KEY}"
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that DBInstanceStatus is available
         latest = db_instance.get(db_instance_id)
@@ -238,7 +238,7 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] != 'creating'
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
 
         # Let's now update the DBInstance secret and check that the CR's
         # `Status.DBInstanceStatus` is updated to 'resetting-master-credentials'
@@ -260,7 +260,7 @@ class TestDBInstance:
 
         k8s.patch_custom_resource(ref, updates)
         time.sleep(35)
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
         cr = k8s.get_resource(ref)
         assert cr is not None
         assert 'status' in cr
@@ -280,10 +280,10 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that DBInstanceStatus is available
         latest = db_instance.get(db_instance_id)
@@ -305,10 +305,10 @@ class TestDBInstance:
         time.sleep(5)
 
         # Ensure the controller properly detects the status change
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "False", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "False", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # The resource should eventually come back into ResourceSynced = True
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = db_instance.get(db_instance_id)
@@ -342,7 +342,7 @@ class TestDBInstance:
         assert not bool(cr["spec"]["multiAZ"])
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # We're now going to modify the instanceClass field of the DB instance,
         # wait some time and verify that the RDS server-side resource shows the
@@ -361,7 +361,7 @@ class TestDBInstance:
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # latest CR should have desired state set properly...
         cr = k8s.get_resource(ref)
@@ -390,7 +390,7 @@ class TestDBInstance:
         time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # latest CR should have desired state set properly...
         cr = k8s.get_resource(ref)
@@ -421,7 +421,7 @@ class TestDBInstance:
         assert 'status' in cr
         assert 'dbInstanceStatus' in cr['status']
         assert cr['status']['dbInstanceStatus'] == 'creating'
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
 
         # Assert that the last-applied-secret-reference annotation is set
         assert 'metadata' in cr
@@ -429,7 +429,7 @@ class TestDBInstance:
         assert 'rds.services.k8s.aws/last-applied-secret-reference' in cr['metadata']['annotations']
 
         # Wait for the resource to get synced
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         # After the resource is synced, assert that DBInstanceStatus is available
         latest = db_instance.get(db_instance_id)
@@ -442,7 +442,7 @@ class TestDBInstance:
         assert 'spec' in cr
         assert 'multiAZ' in cr['spec']
         assert cr['spec']['multiAZ'] is False
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
 
         # Let's now update the DBInstance MultiAZ to be true
         updates = {
@@ -453,14 +453,14 @@ class TestDBInstance:
 
         k8s.patch_custom_resource(ref, updates)
         time.sleep(35)
-        condition.assert_not_synced(ref)
+        condition.assert_not_ready(ref)
         cr = k8s.get_resource(ref)
         assert cr is not None
         assert 'status' in cr
         assert 'spec' in cr
         assert 'multiAZ' in cr['spec']
         assert cr['spec']['multiAZ'] is True
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        assert k8s.wait_on_condition(ref, "Ready", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
 
         latest = db_instance.get(db_instance_id)
         assert latest is not None

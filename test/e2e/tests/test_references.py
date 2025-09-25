@@ -257,8 +257,8 @@ class TestReferences:
 
         time.sleep(60)
 
-        condition.assert_synced(db_cluster_pg_ref)
-        condition.assert_synced(db_cluster_ref)
+        condition.assert_ready(db_cluster_pg_ref)
+        condition.assert_ready(db_cluster_ref)
 
         # Instance refers to parameter group by reference and DB cluster by
         # ID...
@@ -278,8 +278,8 @@ class TestReferences:
 
         time.sleep(60)
 
-        condition.assert_synced(db_pg_ref)
-        condition.assert_synced(db_instance_ref)
+        condition.assert_ready(db_pg_ref)
+        condition.assert_ready(db_instance_ref)
 
         # NOTE(jaypipes): We need to manually delete the DB Instance first
         # because pytest fixtures will try to clean up the DB Parameter Group
