@@ -2008,7 +2008,7 @@ func (rm *resourceManager) sdkUpdate(
 	// Setting resource synced condition to false will trigger a requeue of
 	// the resource. No need to return a requeue error here.
 	ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, nil, nil)
-	return &resource{ko}, nil
+	// return &resource{ko}, nil
 
 	if resp.DBInstance.ActivityStreamEngineNativeAuditFieldsIncluded != nil {
 		ko.Status.ActivityStreamEngineNativeAuditFieldsIncluded = resp.DBInstance.ActivityStreamEngineNativeAuditFieldsIncluded
