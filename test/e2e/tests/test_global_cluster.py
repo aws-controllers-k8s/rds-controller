@@ -78,7 +78,7 @@ class TestGlobalCluster:
         assert cr is not None
         assert 'status' in cr
         assert 'status' in cr['status']
-        condition.assert_synced(ref)
+        condition.assert_ready(ref)
 
         latest = global_cluster.get(global_cluster_id)
         arn = latest['GlobalClusterArn']
