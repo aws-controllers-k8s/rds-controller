@@ -20,8 +20,8 @@ import (
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 )
 
-// +kubebuilder:rbac:groups=services.k8s.aws,resources=adoptedresources,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=services.k8s.aws,resources=adoptedresources/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=services.k8s.aws,resources=iamroleselectors,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=services.k8s.aws,resources=iamroleselectors/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=services.k8s.aws,resources=fieldexports,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=services.k8s.aws,resources=fieldexports/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
