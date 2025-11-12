@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.2
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: dbsubnetgroups.rds.services.k8s.aws
 spec:
   group: rds.services.k8s.aws
@@ -127,6 +127,24 @@ spec:
                       matches the supplied CR's Spec field values.
                       https://github.com/aws/aws-controllers-k8s/issues/270
                     type: string
+                  iamRoleSelector:
+                    description: |-
+                      IAMRoleSelector is the selected IAMRoleSelector that is used to manage
+                      the AWS resource. This will be nil if the default controller role is used.
+                    properties:
+                      resourceVersion:
+                        description: |-
+                          ResourceVersion is the metadata.resourceVersion of the selected
+                          IAMRoleSelector object
+                        type: string
+                      selectorName:
+                        description: SelectorName is the k8s resource name of the
+                          IAMRoleSelector object
+                        type: string
+                    required:
+                    - resourceVersion
+                    - selectorName
+                    type: object
                   ownerAccountID:
                     description: |-
                       OwnerAccountID is the AWS Account ID of the account that owns the
