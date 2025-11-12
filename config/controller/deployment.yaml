@@ -43,6 +43,7 @@ spec:
         - "$(RECONCILE_DEFAULT_MAX_CONCURRENT_SYNCS)"
         - --feature-gates
         - "$(FEATURE_GATES)"
+        - --enable-carm=$(ENABLE_CARM)
         image: controller:latest
         name: controller
         ports:
@@ -80,6 +81,8 @@ spec:
           value: "1"
         - name: "FEATURE_GATES"
           value: ""
+        - name: "ENABLE_CARM"
+          value: "true"
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
