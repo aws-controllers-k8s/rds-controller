@@ -25,9 +25,8 @@ import (
 )
 
 var (
-	_             = svcapitypes.DBClusterSnapshot{}
-	_             = acktags.NewTags()
-	ACKSystemTags = []string{"services.k8s.aws/namespace", "services.k8s.aws/controller-version"}
+	_ = svcapitypes.DBClusterSnapshot{}
+	_ = acktags.NewTags()
 )
 
 // convertToOrderedACKTags converts the tags parameter into 'acktags.Tags' shape.
@@ -79,13 +78,14 @@ func fromACKTags(tags acktags.Tags, keyOrder []string) []*svcapitypes.Tag {
 }
 
 // ignoreSystemTags ignores tags that have keys that start with "aws:"
-// and ACKSystemTags, to avoid patching them to the resourceSpec.
+// and systemTags defined on startup via the --resource-tags flag,
+// to avoid patching them to the resourceSpec.
 // Eg. resources created with cloudformation have tags that cannot be
 // removed by an ACK controller
-func ignoreSystemTags(tags acktags.Tags) {
+func ignoreSystemTags(tags acktags.Tags, systemTags []string) {
 	for k := range tags {
 		if strings.HasPrefix(k, "aws:") ||
-			slices.Contains(ACKSystemTags, k) {
+			slices.Contains(systemTags, k) {
 			delete(tags, k)
 		}
 	}

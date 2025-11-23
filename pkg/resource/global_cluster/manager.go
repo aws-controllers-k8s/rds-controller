@@ -287,13 +287,26 @@ func (rm *resourceManager) EnsureTags(
 	return nil
 }
 
-// FilterAWSTags ignores tags that have keys that start with "aws:"
-// is needed to ensure the controller does not attempt to remove
-// tags set by AWS. This function needs to be called after each Read
-// operation.
-// Eg. resources created with cloudformation have tags that cannot be
-// removed by an ACK controller
-func (rm *resourceManager) FilterSystemTags(res acktypes.AWSResource) {
+// FilterSystemTags removes system-managed tags from the resource's tag collection
+// to prevent the controller from attempting to manage them. This includes:
+//   - Tags with keys starting with "aws:" (AWS-managed system tags)
+//   - Tags specified via the --resource-tags startup flag (controller-level tags)
+//   - Tags injected by AWS services (e.g., CloudFormation, EKS, etc.)
+//
+// This filtering is essential because:
+//  1. AWS services automatically add system tags that cannot be modified by users
+//  2. Attempting to remove these tags would result in API errors
+//  3. The controller should only manage user-defined tags, not system tags
+//
+// Must be called after each Read operation to ensure the resource state
+// reflects only manageable tags. This prevents unnecessary update attempts
+// and maintains consistency between desired and actual resource state.
+//
+// Example system tags that are filtered:
+//   - aws:cloudformation:stack-name (CloudFormation)
+//   - aws:eks:cluster-name (EKS)
+//   - services.k8s.aws/* (Kubernetes-managed)
+func (rm *resourceManager) FilterSystemTags(res acktypes.AWSResource, systemTags []string) {
 
 }
 
