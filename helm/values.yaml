@@ -4,7 +4,7 @@
 
 image:
   repository: public.ecr.aws/aws-controllers-k8s/rds-controller
-  tag: 1.6.3
+  tag: 1.7.0
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -120,8 +120,11 @@ watchSelectors: ""
 resourceTags:
   # Configures the ACK service controller to always set key/value pairs tags on
   # resources that it manages.
+  # Note: Tags with empty values are automatically skipped to keep resources clean.
   - services.k8s.aws/controller-version=%CONTROLLER_SERVICE%-%CONTROLLER_VERSION%
   - services.k8s.aws/namespace=%K8S_NAMESPACE%
+  - app.kubernetes.io/managed-by=%MANAGED_BY%
+  - kro.run/kro-version=%KRO_VERSION%
 
 # Set to "retain" to keep all AWS resources intact even after the K8s resources
 # have been deleted. By default, the ACK controller will delete the AWS resource
