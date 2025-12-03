@@ -104,6 +104,59 @@
               "type"
           ],
           "type": "object"
+        },
+        "serviceMonitor": {
+          "description": "Prometheus ServiceMonitor settings",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "additionalLabels": {
+              "type": "object"
+            },
+            "interval": {
+              "type": "string"
+            },
+            "scrapeTimeout": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "prometheusRule": {
+          "description": "Prometheus PrometheusRule settings",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "additionalLabels": {
+              "type": "object"
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "alert": {
+                    "type": "string"
+                  },
+                  "expr": {
+                    "type": "string"
+                  },
+                  "for": {
+                    "type": "string"
+                  },
+                  "labels": {
+                    "type": "object"
+                  },
+                  "annotations": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "type": "object"
         }
       },
       "required": [
