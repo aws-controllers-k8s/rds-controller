@@ -96,7 +96,7 @@ metrics:
     # Alert rules (can be overridden or extended)
     rules:
       - alert: RDSControllerSyncErrors
-        expr: sum by (controller) (rate(controller_runtime_reconcile_errors_total{job="rds-controller-controller-metrics"}[10m])) > 0.5
+        expr: sum by (controller) (rate(controller_runtime_reconcile_errors_total{job="rds-controller-metrics"}[10m])) > 0.5
         for: 5m
         labels:
           severity: critical
