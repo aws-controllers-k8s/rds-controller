@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AvailabilityZone", "BackupTarget", "NetworkType", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod"}
+var lateInitializeFieldNames = []string{"AutoMinorVersionUpgrade", "AvailabilityZone", "BackupTarget", "CACertificateIdentifier", "DatabaseInsightsMode", "IOPS", "KMSKeyID", "LicenseModel", "MultiAZ", "NetworkType", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "StorageEncrypted", "StorageThroughput", "StorageType"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -248,16 +248,6 @@ func (rm *resourceManager) LateInitialize(
 func (rm *resourceManager) incompleteLateInitialization(
 	res acktypes.AWSResource,
 ) bool {
-	ko := rm.concreteResource(res).ko.DeepCopy()
-	if ko.Spec.AvailabilityZone == nil {
-		return true
-	}
-	if ko.Spec.BackupTarget == nil {
-		return true
-	}
-	if ko.Spec.NetworkType == nil {
-		return true
-	}
 	return false
 }
 
@@ -269,11 +259,32 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 ) acktypes.AWSResource {
 	observedKo := rm.concreteResource(observed).ko.DeepCopy()
 	latestKo := rm.concreteResource(latest).ko.DeepCopy()
+	if observedKo.Spec.AutoMinorVersionUpgrade != nil && latestKo.Spec.AutoMinorVersionUpgrade == nil {
+		latestKo.Spec.AutoMinorVersionUpgrade = observedKo.Spec.AutoMinorVersionUpgrade
+	}
 	if observedKo.Spec.AvailabilityZone != nil && latestKo.Spec.AvailabilityZone == nil {
 		latestKo.Spec.AvailabilityZone = observedKo.Spec.AvailabilityZone
 	}
 	if observedKo.Spec.BackupTarget != nil && latestKo.Spec.BackupTarget == nil {
 		latestKo.Spec.BackupTarget = observedKo.Spec.BackupTarget
+	}
+	if observedKo.Spec.CACertificateIdentifier != nil && latestKo.Spec.CACertificateIdentifier == nil {
+		latestKo.Spec.CACertificateIdentifier = observedKo.Spec.CACertificateIdentifier
+	}
+	if observedKo.Spec.DatabaseInsightsMode != nil && latestKo.Spec.DatabaseInsightsMode == nil {
+		latestKo.Spec.DatabaseInsightsMode = observedKo.Spec.DatabaseInsightsMode
+	}
+	if observedKo.Spec.IOPS != nil && latestKo.Spec.IOPS == nil {
+		latestKo.Spec.IOPS = observedKo.Spec.IOPS
+	}
+	if observedKo.Spec.KMSKeyID != nil && latestKo.Spec.KMSKeyID == nil {
+		latestKo.Spec.KMSKeyID = observedKo.Spec.KMSKeyID
+	}
+	if observedKo.Spec.LicenseModel != nil && latestKo.Spec.LicenseModel == nil {
+		latestKo.Spec.LicenseModel = observedKo.Spec.LicenseModel
+	}
+	if observedKo.Spec.MultiAZ != nil && latestKo.Spec.MultiAZ == nil {
+		latestKo.Spec.MultiAZ = observedKo.Spec.MultiAZ
 	}
 	if observedKo.Spec.NetworkType != nil && latestKo.Spec.NetworkType == nil {
 		latestKo.Spec.NetworkType = observedKo.Spec.NetworkType
@@ -283,6 +294,21 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.PerformanceInsightsRetentionPeriod != nil && latestKo.Spec.PerformanceInsightsRetentionPeriod == nil {
 		latestKo.Spec.PerformanceInsightsRetentionPeriod = observedKo.Spec.PerformanceInsightsRetentionPeriod
+	}
+	if observedKo.Spec.PreferredBackupWindow != nil && latestKo.Spec.PreferredBackupWindow == nil {
+		latestKo.Spec.PreferredBackupWindow = observedKo.Spec.PreferredBackupWindow
+	}
+	if observedKo.Spec.PreferredMaintenanceWindow != nil && latestKo.Spec.PreferredMaintenanceWindow == nil {
+		latestKo.Spec.PreferredMaintenanceWindow = observedKo.Spec.PreferredMaintenanceWindow
+	}
+	if observedKo.Spec.StorageEncrypted != nil && latestKo.Spec.StorageEncrypted == nil {
+		latestKo.Spec.StorageEncrypted = observedKo.Spec.StorageEncrypted
+	}
+	if observedKo.Spec.StorageThroughput != nil && latestKo.Spec.StorageThroughput == nil {
+		latestKo.Spec.StorageThroughput = observedKo.Spec.StorageThroughput
+	}
+	if observedKo.Spec.StorageType != nil && latestKo.Spec.StorageType == nil {
+		latestKo.Spec.StorageType = observedKo.Spec.StorageType
 	}
 	return &resource{latestKo}
 }
