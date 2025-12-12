@@ -100,6 +100,7 @@ rules:
   - dbsnapshots
   - dbsubnetgroups
   - globalclusters
+  - optiongroups
   verbs:
   - create
   - delete
@@ -121,6 +122,7 @@ rules:
   - dbsnapshots/status
   - dbsubnetgroups/status
   - globalclusters/status
+  - optiongroups/status
   verbs:
   - get
   - patch

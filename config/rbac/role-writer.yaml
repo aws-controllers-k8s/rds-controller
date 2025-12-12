@@ -19,6 +19,7 @@ rules:
   - dbsnapshots
   - dbsubnetgroups
   - globalclusters
+  - optiongroups
   verbs:
   - create
   - delete
@@ -40,6 +41,7 @@ rules:
   - dbsnapshots
   - dbsubnetgroups
   - globalclusters
+  - optiongroups
   verbs:
   - get
   - patch
