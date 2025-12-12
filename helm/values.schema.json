@@ -171,8 +171,15 @@
         "region": {
           "type": "string"
         },
-        "endpoint": {
+        "endpoint_url": {
           "type": "string"
+        },
+        "identity_endpoint_url": {
+          "type": "string"
+        },
+        "allow_unsafe_aws_endpoint_urls": {
+          "type": "boolean",
+          "default": false
         },
         "credentials": {
           "description": "AWS credentials information",

@@ -203,7 +203,43 @@ class TestDBInstance:
             }
         ]
         assert latest_tags == after_update_expected_tags
+        
+    def test_crud_cloudwatch_logs14_t3_micro(
+            self,
+            postgres14_t3_micro_instance,
+    ):
+        (ref, cr, _) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+        db_instance.wait_until(db_instance_id, db_instance.status_matches("available"))
+        
+        current = db_instance.get(db_instance_id)
+        assert current is not None
+        enabledCloudwatchLogsExports = current.get("EnabledCloudwatchLogsExports",None)
+        assert enabledCloudwatchLogsExports is None
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableCloudwatchLogsExports": ["postgresql"]}},
+        )
+        
+        # wait for the resource to get synced after the patch
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest["EnabledCloudwatchLogsExports"] == ["postgresql"]
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableCloudwatchLogsExports": None}},
+        )
 
+        # wait for the resource to get synced after the patch
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        enabledCloudwatchLogsExportsLatest = latest.get("EnabledCloudwatchLogsExports",None)
+        assert enabledCloudwatchLogsExportsLatest is None
+        
     def test_crud_postgres14_update_password(
             self,
             postgres14_t3_micro_instance,

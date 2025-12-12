@@ -114,3 +114,5 @@
 			ko.Spec.DBParameterGroupName = ko.Status.DBParameterGroups[0].DBParameterGroupName
 		}
 	}
+  
+  ko.Spec.EnableCloudwatchLogsExports = ko.Status.EnabledCloudwatchLogsExports
