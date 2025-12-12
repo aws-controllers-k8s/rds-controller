@@ -1,0 +1,296 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: optiongroups.rds.services.k8s.aws
+spec:
+  group: rds.services.k8s.aws
+  names:
+    kind: OptionGroup
+    listKind: OptionGroupList
+    plural: optiongroups
+    singular: optiongroup
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: OptionGroup is the Schema for the OptionGroups API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              description:
+                description: The description of the option group.
+                type: string
+              engineName:
+                description: |-
+                  The name of the engine to associate this option group with.
+
+                  Valid Values:
+
+                    - db2-ae
+
+                    - db2-se
+
+                    - mariadb
+
+                    - mysql
+
+                    - oracle-ee
+
+                    - oracle-ee-cdb
+
+                    - oracle-se2
+
+                    - oracle-se2-cdb
+
+                    - postgres
+
+                    - sqlserver-ee
+
+                    - sqlserver-se
+
+                    - sqlserver-ex
+
+                    - sqlserver-web
+                type: string
+              majorEngineVersion:
+                description: |-
+                  Specifies the major version of the engine that this option group should be
+                  associated with.
+                type: string
+              name:
+                description: |-
+                  Specifies the name of the option group to be created.
+
+                  Constraints:
+
+                    - Must be 1 to 255 letters, numbers, or hyphens
+
+                    - First character must be a letter
+
+                    - Can't end with a hyphen or contain two consecutive hyphens
+
+                  Example: myoptiongroup
+                type: string
+              tags:
+                description: Tags to assign to the option group.
+                items:
+                  description: |-
+                    Metadata assigned to an Amazon RDS resource consisting of a key-value pair.
+
+                    For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+                    in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+                    (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+                    in the Amazon Aurora User Guide.
+                  properties:
+                    key:
+                      type: string
+                    value:
+                      type: string
+                  type: object
+                type: array
+            required:
+            - description
+            - engineName
+            - majorEngineVersion
+            - name
+            type: object
+          status:
+            description: OptionGroupStatus defines the observed state of OptionGroup
+            properties:
+              ackResourceMetadata:
+                description: |-
+                  All CRs managed by ACK have a common `Status.ACKResourceMetadata` member
+                  that is used to contain resource sync state, account ownership,
+                  constructed ARN for the resource
+                properties:
+                  arn:
+                    description: |-
+                      ARN is the Amazon Resource Name for the resource. This is a
+                      globally-unique identifier and is set only by the ACK service controller
+                      once the controller has orchestrated the creation of the resource OR
+                      when it has verified that an "adopted" resource (a resource where the
+                      ARN annotation was set by the Kubernetes user on the CR) exists and
+                      matches the supplied CR's Spec field values.
+                      https://github.com/aws/aws-controllers-k8s/issues/270
+                    type: string
+                  ownerAccountID:
+                    description: |-
+                      OwnerAccountID is the AWS Account ID of the account that owns the
+                      backend AWS service API resource.
+                    type: string
+                  region:
+                    description: Region is the AWS region in which the resource exists
+                      or will exist.
+                    type: string
+                required:
+                - ownerAccountID
+                - region
+                type: object
+              allowsVPCAndNonVPCInstanceMemberships:
+                description: |-
+                  Indicates whether this option group can be applied to both VPC and non-VPC
+                  instances. The value true indicates the option group can be applied to both
+                  VPC and non-VPC instances.
+                type: boolean
+              conditions:
+                description: |-
+                  All CRs managed by ACK have a common `Status.Conditions` member that
+                  contains a collection of `ackv1alpha1.Condition` objects that describe
+                  the various terminal states of the CR and its backend AWS service API
+                  resource
+                items:
+                  description: |-
+                    Condition is the common struct used by all CRDs managed by ACK service
+                    controllers to indicate terminal states  of the CR and its backend AWS
+                    service API resource
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status
+                        to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type is the type of the Condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+              copyTimestamp:
+                description: Indicates when the option group was copied.
+                format: date-time
+                type: string
+              options:
+                description: Indicates what options are available in the option group.
+                items:
+                  description: The details of an option.
+                  properties:
+                    dbSecurityGroupMemberships:
+                      items:
+                        description: |-
+                          This data type is used as a response element in the following actions:
+
+                            - ModifyDBInstance
+
+                            - RebootDBInstance
+
+                            - RestoreDBInstanceFromDBSnapshot
+
+                            - RestoreDBInstanceToPointInTime
+                        properties:
+                          dbSecurityGroupName:
+                            type: string
+                          status:
+                            type: string
+                        type: object
+                      type: array
+                    optionDescription:
+                      type: string
+                    optionName:
+                      type: string
+                    optionSettings:
+                      items:
+                        description: |-
+                          Option settings are the actual settings being applied or configured for that
+                          option. It is used when you modify an option group or describe option groups.
+                          For example, the NATIVE_NETWORK_ENCRYPTION option has a setting called SQLNET.ENCRYPTION_SERVER
+                          that can have several different values.
+                        properties:
+                          allowedValues:
+                            type: string
+                          applyType:
+                            type: string
+                          dataType:
+                            type: string
+                          defaultValue:
+                            type: string
+                          description:
+                            type: string
+                          isCollection:
+                            type: boolean
+                          isModifiable:
+                            type: boolean
+                          name:
+                            type: string
+                          value:
+                            type: string
+                        type: object
+                      type: array
+                    optionVersion:
+                      type: string
+                    permanent:
+                      type: boolean
+                    persistent:
+                      type: boolean
+                    port:
+                      format: int64
+                      type: integer
+                    vpcSecurityGroupMemberships:
+                      items:
+                        description: |-
+                          This data type is used as a response element for queries on VPC security
+                          group membership.
+                        properties:
+                          status:
+                            type: string
+                          vpcSecurityGroupID:
+                            type: string
+                        type: object
+                      type: array
+                  type: object
+                type: array
+              sourceAccountID:
+                description: |-
+                  Specifies the Amazon Web Services account ID for the option group from which
+                  this option group is copied.
+                type: string
+              sourceOptionGroup:
+                description: Specifies the name of the option group from which this
+                  option group is copied.
+                type: string
+              vpcID:
+                description: |-
+                  If AllowsVpcAndNonVpcInstanceMemberships is false, this field is blank. If
+                  AllowsVpcAndNonVpcInstanceMemberships is true and this field is blank, then
+                  this option group can be applied to both VPC and non-VPC instances. If this
+                  field contains a value, then this option group can only be applied to instances
+                  that are in the VPC indicated by this field.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

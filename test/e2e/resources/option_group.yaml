@@ -1,0 +1,12 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: OptionGroup
+metadata:
+  name: $OPTION_GROUP_NAME
+spec:
+  engineName: $ENGINE_NAME
+  majorEngineVersion: "$MAJOR_ENGINE_VERSION"
+  description: $OPTION_GROUP_DESCRIPTION
+  name: $OPTION_GROUP_NAME
+  tags:
+    - key: environment
+      value: dev
