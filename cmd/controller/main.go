@@ -51,6 +51,7 @@ import (
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_snapshot"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/db_subnet_group"
 	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/global_cluster"
+	_ "github.com/aws-controllers-k8s/rds-controller/pkg/resource/option_group"
 
 	"github.com/aws-controllers-k8s/rds-controller/pkg/version"
 )

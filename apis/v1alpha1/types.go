@@ -1261,8 +1261,10 @@ type MinimumEngineVersionPerAllowedValue struct {
 
 // The details of an option.
 type Option struct {
+	DBSecurityGroupMemberships  []*DBSecurityGroupMembership  `json:"dbSecurityGroupMemberships,omitempty"`
 	OptionDescription           *string                       `json:"optionDescription,omitempty"`
 	OptionName                  *string                       `json:"optionName,omitempty"`
+	OptionSettings              []*OptionSetting              `json:"optionSettings,omitempty"`
 	OptionVersion               *string                       `json:"optionVersion,omitempty"`
 	Permanent                   *bool                         `json:"permanent,omitempty"`
 	Persistent                  *bool                         `json:"persistent,omitempty"`
@@ -1272,24 +1274,12 @@ type Option struct {
 
 // A list of all available options for an option group.
 type OptionConfiguration struct {
-	DBSecurityGroupMemberships  []*string `json:"dbSecurityGroupMemberships,omitempty"`
-	OptionName                  *string   `json:"optionName,omitempty"`
-	OptionVersion               *string   `json:"optionVersion,omitempty"`
-	Port                        *int64    `json:"port,omitempty"`
-	VPCSecurityGroupMemberships []*string `json:"vpcSecurityGroupMemberships,omitempty"`
-}
-
-type OptionGroup struct {
-	AllowsVPCAndNonVPCInstanceMemberships *bool        `json:"allowsVPCAndNonVPCInstanceMemberships,omitempty"`
-	CopyTimestamp                         *metav1.Time `json:"copyTimestamp,omitempty"`
-	EngineName                            *string      `json:"engineName,omitempty"`
-	MajorEngineVersion                    *string      `json:"majorEngineVersion,omitempty"`
-	OptionGroupARN                        *string      `json:"optionGroupARN,omitempty"`
-	OptionGroupDescription                *string      `json:"optionGroupDescription,omitempty"`
-	OptionGroupName                       *string      `json:"optionGroupName,omitempty"`
-	SourceAccountID                       *string      `json:"sourceAccountID,omitempty"`
-	SourceOptionGroup                     *string      `json:"sourceOptionGroup,omitempty"`
-	VPCID                                 *string      `json:"vpcID,omitempty"`
+	DBSecurityGroupMemberships  []*string        `json:"dbSecurityGroupMemberships,omitempty"`
+	OptionName                  *string          `json:"optionName,omitempty"`
+	OptionSettings              []*OptionSetting `json:"optionSettings,omitempty"`
+	OptionVersion               *string          `json:"optionVersion,omitempty"`
+	Port                        *int64           `json:"port,omitempty"`
+	VPCSecurityGroupMemberships []*string        `json:"vpcSecurityGroupMemberships,omitempty"`
 }
 
 // Provides information on the option groups the DB instance is a member of.
@@ -1326,6 +1316,20 @@ type OptionGroupOptionSetting struct {
 	IsRequired         *bool   `json:"isRequired,omitempty"`
 	SettingDescription *string `json:"settingDescription,omitempty"`
 	SettingName        *string `json:"settingName,omitempty"`
+}
+
+type OptionGroup_SDK struct {
+	AllowsVPCAndNonVPCInstanceMemberships *bool        `json:"allowsVPCAndNonVPCInstanceMemberships,omitempty"`
+	CopyTimestamp                         *metav1.Time `json:"copyTimestamp,omitempty"`
+	EngineName                            *string      `json:"engineName,omitempty"`
+	MajorEngineVersion                    *string      `json:"majorEngineVersion,omitempty"`
+	OptionGroupARN                        *string      `json:"optionGroupARN,omitempty"`
+	OptionGroupDescription                *string      `json:"optionGroupDescription,omitempty"`
+	OptionGroupName                       *string      `json:"optionGroupName,omitempty"`
+	Options                               []*Option    `json:"options,omitempty"`
+	SourceAccountID                       *string      `json:"sourceAccountID,omitempty"`
+	SourceOptionGroup                     *string      `json:"sourceOptionGroup,omitempty"`
+	VPCID                                 *string      `json:"vpcID,omitempty"`
 }
 
 // Option settings are the actual settings being applied or configured for that
