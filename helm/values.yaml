@@ -90,6 +90,8 @@ aws:
   # If specified, use the AWS region for AWS API calls
   region: ""
   endpoint_url: ""
+  identity_endpoint_url: ""
+  allow_unsafe_aws_endpoint_urls: false
   credentials:
     # If specified, Secret with shared credentials file to use.
     secretName: ""
