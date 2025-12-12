@@ -12,3 +12,4 @@ resources:
   - bases/rds.services.k8s.aws_dbsnapshots.yaml
   - bases/rds.services.k8s.aws_dbsubnetgroups.yaml
   - bases/rds.services.k8s.aws_globalclusters.yaml
+  - bases/rds.services.k8s.aws_optiongroups.yaml
