@@ -220,6 +220,7 @@ class TestDBInstance:
             ref,
             {"spec": {"enableCloudwatchLogsExports": ["postgresql"]}},
         )
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
         
         # wait for the resource to get synced after the patch
         assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
@@ -231,6 +232,7 @@ class TestDBInstance:
             ref,
             {"spec": {"enableCloudwatchLogsExports": None}},
         )
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
         # wait for the resource to get synced after the patch
         assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
