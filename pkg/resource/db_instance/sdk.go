@@ -895,6 +895,8 @@ func (rm *resourceManager) sdkFind(
 		}
 	}
 
+	ko.Spec.EnableCloudwatchLogsExports = ko.Status.EnabledCloudwatchLogsExports
+
 	return &resource{ko}, nil
 }
 
@@ -1991,6 +1993,17 @@ func (rm *resourceManager) sdkUpdate(
 		input.BackupRetentionPeriod = nil
 		input.PreferredBackupWindow = nil
 		input.DeletionProtection = nil
+	}
+	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
+		cloudwatchLogExportsConfigDesired := desired.ko.Spec.EnableCloudwatchLogsExports
+		//Latest log types config
+		cloudwatchLogExportsConfigLatest := latest.ko.Spec.EnableCloudwatchLogsExports
+		logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired, cloudwatchLogExportsConfigLatest)
+		f24 := &svcsdktypes.CloudwatchLogsExportConfiguration{
+			EnableLogTypes:  aws.ToStringSlice(logsTypesToEnable),
+			DisableLogTypes: aws.ToStringSlice(logsTypesToDisable),
+		}
+		input.CloudwatchLogsExportConfiguration = f24
 	}
 
 	var resp *svcsdk.ModifyDBInstanceOutput

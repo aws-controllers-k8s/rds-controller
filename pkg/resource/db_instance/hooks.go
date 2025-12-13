@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -584,4 +585,34 @@ func needStorageUpdate(
 ) bool {
 	return strings.Contains(*r.ko.Status.DBInstanceStatus, "storage-full") &&
 		delta.DifferentAt("Spec.AllocatedStorage")
+}
+
+func StringValueSlice(vs []*string) []string {
+	out := make([]string, 0, len(vs))
+	for _, v := range vs {
+		if v == nil {
+			continue
+		}
+		out = append(out, *v)
+	}
+	return out
+}
+
+func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired []*string, cloudwatchLogExportsConfigLatest []*string) ([]*string, []*string) {
+	logsTypesToEnable := []*string{}
+	logsTypesToDisable := []*string{}
+	desired := StringValueSlice(cloudwatchLogExportsConfigDesired)
+	latest := StringValueSlice(cloudwatchLogExportsConfigLatest)
+
+	for _, config := range cloudwatchLogExportsConfigDesired {
+		if !slices.Contains(latest, *config) {
+			logsTypesToEnable = append(logsTypesToEnable, config)
+		}
+	}
+	for _, config := range cloudwatchLogExportsConfigLatest {
+		if !slices.Contains(desired, *config) {
+			logsTypesToDisable = append(logsTypesToDisable, config)
+		}
+	}
+	return logsTypesToEnable, logsTypesToDisable
 }
