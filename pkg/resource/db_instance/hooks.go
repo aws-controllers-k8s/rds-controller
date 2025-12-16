@@ -587,22 +587,11 @@ func needStorageUpdate(
 		delta.DifferentAt("Spec.AllocatedStorage")
 }
 
-func StringValueSlice(vs []*string) []string {
-	out := make([]string, 0, len(vs))
-	for _, v := range vs {
-		if v == nil {
-			continue
-		}
-		out = append(out, *v)
-	}
-	return out
-}
-
 func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired []*string, cloudwatchLogExportsConfigLatest []*string) ([]*string, []*string) {
 	logsTypesToEnable := []*string{}
 	logsTypesToDisable := []*string{}
-	desired := StringValueSlice(cloudwatchLogExportsConfigDesired)
-	latest := StringValueSlice(cloudwatchLogExportsConfigLatest)
+	desired := aws.ToStringSlice(cloudwatchLogExportsConfigDesired)
+	latest := aws.ToStringSlice(cloudwatchLogExportsConfigLatest)
 
 	for _, config := range cloudwatchLogExportsConfigDesired {
 		if !slices.Contains(latest, *config) {
