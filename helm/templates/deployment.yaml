@@ -51,6 +51,13 @@ spec:
         - "$(AWS_REGION)"
         - --aws-endpoint-url
         - "$(AWS_ENDPOINT_URL)"
+{{- if .Values.aws.identity_endpoint_url }}
+        - --aws-identity-endpoint-url
+        - "$(AWS_IDENTITY_ENDPOINT_URL)"
+{{- end }}
+{{- if .Values.aws.allow_unsafe_aws_endpoint_urls }}
+        - --allow-unsafe-aws-endpoint-urls
+{{- end }}
 {{- if .Values.log.enable_development_logging }}
         - --enable-development-logging
 {{- end }}
@@ -109,6 +116,8 @@ spec:
           value: {{ .Values.aws.region }}
         - name: AWS_ENDPOINT_URL
           value: {{ .Values.aws.endpoint_url | quote }}
+        - name: AWS_IDENTITY_ENDPOINT_URL
+          value: {{ .Values.aws.identity_endpoint_url | quote }}
         - name: ACK_WATCH_NAMESPACE
           value: {{ include "ack-rds-controller.watch-namespace" . }}
         - name: ACK_WATCH_SELECTORS

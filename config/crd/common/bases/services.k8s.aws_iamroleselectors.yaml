@@ -63,6 +63,16 @@ spec:
                 required:
                 - names
                 type: object
+              resourceLabelSelector:
+                description: LabelSelector is a label query over a set of resources.
+                properties:
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                required:
+                - matchLabels
+                type: object
               resourceTypeSelector:
                 items:
                   properties:

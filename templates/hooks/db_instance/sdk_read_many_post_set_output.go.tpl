@@ -114,3 +114,9 @@
 			ko.Spec.DBParameterGroupName = ko.Status.DBParameterGroups[0].DBParameterGroupName
 		}
 	}
+  
+  // We currently do not set spec value for EnableCloudwatchLogsExports
+  // and instead only set the status field.
+  // Adding DBInstance.enableCloudwatchLogsExports doesn't update the RDS instance
+  // https://github.com/aws-controllers-k8s/community/issues/2128
+  ko.Spec.EnableCloudwatchLogsExports = ko.Status.EnabledCloudwatchLogsExports
