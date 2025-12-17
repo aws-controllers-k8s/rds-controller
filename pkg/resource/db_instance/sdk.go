@@ -895,6 +895,10 @@ func (rm *resourceManager) sdkFind(
 		}
 	}
 
+	// We currently do not set spec value for EnableCloudwatchLogsExports
+	// and instead only set the status field.
+	// Adding DBInstance.enableCloudwatchLogsExports doesn't update the RDS instance
+	// https://github.com/aws-controllers-k8s/community/issues/2128
 	ko.Spec.EnableCloudwatchLogsExports = ko.Status.EnabledCloudwatchLogsExports
 
 	return &resource{ko}, nil
@@ -1996,7 +2000,6 @@ func (rm *resourceManager) sdkUpdate(
 	}
 	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
 		cloudwatchLogExportsConfigDesired := desired.ko.Spec.EnableCloudwatchLogsExports
-		//Latest log types config
 		cloudwatchLogExportsConfigLatest := latest.ko.Spec.EnableCloudwatchLogsExports
 		logsTypesToEnable, logsTypesToDisable := getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired, cloudwatchLogExportsConfigLatest)
 		f24 := &svcsdktypes.CloudwatchLogsExportConfiguration{

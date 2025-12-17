@@ -204,7 +204,7 @@ class TestDBInstance:
         ]
         assert latest_tags == after_update_expected_tags
         
-    def test_crud_cloudwatch_logs14_t3_micro(
+    def test_crud_cloudwatch_logs_postgres14_t3_micro(
             self,
             postgres14_t3_micro_instance,
     ):
