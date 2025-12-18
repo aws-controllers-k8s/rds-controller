@@ -465,6 +465,27 @@ resources:
       IOPS:
         late_initialize:
           skip_incomplete_check: {}
+      BackupCrossRegionReplication:
+        custom_field:
+          # This field controls whether to call Start/Stop operations
+          # It's not directly mapped to an AWS API field
+          documentation: |
+            Enables cross-region automated backup replication.
+            When true, calls StartDBInstanceAutomatedBackupsReplication.
+            When false, calls StopDBInstanceAutomatedBackupsReplication.
+      BackupCrossRegionReplicationDestinationRegion:
+        documentation: |
+          The AWS region where automated backups should be replicated.
+          Required when BackupCrossRegionReplication is true.
+      BackupCrossRegionReplicationRetentionPeriod:
+        documentation: |
+          Number of days to retain replicated automated backups.
+          Default: 7
+      BackupCrossRegionReplicationKMSKeyID:
+        documentation: |
+          The AWS KMS key identifier for encryption of the replicated automated backups.
+          The KMS key ID is the Amazon Resource Name (ARN) for the KMS encryption key
+          in the destination AWS Region.
       Tags:
         compare:
           # We have a custom comparison function...
