@@ -45,6 +45,10 @@ func newResourceDelta(
 	}
 	compareTags(delta, a, b)
 
+	// Handle case where auto update minor version is true
+	// DBCluster Engine Version is major version and RDS Cluster Version is major and minor
+	reconcileDBClusterEngineVersion(a, b)
+
 	// Handle special case for StorageType field for Aurora engines
 	// When StorageType is set to "aurora" (default), the API doesn't return it
 
@@ -147,7 +151,9 @@ func newResourceDelta(
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
-		delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+		if a.ko.Spec.DatabaseInsightsMode != nil {
+			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+		}
 	} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
 		if *a.ko.Spec.DatabaseInsightsMode != *b.ko.Spec.DatabaseInsightsMode {
 			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
