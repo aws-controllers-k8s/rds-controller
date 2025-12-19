@@ -17,7 +17,7 @@ ignore:
     #- DBSubnetGroup
     - EventSubscription
     #- GlobalCluster
-    - OptionGroup
+    #- OptionGroup
     - Integration
     - DBShardGroup
     - TenantDatabase
@@ -616,3 +616,41 @@ resources:
         template_path: hooks/db_cluster_endpoint/sdk_update_pre_build_request.go.tpl
       delta_pre_compare:
         template_path: hooks/db_cluster_endpoint/delta_pre_compare.go.tpl
+  OptionGroup:
+    renames:
+      operations:
+        CreateOptionGroup:
+          input_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+          output_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+        DeleteOptionGroup:
+          input_fields:
+            OptionGroupName: Name
+        DescribeOptionGroups:
+          input_fields:
+            OptionGroupName: Name
+          output_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+        ModifyOptionGroup:
+          input_fields:
+            OptionGroupName: Name
+          output_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+    fields:
+      Name:
+        is_primary_key: true
+      Tags:
+        compare:
+          is_ignored: true
+    hooks:
+      sdk_read_many_post_set_output:
+        template_path: hooks/option_group/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/option_group/sdk_update_pre_build_request.go.tpl
+      delta_pre_compare:
+        template_path: hooks/option_group/delta_pre_compare.go.tpl
