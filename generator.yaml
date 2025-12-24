@@ -319,7 +319,8 @@ resources:
         - InvalidParameterCombination
     fields:
       AvailabilityZone:
-        late_initialize: {}
+        late_initialize:
+          skip_incomplete_check: {}
         is_immutable: true
       DBInstanceIdentifier:
         is_primary_key: true
@@ -328,7 +329,9 @@ resources:
           name: "STATUS"
       MasterUserPassword:
         is_secret: true
-      KMSKeyId:
+      KMSKeyID:
+        late_initialize:
+          skip_incomplete_check: {}
         references:
           resource: Key
           service_name: kms
@@ -352,9 +355,41 @@ resources:
           service_name: ec2
           path: Status.ID
       BackupTarget:
-        late_initialize: {}
+        late_initialize:
+          skip_incomplete_check: {}
       NetworkType:
-        late_initialize: {}
+        late_initialize:
+          skip_incomplete_check: {}
+      AutoMinorVersionUpgrade:
+        late_initialize:
+          skip_incomplete_check: {}
+      CACertificateIdentifier:
+        late_initialize:
+          skip_incomplete_check: {}
+      DatabaseInsightsMode:
+        late_initialize:
+          skip_incomplete_check: {}
+      LicenseModel:
+        late_initialize:
+          skip_incomplete_check: {}
+      MultiAZ:
+        late_initialize:
+          skip_incomplete_check: {}
+      PreferredBackupWindow:
+        late_initialize:
+          skip_incomplete_check: {}
+      PreferredMaintenanceWindow:
+        late_initialize:
+          skip_incomplete_check: {}
+      StorageEncrypted:
+        late_initialize:
+          skip_incomplete_check: {}
+      StorageThroughput:
+        late_initialize:
+          skip_incomplete_check: {}
+      StorageType:
+        late_initialize:
+          skip_incomplete_check: {}
       # Used by restore db instance from db snapshot
       DBSnapshotIdentifier:
         from:
@@ -395,6 +430,12 @@ resources:
         late_initialize:
           skip_incomplete_check: {}
       PerformanceInsightsRetentionPeriod:
+        late_initialize:
+          skip_incomplete_check: {}
+      DatabaseInsightsMode:
+        late_initialize:
+          skip_incomplete_check: {}
+      IOPS:
         late_initialize:
           skip_incomplete_check: {}
       Tags:
