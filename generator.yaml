@@ -397,8 +397,6 @@ resources:
         compare:
           is_ignored: true
       EnableCloudwatchLogsExports:
-        late_initialize:
-          skip_incomplete_check: {}
         compare:
           is_ignored: true
       LicenseModel:
