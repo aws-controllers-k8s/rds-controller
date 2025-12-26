@@ -112,6 +112,96 @@ var (
 	)
 )
 
+func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
+	// Do not consider any of the following fields for delta if they are missing in
+	// desired(a) but are present in latest(b) because each of these fields is
+	// late-initialized
+	// This special handling is only needed for DBInstance because late
+	// initialized values are not returned after successful ModifyDBInstance
+	// call. They are only populated once the DBInstance returns back to
+	// available.
+	if a.ko.Spec.AvailabilityZone == nil &&
+		b.ko.Spec.AvailabilityZone != nil {
+		a.ko.Spec.AvailabilityZone = b.ko.Spec.AvailabilityZone
+	}
+	if a.ko.Spec.BackupTarget == nil &&
+		b.ko.Spec.BackupTarget != nil &&
+		*b.ko.Spec.BackupTarget == ServiceDefaultBackupTarget {
+		a.ko.Spec.BackupTarget = b.ko.Spec.BackupTarget
+	}
+	if a.ko.Spec.NetworkType == nil &&
+		b.ko.Spec.NetworkType != nil &&
+		*b.ko.Spec.NetworkType == ServiceDefaultNetworkType {
+		a.ko.Spec.NetworkType = b.ko.Spec.NetworkType
+	}
+	if a.ko.Spec.PerformanceInsightsEnabled == nil &&
+		b.ko.Spec.PerformanceInsightsEnabled != nil {
+		a.ko.Spec.PerformanceInsightsEnabled = aws.Bool(false)
+	}
+
+	// RDS will choose preferred engine minor version if only
+	// engine major version is provided and controler should not
+	// treat them as different, such as spec has 14, status has 14.1
+	// controller should treat them as same
+	reconcileEngineVersion(a, b)
+	compareTags(delta, a, b)
+	compareSecretReferenceChanges(delta, a, b)
+
+	// if dbinstances are created from a dbcluster, certain fields can only be changed on dbclusters,
+	// not in dbinstances.
+	// With the following change, we ensure we don't try to update the following fields id DBClusterIdentifier
+	// is defined.
+	if a.ko.Spec.DBClusterIdentifier == nil {
+		if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
+			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+		} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
+			if *a.ko.Spec.DatabaseInsightsMode != *b.ko.Spec.DatabaseInsightsMode {
+				delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
+			}
+		}
+
+		if len(a.ko.Spec.EnableCloudwatchLogsExports) != len(b.ko.Spec.EnableCloudwatchLogsExports) {
+			delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
+		} else if len(a.ko.Spec.EnableCloudwatchLogsExports) > 0 {
+			if !ackcompare.SliceStringPEqual(a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports) {
+				delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
+			}
+		}
+
+		if ackcompare.HasNilDifference(a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage) {
+			delta.Add("Spec.MaxAllocatedStorage", a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage)
+		} else if a.ko.Spec.MaxAllocatedStorage != nil && b.ko.Spec.MaxAllocatedStorage != nil {
+			if *a.ko.Spec.MaxAllocatedStorage != *b.ko.Spec.MaxAllocatedStorage {
+				delta.Add("Spec.MaxAllocatedStorage", a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage)
+			}
+		}
+		if ackcompare.HasNilDifference(a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod) {
+			delta.Add("Spec.BackupRetentionPeriod", a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod)
+		} else if a.ko.Spec.BackupRetentionPeriod != nil && b.ko.Spec.BackupRetentionPeriod != nil {
+			if *a.ko.Spec.BackupRetentionPeriod != *b.ko.Spec.BackupRetentionPeriod {
+				delta.Add("Spec.BackupRetentionPeriod", a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod)
+			}
+		}
+
+		if ackcompare.HasNilDifference(a.ko.Spec.PreferredBackupWindow, b.ko.Spec.PreferredBackupWindow) {
+			delta.Add("Spec.PreferredBackupWindow", a.ko.Spec.PreferredBackupWindow, b.ko.Spec.PreferredBackupWindow)
+		} else if a.ko.Spec.PreferredBackupWindow != nil && b.ko.Spec.PreferredBackupWindow != nil {
+			if *a.ko.Spec.PreferredBackupWindow != *b.ko.Spec.PreferredBackupWindow {
+				delta.Add("Spec.PreferredBackupWindow", a.ko.Spec.PreferredBackupWindow, b.ko.Spec.PreferredBackupWindow)
+			}
+		}
+
+		if ackcompare.HasNilDifference(a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection) {
+			delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
+		} else if a.ko.Spec.DeletionProtection != nil && b.ko.Spec.DeletionProtection != nil {
+			if *a.ko.Spec.DeletionProtection != *b.ko.Spec.DeletionProtection {
+				delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
+			}
+		}
+	}
+
+}
+
 // requeueWaitUntilCanModify returns a `ackrequeue.RequeueNeededAfter` struct
 // explaining the DB instance cannot be modified until it reaches an available
 // status.

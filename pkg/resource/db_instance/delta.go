@@ -42,47 +42,8 @@ func newResourceDelta(
 		delta.Add("", a, b)
 		return delta
 	}
-	// Do not consider any of the following fields for delta if they are missing in
-	// desired(a) but are present in latest(b) because each of these fields is
-	// late-initialized
-	// This special handling is only needed for DBInstance because late
-	// initialized values are not returned after successful ModifyDBInstance
-	// call. They are only populated once the DBInstance returns back to
-	// available.
-	if a.ko.Spec.AvailabilityZone == nil &&
-		b.ko.Spec.AvailabilityZone != nil {
-		a.ko.Spec.AvailabilityZone = b.ko.Spec.AvailabilityZone
-	}
-	if a.ko.Spec.BackupTarget == nil &&
-		b.ko.Spec.BackupTarget != nil &&
-		*b.ko.Spec.BackupTarget == ServiceDefaultBackupTarget {
-		a.ko.Spec.BackupTarget = b.ko.Spec.BackupTarget
-	}
-	if a.ko.Spec.NetworkType == nil &&
-		b.ko.Spec.NetworkType != nil &&
-		*b.ko.Spec.NetworkType == ServiceDefaultNetworkType {
-		a.ko.Spec.NetworkType = b.ko.Spec.NetworkType
-	}
-	if a.ko.Spec.PerformanceInsightsEnabled == nil &&
-		b.ko.Spec.PerformanceInsightsEnabled != nil {
-		a.ko.Spec.PerformanceInsightsEnabled = func() *bool { a := false; return &a }()
-	}
+	customPreCompare(delta, a, b)
 
-	// RDS will choose preferred engine minor version if only
-	// engine major version is provided and controler should not
-	// treat them as different, such as spec has 14, status has 14.1
-	// controller should treat them as same
-	reconcileEngineVersion(a, b)
-	compareTags(delta, a, b)
-	compareSecretReferenceChanges(delta, a, b)
-
-	if ackcompare.HasNilDifference(a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage) {
-		delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)
-	} else if a.ko.Spec.AllocatedStorage != nil && b.ko.Spec.AllocatedStorage != nil {
-		if *a.ko.Spec.AllocatedStorage != *b.ko.Spec.AllocatedStorage {
-			delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.AutoMinorVersionUpgrade, b.ko.Spec.AutoMinorVersionUpgrade) {
 		delta.Add("Spec.AutoMinorVersionUpgrade", a.ko.Spec.AutoMinorVersionUpgrade, b.ko.Spec.AutoMinorVersionUpgrade)
 	} else if a.ko.Spec.AutoMinorVersionUpgrade != nil && b.ko.Spec.AutoMinorVersionUpgrade != nil {
@@ -95,13 +56,6 @@ func newResourceDelta(
 	} else if a.ko.Spec.AvailabilityZone != nil && b.ko.Spec.AvailabilityZone != nil {
 		if *a.ko.Spec.AvailabilityZone != *b.ko.Spec.AvailabilityZone {
 			delta.Add("Spec.AvailabilityZone", a.ko.Spec.AvailabilityZone, b.ko.Spec.AvailabilityZone)
-		}
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod) {
-		delta.Add("Spec.BackupRetentionPeriod", a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod)
-	} else if a.ko.Spec.BackupRetentionPeriod != nil && b.ko.Spec.BackupRetentionPeriod != nil {
-		if *a.ko.Spec.BackupRetentionPeriod != *b.ko.Spec.BackupRetentionPeriod {
-			delta.Add("Spec.BackupRetentionPeriod", a.ko.Spec.BackupRetentionPeriod, b.ko.Spec.BackupRetentionPeriod)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget) {
@@ -201,20 +155,6 @@ func newResourceDelta(
 	if !reflect.DeepEqual(a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef) {
 		delta.Add("Spec.DBSubnetGroupRef", a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef)
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
-		delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
-	} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
-		if *a.ko.Spec.DatabaseInsightsMode != *b.ko.Spec.DatabaseInsightsMode {
-			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
-		}
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection) {
-		delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
-	} else if a.ko.Spec.DeletionProtection != nil && b.ko.Spec.DeletionProtection != nil {
-		if *a.ko.Spec.DeletionProtection != *b.ko.Spec.DeletionProtection {
-			delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DestinationRegion, b.ko.Spec.DestinationRegion) {
 		delta.Add("Spec.DestinationRegion", a.ko.Spec.DestinationRegion, b.ko.Spec.DestinationRegion)
 	} else if a.ko.Spec.DestinationRegion != nil && b.ko.Spec.DestinationRegion != nil {
@@ -234,13 +174,6 @@ func newResourceDelta(
 	} else if a.ko.Spec.DomainIAMRoleName != nil && b.ko.Spec.DomainIAMRoleName != nil {
 		if *a.ko.Spec.DomainIAMRoleName != *b.ko.Spec.DomainIAMRoleName {
 			delta.Add("Spec.DomainIAMRoleName", a.ko.Spec.DomainIAMRoleName, b.ko.Spec.DomainIAMRoleName)
-		}
-	}
-	if len(a.ko.Spec.EnableCloudwatchLogsExports) != len(b.ko.Spec.EnableCloudwatchLogsExports) {
-		delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
-	} else if len(a.ko.Spec.EnableCloudwatchLogsExports) > 0 {
-		if !ackcompare.SliceStringPEqual(a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports) {
-			delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.EnableCustomerOwnedIP, b.ko.Spec.EnableCustomerOwnedIP) {
