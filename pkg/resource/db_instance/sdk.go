@@ -1960,44 +1960,6 @@ func (rm *resourceManager) sdkUpdate(
 	if err != nil {
 		return nil, err
 	}
-	// ModifyDBInstance call will return ValidationError when the
-	// ModifyDBInstanceRequest contains the same DBSubnetGroupName
-	// as the DBInstance. So, if there is no delta between
-	// desired and latest for Spec.DBSubnetGroupName, exclude it
-	// from ModifyDBInstanceRequest
-	if !delta.DifferentAt("Spec.DBSubnetGroupName") {
-		input.DBSubnetGroupName = nil
-	}
-
-	// RDS will not compare diff value and accept any modify db call
-	// for below values, MonitoringInterval, CACertificateIdentifier
-	// and user master password, NetworkType
-	// hence if there is no delta between desired
-	// and latest, exclude it from ModifyDBInstanceRequest
-	if !delta.DifferentAt("Spec.MonitoringInterval") {
-		input.MonitoringInterval = nil
-	}
-	if !delta.DifferentAt("Spec.CACertificateIdentifier") {
-		input.CACertificateIdentifier = nil
-	}
-	if !delta.DifferentAt("Spec.MasterUserPassword") {
-		input.MasterUserPassword = nil
-	}
-	if !delta.DifferentAt("Spec.NetworkType") {
-		input.NetworkType = nil
-	}
-
-	// For dbInstance inside dbCluster, it's either aurora or
-	// multi-az cluster case, in either case, the below params
-	// are not controlled in instance level.
-	// hence when DBClusterIdentifier appear, set them to nil
-	// Please refer to doc : https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DeleteDBInstance.html
-	if desired.ko.Spec.DBClusterIdentifier != nil {
-		input.AllocatedStorage = nil
-		input.BackupRetentionPeriod = nil
-		input.PreferredBackupWindow = nil
-		input.DeletionProtection = nil
-	}
 	if delta.DifferentAt("Spec.EnableCloudwatchLogsExports") {
 		cloudwatchLogExportsConfigDesired := desired.ko.Spec.EnableCloudwatchLogsExports
 		cloudwatchLogExportsConfigLatest := latest.ko.Spec.EnableCloudwatchLogsExports
@@ -2718,18 +2680,22 @@ func (rm *resourceManager) newUpdateRequestPayload(
 ) (*svcsdk.ModifyDBInstanceInput, error) {
 	res := &svcsdk.ModifyDBInstanceInput{}
 
-	if r.ko.Spec.AllocatedStorage != nil {
-		allocatedStorageCopy0 := *r.ko.Spec.AllocatedStorage
-		if allocatedStorageCopy0 > math.MaxInt32 || allocatedStorageCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field AllocatedStorage is of type int32")
+	if delta.DifferentAt("Spec.AllocatedStorage") {
+		if r.ko.Spec.AllocatedStorage != nil {
+			allocatedStorageCopy0 := *r.ko.Spec.AllocatedStorage
+			if allocatedStorageCopy0 > math.MaxInt32 || allocatedStorageCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field AllocatedStorage is of type int32")
+			}
+			allocatedStorageCopy := int32(allocatedStorageCopy0)
+			res.AllocatedStorage = &allocatedStorageCopy
 		}
-		allocatedStorageCopy := int32(allocatedStorageCopy0)
-		res.AllocatedStorage = &allocatedStorageCopy
 	}
 	res.AllowMajorVersionUpgrade = aws.Bool(true)
 	res.ApplyImmediately = aws.Bool(true)
-	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
-		res.AutoMinorVersionUpgrade = r.ko.Spec.AutoMinorVersionUpgrade
+	if delta.DifferentAt("Spec.AutoMinorVersionUpgrade") {
+		if r.ko.Spec.AutoMinorVersionUpgrade != nil {
+			res.AutoMinorVersionUpgrade = r.ko.Spec.AutoMinorVersionUpgrade
+		}
 	}
 	if r.ko.Status.AutomationMode != nil {
 		res.AutomationMode = svcsdktypes.AutomationMode(*r.ko.Status.AutomationMode)
@@ -2737,180 +2703,260 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Status.AWSBackupRecoveryPointARN != nil {
 		res.AwsBackupRecoveryPointArn = r.ko.Status.AWSBackupRecoveryPointARN
 	}
-	if r.ko.Spec.BackupRetentionPeriod != nil {
-		backupRetentionPeriodCopy0 := *r.ko.Spec.BackupRetentionPeriod
-		if backupRetentionPeriodCopy0 > math.MaxInt32 || backupRetentionPeriodCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field BackupRetentionPeriod is of type int32")
+	if delta.DifferentAt("Spec.BackupRetentionPeriod") {
+		if r.ko.Spec.BackupRetentionPeriod != nil {
+			backupRetentionPeriodCopy0 := *r.ko.Spec.BackupRetentionPeriod
+			if backupRetentionPeriodCopy0 > math.MaxInt32 || backupRetentionPeriodCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field BackupRetentionPeriod is of type int32")
+			}
+			backupRetentionPeriodCopy := int32(backupRetentionPeriodCopy0)
+			res.BackupRetentionPeriod = &backupRetentionPeriodCopy
 		}
-		backupRetentionPeriodCopy := int32(backupRetentionPeriodCopy0)
-		res.BackupRetentionPeriod = &backupRetentionPeriodCopy
 	}
-	if r.ko.Spec.CACertificateIdentifier != nil {
-		res.CACertificateIdentifier = r.ko.Spec.CACertificateIdentifier
+	if delta.DifferentAt("Spec.CACertificateIdentifier") {
+		if r.ko.Spec.CACertificateIdentifier != nil {
+			res.CACertificateIdentifier = r.ko.Spec.CACertificateIdentifier
+		}
 	}
-	if r.ko.Spec.CopyTagsToSnapshot != nil {
-		res.CopyTagsToSnapshot = r.ko.Spec.CopyTagsToSnapshot
+	if delta.DifferentAt("Spec.CopyTagsToSnapshot") {
+		if r.ko.Spec.CopyTagsToSnapshot != nil {
+			res.CopyTagsToSnapshot = r.ko.Spec.CopyTagsToSnapshot
+		}
 	}
-	if r.ko.Spec.DBInstanceClass != nil {
-		res.DBInstanceClass = r.ko.Spec.DBInstanceClass
+	if delta.DifferentAt("Spec.DBInstanceClass") {
+		if r.ko.Spec.DBInstanceClass != nil {
+			res.DBInstanceClass = r.ko.Spec.DBInstanceClass
+		}
 	}
 	if r.ko.Spec.DBInstanceIdentifier != nil {
 		res.DBInstanceIdentifier = r.ko.Spec.DBInstanceIdentifier
 	}
-	if r.ko.Spec.DBParameterGroupName != nil {
-		res.DBParameterGroupName = r.ko.Spec.DBParameterGroupName
-	}
-	if r.ko.Spec.DBSubnetGroupName != nil {
-		res.DBSubnetGroupName = r.ko.Spec.DBSubnetGroupName
-	}
-	if r.ko.Spec.DatabaseInsightsMode != nil {
-		res.DatabaseInsightsMode = svcsdktypes.DatabaseInsightsMode(*r.ko.Spec.DatabaseInsightsMode)
-	}
-	if r.ko.Spec.DeletionProtection != nil {
-		res.DeletionProtection = r.ko.Spec.DeletionProtection
-	}
-	if r.ko.Spec.Domain != nil {
-		res.Domain = r.ko.Spec.Domain
-	}
-	if r.ko.Spec.DomainIAMRoleName != nil {
-		res.DomainIAMRoleName = r.ko.Spec.DomainIAMRoleName
-	}
-	if r.ko.Spec.EnableCustomerOwnedIP != nil {
-		res.EnableCustomerOwnedIp = r.ko.Spec.EnableCustomerOwnedIP
-	}
-	if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
-		res.EnableIAMDatabaseAuthentication = r.ko.Spec.EnableIAMDatabaseAuthentication
-	}
-	if r.ko.Spec.PerformanceInsightsEnabled != nil {
-		res.EnablePerformanceInsights = r.ko.Spec.PerformanceInsightsEnabled
-	}
-	if r.ko.Spec.Engine != nil {
-		res.Engine = r.ko.Spec.Engine
-	}
-	if r.ko.Spec.EngineVersion != nil {
-		res.EngineVersion = r.ko.Spec.EngineVersion
-	}
-	if r.ko.Spec.IOPS != nil {
-		iopsCopy0 := *r.ko.Spec.IOPS
-		if iopsCopy0 > math.MaxInt32 || iopsCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field Iops is of type int32")
-		}
-		iopsCopy := int32(iopsCopy0)
-		res.Iops = &iopsCopy
-	}
-	if r.ko.Spec.LicenseModel != nil {
-		res.LicenseModel = r.ko.Spec.LicenseModel
-	}
-	if r.ko.Spec.ManageMasterUserPassword != nil {
-		res.ManageMasterUserPassword = r.ko.Spec.ManageMasterUserPassword
-	}
-	if r.ko.Spec.MasterUserPassword != nil {
-		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
-		if err != nil {
-			return nil, ackrequeue.Needed(err)
-		}
-		if tmpSecret != "" {
-			res.MasterUserPassword = aws.String(tmpSecret)
+	if delta.DifferentAt("Spec.DBParameterGroupName") {
+		if r.ko.Spec.DBParameterGroupName != nil {
+			res.DBParameterGroupName = r.ko.Spec.DBParameterGroupName
 		}
 	}
-	if r.ko.Spec.MasterUserSecretKMSKeyID != nil {
-		res.MasterUserSecretKmsKeyId = r.ko.Spec.MasterUserSecretKMSKeyID
-	}
-	if r.ko.Spec.MaxAllocatedStorage != nil {
-		maxAllocatedStorageCopy0 := *r.ko.Spec.MaxAllocatedStorage
-		if maxAllocatedStorageCopy0 > math.MaxInt32 || maxAllocatedStorageCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field MaxAllocatedStorage is of type int32")
+	if delta.DifferentAt("Spec.DBSubnetGroupName") {
+		if r.ko.Spec.DBSubnetGroupName != nil {
+			res.DBSubnetGroupName = r.ko.Spec.DBSubnetGroupName
 		}
-		maxAllocatedStorageCopy := int32(maxAllocatedStorageCopy0)
-		res.MaxAllocatedStorage = &maxAllocatedStorageCopy
 	}
-	if r.ko.Spec.MonitoringInterval != nil {
-		monitoringIntervalCopy0 := *r.ko.Spec.MonitoringInterval
-		if monitoringIntervalCopy0 > math.MaxInt32 || monitoringIntervalCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field MonitoringInterval is of type int32")
+	if delta.DifferentAt("Spec.DatabaseInsightsMode") {
+		if r.ko.Spec.DatabaseInsightsMode != nil {
+			res.DatabaseInsightsMode = svcsdktypes.DatabaseInsightsMode(*r.ko.Spec.DatabaseInsightsMode)
 		}
-		monitoringIntervalCopy := int32(monitoringIntervalCopy0)
-		res.MonitoringInterval = &monitoringIntervalCopy
 	}
-	if r.ko.Spec.MonitoringRoleARN != nil {
-		res.MonitoringRoleArn = r.ko.Spec.MonitoringRoleARN
-	}
-	if r.ko.Spec.MultiAZ != nil {
-		res.MultiAZ = r.ko.Spec.MultiAZ
-	}
-	if r.ko.Spec.NetworkType != nil {
-		res.NetworkType = r.ko.Spec.NetworkType
-	}
-	if r.ko.Spec.OptionGroupName != nil {
-		res.OptionGroupName = r.ko.Spec.OptionGroupName
-	}
-	if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
-		res.PerformanceInsightsKMSKeyId = r.ko.Spec.PerformanceInsightsKMSKeyID
-	}
-	if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
-		performanceInsightsRetentionPeriodCopy0 := *r.ko.Spec.PerformanceInsightsRetentionPeriod
-		if performanceInsightsRetentionPeriodCopy0 > math.MaxInt32 || performanceInsightsRetentionPeriodCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field PerformanceInsightsRetentionPeriod is of type int32")
+	if delta.DifferentAt("Spec.DeletionProtection") {
+		if r.ko.Spec.DeletionProtection != nil {
+			res.DeletionProtection = r.ko.Spec.DeletionProtection
 		}
-		performanceInsightsRetentionPeriodCopy := int32(performanceInsightsRetentionPeriodCopy0)
-		res.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
 	}
-	if r.ko.Spec.PreferredBackupWindow != nil {
-		res.PreferredBackupWindow = r.ko.Spec.PreferredBackupWindow
+	if delta.DifferentAt("Spec.Domain") {
+		if r.ko.Spec.Domain != nil {
+			res.Domain = r.ko.Spec.Domain
+		}
 	}
-	if r.ko.Spec.PreferredMaintenanceWindow != nil {
-		res.PreferredMaintenanceWindow = r.ko.Spec.PreferredMaintenanceWindow
+	if delta.DifferentAt("Spec.DomainIAMRoleName") {
+		if r.ko.Spec.DomainIAMRoleName != nil {
+			res.DomainIAMRoleName = r.ko.Spec.DomainIAMRoleName
+		}
 	}
-	if r.ko.Spec.ProcessorFeatures != nil {
-		f49 := []svcsdktypes.ProcessorFeature{}
-		for _, f49iter := range r.ko.Spec.ProcessorFeatures {
-			f49elem := &svcsdktypes.ProcessorFeature{}
-			if f49iter.Name != nil {
-				f49elem.Name = f49iter.Name
+	if delta.DifferentAt("Spec.EnableCustomerOwnedIP") {
+		if r.ko.Spec.EnableCustomerOwnedIP != nil {
+			res.EnableCustomerOwnedIp = r.ko.Spec.EnableCustomerOwnedIP
+		}
+	}
+	if delta.DifferentAt("Spec.EnableIAMDatabaseAuthentication") {
+		if r.ko.Spec.EnableIAMDatabaseAuthentication != nil {
+			res.EnableIAMDatabaseAuthentication = r.ko.Spec.EnableIAMDatabaseAuthentication
+		}
+	}
+	if delta.DifferentAt("Spec.PerformanceInsightsEnabled") {
+		if r.ko.Spec.PerformanceInsightsEnabled != nil {
+			res.EnablePerformanceInsights = r.ko.Spec.PerformanceInsightsEnabled
+		}
+	}
+	if delta.DifferentAt("Spec.Engine") {
+		if r.ko.Spec.Engine != nil {
+			res.Engine = r.ko.Spec.Engine
+		}
+	}
+	if delta.DifferentAt("Spec.EngineVersion") {
+		if r.ko.Spec.EngineVersion != nil {
+			res.EngineVersion = r.ko.Spec.EngineVersion
+		}
+	}
+	if delta.DifferentAt("Spec.IOPS") {
+		if r.ko.Spec.IOPS != nil {
+			iopsCopy0 := *r.ko.Spec.IOPS
+			if iopsCopy0 > math.MaxInt32 || iopsCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field Iops is of type int32")
 			}
-			if f49iter.Value != nil {
-				f49elem.Value = f49iter.Value
+			iopsCopy := int32(iopsCopy0)
+			res.Iops = &iopsCopy
+		}
+	}
+	if delta.DifferentAt("Spec.LicenseModel") {
+		if r.ko.Spec.LicenseModel != nil {
+			res.LicenseModel = r.ko.Spec.LicenseModel
+		}
+	}
+	if delta.DifferentAt("Spec.ManageMasterUserPassword") {
+		if r.ko.Spec.ManageMasterUserPassword != nil {
+			res.ManageMasterUserPassword = r.ko.Spec.ManageMasterUserPassword
+		}
+	}
+	if delta.DifferentAt("Spec.MasterUserPassword") {
+		if r.ko.Spec.MasterUserPassword != nil {
+			tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.MasterUserPassword)
+			if err != nil {
+				return nil, ackrequeue.Needed(err)
 			}
-			f49 = append(f49, *f49elem)
+			if tmpSecret != "" {
+				res.MasterUserPassword = aws.String(tmpSecret)
+			}
 		}
-		res.ProcessorFeatures = f49
 	}
-	if r.ko.Spec.PromotionTier != nil {
-		promotionTierCopy0 := *r.ko.Spec.PromotionTier
-		if promotionTierCopy0 > math.MaxInt32 || promotionTierCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field PromotionTier is of type int32")
+	if delta.DifferentAt("Spec.MasterUserSecretKMSKeyID") {
+		if r.ko.Spec.MasterUserSecretKMSKeyID != nil {
+			res.MasterUserSecretKmsKeyId = r.ko.Spec.MasterUserSecretKMSKeyID
 		}
-		promotionTierCopy := int32(promotionTierCopy0)
-		res.PromotionTier = &promotionTierCopy
 	}
-	if r.ko.Spec.PubliclyAccessible != nil {
-		res.PubliclyAccessible = r.ko.Spec.PubliclyAccessible
-	}
-	if r.ko.Spec.ReplicaMode != nil {
-		res.ReplicaMode = svcsdktypes.ReplicaMode(*r.ko.Spec.ReplicaMode)
-	}
-	if r.ko.Spec.StorageThroughput != nil {
-		storageThroughputCopy0 := *r.ko.Spec.StorageThroughput
-		if storageThroughputCopy0 > math.MaxInt32 || storageThroughputCopy0 < math.MinInt32 {
-			return nil, fmt.Errorf("error: field StorageThroughput is of type int32")
+	if delta.DifferentAt("Spec.MaxAllocatedStorage") {
+		if r.ko.Spec.MaxAllocatedStorage != nil {
+			maxAllocatedStorageCopy0 := *r.ko.Spec.MaxAllocatedStorage
+			if maxAllocatedStorageCopy0 > math.MaxInt32 || maxAllocatedStorageCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MaxAllocatedStorage is of type int32")
+			}
+			maxAllocatedStorageCopy := int32(maxAllocatedStorageCopy0)
+			res.MaxAllocatedStorage = &maxAllocatedStorageCopy
 		}
-		storageThroughputCopy := int32(storageThroughputCopy0)
-		res.StorageThroughput = &storageThroughputCopy
 	}
-	if r.ko.Spec.StorageType != nil {
-		res.StorageType = r.ko.Spec.StorageType
+	if delta.DifferentAt("Spec.MonitoringInterval") {
+		if r.ko.Spec.MonitoringInterval != nil {
+			monitoringIntervalCopy0 := *r.ko.Spec.MonitoringInterval
+			if monitoringIntervalCopy0 > math.MaxInt32 || monitoringIntervalCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field MonitoringInterval is of type int32")
+			}
+			monitoringIntervalCopy := int32(monitoringIntervalCopy0)
+			res.MonitoringInterval = &monitoringIntervalCopy
+		}
 	}
-	if r.ko.Spec.TDECredentialARN != nil {
-		res.TdeCredentialArn = r.ko.Spec.TDECredentialARN
+	if delta.DifferentAt("Spec.MonitoringRoleARN") {
+		if r.ko.Spec.MonitoringRoleARN != nil {
+			res.MonitoringRoleArn = r.ko.Spec.MonitoringRoleARN
+		}
 	}
-	if r.ko.Spec.TDECredentialPassword != nil {
-		res.TdeCredentialPassword = r.ko.Spec.TDECredentialPassword
+	if delta.DifferentAt("Spec.MultiAZ") {
+		if r.ko.Spec.MultiAZ != nil {
+			res.MultiAZ = r.ko.Spec.MultiAZ
+		}
 	}
-	if r.ko.Spec.UseDefaultProcessorFeatures != nil {
-		res.UseDefaultProcessorFeatures = r.ko.Spec.UseDefaultProcessorFeatures
+	if delta.DifferentAt("Spec.NetworkType") {
+		if r.ko.Spec.NetworkType != nil {
+			res.NetworkType = r.ko.Spec.NetworkType
+		}
 	}
-	if r.ko.Spec.VPCSecurityGroupIDs != nil {
-		res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
+	if delta.DifferentAt("Spec.OptionGroupName") {
+		if r.ko.Spec.OptionGroupName != nil {
+			res.OptionGroupName = r.ko.Spec.OptionGroupName
+		}
+	}
+	if delta.DifferentAt("Spec.PerformanceInsightsKMSKeyID") {
+		if r.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+			res.PerformanceInsightsKMSKeyId = r.ko.Spec.PerformanceInsightsKMSKeyID
+		}
+	}
+	if delta.DifferentAt("Spec.PerformanceInsightsRetentionPeriod") {
+		if r.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+			performanceInsightsRetentionPeriodCopy0 := *r.ko.Spec.PerformanceInsightsRetentionPeriod
+			if performanceInsightsRetentionPeriodCopy0 > math.MaxInt32 || performanceInsightsRetentionPeriodCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field PerformanceInsightsRetentionPeriod is of type int32")
+			}
+			performanceInsightsRetentionPeriodCopy := int32(performanceInsightsRetentionPeriodCopy0)
+			res.PerformanceInsightsRetentionPeriod = &performanceInsightsRetentionPeriodCopy
+		}
+	}
+	if delta.DifferentAt("Spec.PreferredBackupWindow") {
+		if r.ko.Spec.PreferredBackupWindow != nil {
+			res.PreferredBackupWindow = r.ko.Spec.PreferredBackupWindow
+		}
+	}
+	if delta.DifferentAt("Spec.PreferredMaintenanceWindow") {
+		if r.ko.Spec.PreferredMaintenanceWindow != nil {
+			res.PreferredMaintenanceWindow = r.ko.Spec.PreferredMaintenanceWindow
+		}
+	}
+	if delta.DifferentAt("Spec.ProcessorFeatures") {
+		if r.ko.Spec.ProcessorFeatures != nil {
+			f49 := []svcsdktypes.ProcessorFeature{}
+			for _, f49iter := range r.ko.Spec.ProcessorFeatures {
+				f49elem := &svcsdktypes.ProcessorFeature{}
+				if f49iter.Name != nil {
+					f49elem.Name = f49iter.Name
+				}
+				if f49iter.Value != nil {
+					f49elem.Value = f49iter.Value
+				}
+				f49 = append(f49, *f49elem)
+			}
+			res.ProcessorFeatures = f49
+		}
+	}
+	if delta.DifferentAt("Spec.PromotionTier") {
+		if r.ko.Spec.PromotionTier != nil {
+			promotionTierCopy0 := *r.ko.Spec.PromotionTier
+			if promotionTierCopy0 > math.MaxInt32 || promotionTierCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field PromotionTier is of type int32")
+			}
+			promotionTierCopy := int32(promotionTierCopy0)
+			res.PromotionTier = &promotionTierCopy
+		}
+	}
+	if delta.DifferentAt("Spec.PubliclyAccessible") {
+		if r.ko.Spec.PubliclyAccessible != nil {
+			res.PubliclyAccessible = r.ko.Spec.PubliclyAccessible
+		}
+	}
+	if delta.DifferentAt("Spec.ReplicaMode") {
+		if r.ko.Spec.ReplicaMode != nil {
+			res.ReplicaMode = svcsdktypes.ReplicaMode(*r.ko.Spec.ReplicaMode)
+		}
+	}
+	if delta.DifferentAt("Spec.StorageThroughput") {
+		if r.ko.Spec.StorageThroughput != nil {
+			storageThroughputCopy0 := *r.ko.Spec.StorageThroughput
+			if storageThroughputCopy0 > math.MaxInt32 || storageThroughputCopy0 < math.MinInt32 {
+				return nil, fmt.Errorf("error: field StorageThroughput is of type int32")
+			}
+			storageThroughputCopy := int32(storageThroughputCopy0)
+			res.StorageThroughput = &storageThroughputCopy
+		}
+	}
+	if delta.DifferentAt("Spec.StorageType") {
+		if r.ko.Spec.StorageType != nil {
+			res.StorageType = r.ko.Spec.StorageType
+		}
+	}
+	if delta.DifferentAt("Spec.TDECredentialARN") {
+		if r.ko.Spec.TDECredentialARN != nil {
+			res.TdeCredentialArn = r.ko.Spec.TDECredentialARN
+		}
+	}
+	if delta.DifferentAt("Spec.TDECredentialPassword") {
+		if r.ko.Spec.TDECredentialPassword != nil {
+			res.TdeCredentialPassword = r.ko.Spec.TDECredentialPassword
+		}
+	}
+	if delta.DifferentAt("Spec.UseDefaultProcessorFeatures") {
+		if r.ko.Spec.UseDefaultProcessorFeatures != nil {
+			res.UseDefaultProcessorFeatures = r.ko.Spec.UseDefaultProcessorFeatures
+		}
+	}
+	if delta.DifferentAt("Spec.VPCSecurityGroupIDs") {
+		if r.ko.Spec.VPCSecurityGroupIDs != nil {
+			res.VpcSecurityGroupIds = aws.ToStringSlice(r.ko.Spec.VPCSecurityGroupIDs)
+		}
 	}
 
 	return res, nil
