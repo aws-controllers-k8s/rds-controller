@@ -17,16 +17,15 @@ package db_cluster_parameter_group
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -75,7 +74,7 @@ func newResourceDelta(
 	if len(a.ko.Spec.Parameters) != len(b.ko.Spec.Parameters) {
 		delta.Add("Spec.Parameters", a.ko.Spec.Parameters, b.ko.Spec.Parameters)
 	} else if len(a.ko.Spec.Parameters) > 0 {
-		if !reflect.DeepEqual(a.ko.Spec.Parameters, b.ko.Spec.Parameters) {
+		if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.Parameters, b.ko.Spec.Parameters) {
 			delta.Add("Spec.Parameters", a.ko.Spec.Parameters, b.ko.Spec.Parameters)
 		}
 	}

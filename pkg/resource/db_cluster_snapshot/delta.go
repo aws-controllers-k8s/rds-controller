@@ -17,16 +17,15 @@ package db_cluster_snapshot
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -50,7 +49,7 @@ func newResourceDelta(
 			delta.Add("Spec.DBClusterIdentifier", a.ko.Spec.DBClusterIdentifier, b.ko.Spec.DBClusterIdentifier)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.DBClusterIdentifierRef, b.ko.Spec.DBClusterIdentifierRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DBClusterIdentifierRef, b.ko.Spec.DBClusterIdentifierRef) {
 		delta.Add("Spec.DBClusterIdentifierRef", a.ko.Spec.DBClusterIdentifierRef, b.ko.Spec.DBClusterIdentifierRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBClusterSnapshotIdentifier, b.ko.Spec.DBClusterSnapshotIdentifier) {

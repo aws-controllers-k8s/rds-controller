@@ -17,16 +17,15 @@ package db_proxy
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -46,7 +45,7 @@ func newResourceDelta(
 	if len(a.ko.Spec.Auth) != len(b.ko.Spec.Auth) {
 		delta.Add("Spec.Auth", a.ko.Spec.Auth, b.ko.Spec.Auth)
 	} else if len(a.ko.Spec.Auth) > 0 {
-		if !reflect.DeepEqual(a.ko.Spec.Auth, b.ko.Spec.Auth) {
+		if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.Auth, b.ko.Spec.Auth) {
 			delta.Add("Spec.Auth", a.ko.Spec.Auth, b.ko.Spec.Auth)
 		}
 	}

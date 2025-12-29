@@ -17,16 +17,15 @@ package db_instance
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -135,7 +134,7 @@ func newResourceDelta(
 			delta.Add("Spec.DBParameterGroupName", a.ko.Spec.DBParameterGroupName, b.ko.Spec.DBParameterGroupName)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.DBParameterGroupRef, b.ko.Spec.DBParameterGroupRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DBParameterGroupRef, b.ko.Spec.DBParameterGroupRef) {
 		delta.Add("Spec.DBParameterGroupRef", a.ko.Spec.DBParameterGroupRef, b.ko.Spec.DBParameterGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier) {
@@ -152,7 +151,7 @@ func newResourceDelta(
 			delta.Add("Spec.DBSubnetGroupName", a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef) {
 		delta.Add("Spec.DBSubnetGroupRef", a.ko.Spec.DBSubnetGroupRef, b.ko.Spec.DBSubnetGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DestinationRegion, b.ko.Spec.DestinationRegion) {
@@ -218,7 +217,7 @@ func newResourceDelta(
 			delta.Add("Spec.KMSKeyID", a.ko.Spec.KMSKeyID, b.ko.Spec.KMSKeyID)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef) {
 		delta.Add("Spec.KMSKeyRef", a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.LicenseModel, b.ko.Spec.LicenseModel) {
@@ -249,7 +248,7 @@ func newResourceDelta(
 			delta.Add("Spec.MasterUserSecretKMSKeyID", a.ko.Spec.MasterUserSecretKMSKeyID, b.ko.Spec.MasterUserSecretKMSKeyID)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef) {
 		delta.Add("Spec.MasterUserSecretKMSKeyRef", a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername) {
@@ -360,7 +359,7 @@ func newResourceDelta(
 	if len(a.ko.Spec.ProcessorFeatures) != len(b.ko.Spec.ProcessorFeatures) {
 		delta.Add("Spec.ProcessorFeatures", a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures)
 	} else if len(a.ko.Spec.ProcessorFeatures) > 0 {
-		if !reflect.DeepEqual(a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures) {
+		if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures) {
 			delta.Add("Spec.ProcessorFeatures", a.ko.Spec.ProcessorFeatures, b.ko.Spec.ProcessorFeatures)
 		}
 	}
@@ -455,7 +454,7 @@ func newResourceDelta(
 			delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs) {
 		delta.Add("Spec.VPCSecurityGroupRefs", a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs)
 	}
 

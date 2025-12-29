@@ -17,16 +17,15 @@ package db_snapshot
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -50,7 +49,7 @@ func newResourceDelta(
 			delta.Add("Spec.DBInstanceIdentifier", a.ko.Spec.DBInstanceIdentifier, b.ko.Spec.DBInstanceIdentifier)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.DBInstanceIdentifierRef, b.ko.Spec.DBInstanceIdentifierRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DBInstanceIdentifierRef, b.ko.Spec.DBInstanceIdentifierRef) {
 		delta.Add("Spec.DBInstanceIdentifierRef", a.ko.Spec.DBInstanceIdentifierRef, b.ko.Spec.DBInstanceIdentifierRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSnapshotIdentifier, b.ko.Spec.DBSnapshotIdentifier) {
