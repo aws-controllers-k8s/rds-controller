@@ -293,7 +293,7 @@ resources:
   DBInstance:
     hooks:
       delta_pre_compare:
-        template_path: hooks/db_instance/delta_pre_compare.go.tpl
+        code: customPreCompare(delta, a, b)
       sdk_create_pre_build_request:
         template_path: hooks/db_instance/sdk_create_pre_build_request.go.tpl
       sdk_create_post_set_output:
@@ -317,6 +317,8 @@ resources:
         - InvalidParameter
         - InvalidParameterValue
         - InvalidParameterCombination
+    update_operation:
+      omit_unchanged_fields: true
     fields:
       AvailabilityZone:
         late_initialize:
@@ -366,9 +368,37 @@ resources:
       CACertificateIdentifier:
         late_initialize:
           skip_incomplete_check: {}
+      # custom compare will ensure that we check
+      # these fields delta only when DBClusterIdentifier
+      # is not set
       DatabaseInsightsMode:
         late_initialize:
           skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      AllocatedStorage:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      BackupRetentionPeriod:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      PreferredBackupWindow:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      DeletionProtection:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      EnableCloudwatchLogsExports:
+        compare:
+          is_ignored: true
       LicenseModel:
         late_initialize:
           skip_incomplete_check: {}
@@ -430,9 +460,6 @@ resources:
         late_initialize:
           skip_incomplete_check: {}
       PerformanceInsightsRetentionPeriod:
-        late_initialize:
-          skip_incomplete_check: {}
-      DatabaseInsightsMode:
         late_initialize:
           skip_incomplete_check: {}
       IOPS:

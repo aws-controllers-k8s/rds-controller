@@ -281,6 +281,17 @@ class TestReferences:
         condition.assert_synced(db_pg_ref)
         condition.assert_synced(db_instance_ref)
 
+        # Update DBInstance DatabaseInsightsMode (field managed by DBCluster)
+        # This should not cause a terminal error.
+        updates = {
+            "spec": {
+                "databaseInsightsMode": "advanced"
+            }
+        }
+        k8s.patch_custom_resource(db_instance_ref, updates)
+        time.sleep(CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
+        assert k8s.wait_on_condition(db_instance_ref, "ACK.ResourceSynced", "True", wait_periods=CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
+
         # NOTE(jaypipes): We need to manually delete the DB Instance first
         # because pytest fixtures will try to clean up the DB Parameter Group
         # fixture *first* (because it was initialized after DB Instance) but if
