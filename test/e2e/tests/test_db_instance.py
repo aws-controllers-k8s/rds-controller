@@ -504,3 +504,114 @@ class TestDBInstance:
         assert latest is not None
         assert latest['DBInstanceStatus'] == 'available'
         assert latest['MultiAZ'] is True
+
+    def test_crud_postgres14_cross_region_backup_replication(
+            self,
+            postgres14_t3_micro_instance,
+    ):
+        (ref, cr, _) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] == 'creating'
+        condition.assert_not_synced(ref)
+
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After the resource is synced, assert that DBInstanceStatus is available
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['MultiAZ'] is False
+
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        assert cr['status']['dbInstanceStatus'] != 'creating'
+        condition.assert_synced(ref)
+
+        # Let's now enable cross-region backup replication and check that the CR
+        # gets updated accordingly
+        # Get the current AWS region and pick a different one for cross-region replication
+        import boto3
+        rds_client = boto3.client('rds')
+        current_region = rds_client.meta.region_name
+        # Use us-east-1 or us-east-2, whichever is not the current region
+        destination_region = 'us-east-2' if current_region == 'us-east-1' else 'us-east-1'
+        
+        updates = {
+            "spec": {
+                "backupRetentionPeriod": 7,
+                "backupCrossRegionReplication": True,
+                "backupCrossRegionReplicationDestinationRegion": destination_region,
+                "backupCrossRegionReplicationRetentionPeriod": 7,
+            },
+        }
+        
+        k8s.patch_custom_resource(ref, updates)
+        
+        # Verify replication is enabled in the CR spec
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert cr['spec']['backupRetentionPeriod'] == 7
+        assert cr['spec']['backupCrossRegionReplication'] is True
+        assert cr['spec']['backupCrossRegionReplicationDestinationRegion'] == destination_region
+        assert cr['spec']['backupCrossRegionReplicationRetentionPeriod'] == 7
+        
+        # Wait for the resource to get synced after enabling replication
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        # After synced, verify the status reflects the changes
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'status' in cr
+        assert 'dbInstanceStatus' in cr['status']
+        condition.assert_synced(ref)
+        
+        # Wait for StartDBInstanceAutomatedBackupsReplication to complete
+        # This happens after ModifyDBInstance completes, so we need to wait for
+        # the replication status to be populated in the CR status field
+        import datetime
+        timeout = datetime.datetime.now() + datetime.timedelta(minutes=MAX_WAIT_FOR_SYNCED_MINUTES * 2)
+        while datetime.datetime.now() < timeout:
+            cr = k8s.get_resource(ref)
+            if cr and 'status' in cr and 'dbInstanceAutomatedBackupsReplications' in cr['status']:
+                replications = cr['status']['dbInstanceAutomatedBackupsReplications']
+                if replications and len(replications) > 0:
+                    # Verify the replication ARN contains the destination region
+                    replication_arn = replications[0].get('dbInstanceAutomatedBackupsARN', '')
+                    assert destination_region in replication_arn, f"Replication ARN {replication_arn} does not contain destination region {destination_region}"
+                    break
+            time.sleep(15)  # Check every 15 seconds
+        else:
+            pytest.fail(
+                "Cross-region backup replication did not become active within timeout. "
+                "StartDBInstanceAutomatedBackupsReplication may not have been called or completed."
+            )
+    
+        # Now disable cross-region backup replication and verify the change
+        updates = {
+            "spec": {
+                "backupCrossRegionReplication": False,
+            },
+        }
+        
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        condition.assert_not_synced(ref)
+        
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'spec' in cr
+        assert cr['spec']['backupCrossRegionReplication'] is False
+        
+        # Wait for the resource to get synced after disabling replication
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        
+        # Verify the CR is synced and replication is disabled
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        condition.assert_synced(ref)
