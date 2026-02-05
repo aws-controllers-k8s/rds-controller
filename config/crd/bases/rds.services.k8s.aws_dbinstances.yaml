@@ -200,6 +200,37 @@ spec:
                      * Can't be set to 0 for an RDS Custom for Oracle DB instance.
                 format: int64
                 type: integer
+              backupCrossRegionReplication:
+                default: false
+                description: |-
+                  BackupCrossRegionReplication enables cross-region automated backup replication.
+                  When set to true, automated backups will be replicated to the specified destination region.
+                  Default: false
+                type: boolean
+              backupCrossRegionReplicationDestinationRegion:
+                description: |-
+                  BackupCrossRegionReplicationDestinationRegion specifies the AWS region where
+                  automated backups should be replicated. Required when BackupCrossRegionReplication is true.
+                type: string
+              backupCrossRegionReplicationKMSKeyID:
+                description: |-
+                  BackupCrossRegionReplicationKMSKeyID specifies the AWS KMS key identifier for encryption
+                  of the replicated automated backups. The KMS key ID is the Amazon Resource Name (ARN) for
+                  the KMS encryption key in the destination AWS Region.
+                type: string
+              backupCrossRegionReplicationRetentionPeriod:
+                default: 7
+                description: |-
+                  BackupCrossRegionReplicationRetentionPeriod specifies the number of days to retain
+                  replicated automated backups in the destination region.
+
+                  Default: 7
+
+                  Constraints:
+
+                     * Must be a value from 0 to 35.
+                format: int64
+                type: integer
               backupTarget:
                 description: |-
                   The location for storing automated backups and manual snapshots.
