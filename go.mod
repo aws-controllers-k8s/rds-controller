@@ -13,7 +13,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/rds v1.93.8
 	github.com/aws/smithy-go v1.22.2
 	github.com/go-logr/logr v1.4.2
-	github.com/samber/lo v1.37.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	k8s.io/api v0.32.1
@@ -69,6 +68,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/samber/lo v1.37.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect

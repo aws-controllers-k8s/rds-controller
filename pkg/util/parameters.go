@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
-	"github.com/samber/lo"
 )
 
 var (
@@ -57,16 +56,27 @@ func NewErrUnmodifiableParameter(name string) error {
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
-	// we need to convert the tag tuples to a comparable interface type
-	fromPairs := lo.ToPairs(from)
-	toPairs := lo.ToPairs(to)
+	added = Parameters{}
+	unchanged = Parameters{}
+	removed = Parameters{}
 
-	left, right := lo.Difference(fromPairs, toPairs)
-	middle := lo.Intersect(fromPairs, toPairs)
+	// Check existing parameters
+	for key, fromVal := range from {
+		toVal, existsInTo := to[key]
+		if !existsInTo {
+			removed[key] = fromVal
+		} else if *fromVal == *toVal {
+			unchanged[key] = fromVal
+		}
+	}
 
-	removed = lo.FromPairs(left)
-	added = lo.FromPairs(right)
-	unchanged = lo.FromPairs(middle)
+	// Check desired parameters
+	for key, toVal := range to {
+		fromVal, existsInFrom := from[key]
+		if !existsInFrom || *fromVal != *toVal {
+			added[key] = toVal
+		}
+	}
 
 	return added, unchanged, removed
 }
