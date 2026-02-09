@@ -22,6 +22,7 @@ import (
 type ParamMeta struct {
 	IsModifiable bool
 	IsDynamic    bool
+	DefaultValue *string
 }
 
 // MetaFetcher is the functor we pass to the paramMetaCache that allows it to

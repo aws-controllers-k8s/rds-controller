@@ -256,11 +256,14 @@ func (rm *resourceManager) syncParameters(
 	return nil
 }
 
-// getParameters retrieves the parameter group's user-defined parameters
-// (overrides) and the "statuses" of those parameter overrides.
+// getParameters retrieves parameters that are either in the desired spec or
+// differ from engine defaults. We don't filter by Source="user" because RDS
+// may classify user-set parameters as "engine-default" or "system".
 func (rm *resourceManager) getParameters(
 	ctx context.Context,
 	groupName *string,
+	family *string,
+	desiredParams util.Parameters,
 ) (
 	params map[string]*string,
 	paramStatuses []*svcapitypes.Parameter,
@@ -273,7 +276,6 @@ func (rm *resourceManager) getParameters(
 			ctx,
 			&svcsdk.DescribeDBParametersInput{
 				DBParameterGroupName: groupName,
-				Source:               aws.String(sourceUser),
 				Marker:               marker,
 			},
 		)
@@ -282,7 +284,22 @@ func (rm *resourceManager) getParameters(
 			return nil, nil, err
 		}
 		for _, param := range resp.Parameters {
-			params[*param.ParameterName] = param.ParameterValue
+			pName := *param.ParameterName
+
+			_, inDesired := desiredParams[pName]
+			if !inDesired {
+				if family == nil {
+					continue
+				}
+				if param.IsModifiable == nil || !*param.IsModifiable {
+					continue
+				}
+				if !rm.paramDiffersFromDefault(ctx, *family, pName, param.ParameterValue) {
+					continue
+				}
+			}
+
+			params[pName] = param.ParameterValue
 			p := svcapitypes.Parameter{
 				ParameterName:  param.ParameterName,
 				ParameterValue: param.ParameterValue,
@@ -297,6 +314,31 @@ func (rm *resourceManager) getParameters(
 		}
 	}
 	return params, paramStatuses, nil
+}
+
+func (rm *resourceManager) paramDiffersFromDefault(
+	ctx context.Context,
+	family string,
+	paramName string,
+	currentValue *string,
+) bool {
+	pMeta, err := cachedParamMeta.Get(
+		ctx, family, paramName, rm.getFamilyParameters,
+	)
+	if err != nil || pMeta.DefaultValue == nil {
+		return false
+	}
+	return !stringPtrEqual(currentValue, pMeta.DefaultValue)
+}
+
+func stringPtrEqual(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
 
 // resetParameters calls the RDS ResetDBParameterGroup API call with a set of
@@ -436,6 +478,7 @@ func (rm *resourceManager) getFamilyParameters(
 			familyMeta[pName] = util.ParamMeta{
 				IsModifiable: *param.IsModifiable,
 				IsDynamic:    *param.ApplyType != applyTypeStatic,
+				DefaultValue: param.ParameterValue,
 			}
 		}
 		marker = resp.EngineDefaults.Marker
