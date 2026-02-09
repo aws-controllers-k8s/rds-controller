@@ -230,6 +230,59 @@ func (rm *resourceManager) syncParameters(
 		desiredOverrides, latestOverrides,
 	)
 
+	// Filter out parameters that are already pending reboot from both toModify and toDelete.
+	// When a parameter is reset or modified, it remains as a user override with pending-reboot
+	// status until the DB instance is rebooted. Attempting to modify or reset it again
+	// would cause a reconciliation loop. We skip modifying/resetting parameters that are
+	// already pending reboot until after the reboot completes.
+	if latest != nil && latest.ko.Status.ParameterOverrideStatuses != nil {
+		pendingRebootParams := make(map[string]bool)
+		
+		// Build a map of parameters that are pending reboot
+		for _, status := range latest.ko.Status.ParameterOverrideStatuses {
+			if status.ParameterName != nil && status.ApplyMethod != nil {
+				if *status.ApplyMethod == "pending-reboot" {
+					pendingRebootParams[*status.ParameterName] = true
+				}
+			}
+		}
+		
+		// Filter toDelete: skip parameters that are pending reboot
+		if len(toDelete) > 0 {
+			filteredToDelete := util.Parameters{}
+			for paramName, paramValue := range toDelete {
+				if !pendingRebootParams[paramName] {
+					filteredToDelete[paramName] = paramValue
+				} else {
+					rlog.Debug(
+						"skipping reset of parameter already pending reboot",
+						"parameter", paramName,
+					)
+				}
+			}
+			toDelete = filteredToDelete
+		}
+		
+		// Filter toModify: skip parameters that are pending reboot
+		// This prevents trying to modify parameters that are in a transitional state
+		// after reboot but before the status is updated
+		if len(toModify) > 0 {
+			filteredToModify := util.Parameters{}
+			for paramName, paramValue := range toModify {
+				if !pendingRebootParams[paramName] {
+					filteredToModify[paramName] = paramValue
+				} else {
+					rlog.Debug(
+						"skipping modify of parameter already pending reboot",
+						"parameter", paramName,
+						"desired_value", paramValue,
+					)
+				}
+			}
+			toModify = filteredToModify
+		}
+	}
+
 	// NOTE(jaypipes): ResetDBParameterGroup and ModifyDBParameterGroup only
 	// accept 20 parameters at a time, which is why we "chunk" both the deleted
 	// and modified parameter sets.
