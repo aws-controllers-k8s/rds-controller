@@ -258,11 +258,13 @@ func (rm *resourceManager) syncParameters(
 	return nil
 }
 
-// getParameters retrieves the cluster parameter group's user-defined parameters
-// (overrides) and the "statuses" of those parameter overrides.
+// getParameters retrieves parameters that are either in the desired spec or
+// differ from engine defaults. We don't filter by Source="user" because RDS
+// may classify user-set parameters as "engine-default" or "system".
 func (rm *resourceManager) getParameters(
 	ctx context.Context,
 	groupName *string,
+	desiredParams util.Parameters,
 ) (
 	params map[string]*string,
 	paramStatuses []*svcapitypes.Parameter,
@@ -275,7 +277,6 @@ func (rm *resourceManager) getParameters(
 			ctx,
 			&svcsdk.DescribeDBClusterParametersInput{
 				DBClusterParameterGroupName: groupName,
-				Source:                      aws.String(sourceUser),
 				Marker:                      marker,
 			},
 		)
@@ -284,7 +285,19 @@ func (rm *resourceManager) getParameters(
 			return nil, nil, err
 		}
 		for _, param := range resp.Parameters {
-			params[*param.ParameterName] = param.ParameterValue
+			pName := *param.ParameterName
+
+			_, inDesired := desiredParams[pName]
+			if !inDesired {
+				if param.IsModifiable == nil || !*param.IsModifiable {
+					continue
+				}
+				if !rm.paramDiffersFromDefault(pName, param.ParameterValue) {
+					continue
+				}
+			}
+
+			params[pName] = param.ParameterValue
 			p := svcapitypes.Parameter{
 				ParameterName:  param.ParameterName,
 				ParameterValue: param.ParameterValue,
@@ -299,6 +312,36 @@ func (rm *resourceManager) getParameters(
 		}
 	}
 	return params, paramStatuses, nil
+}
+
+func (rm *resourceManager) paramDiffersFromDefault(
+	paramName string,
+	currentValue *string,
+) bool {
+	for _, cache := range []*util.ParamMetaCache{&cachedParamMeta, &instanceParamMeta} {
+		cache.RLock()
+		for _, familyMetas := range cache.Cache {
+			if meta, ok := familyMetas[paramName]; ok {
+				cache.RUnlock()
+				if meta.DefaultValue == nil {
+					return false
+				}
+				return !stringPtrEqual(currentValue, meta.DefaultValue)
+			}
+		}
+		cache.RUnlock()
+	}
+	return true
+}
+
+func stringPtrEqual(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
 
 // resetParameters calls the RDS ResetDBClusterParameterGroup API call
@@ -431,6 +474,7 @@ func (rm *resourceManager) getFamilyParameters(
 			familyMeta[pName] = util.ParamMeta{
 				IsModifiable: *param.IsModifiable,
 				IsDynamic:    *param.ApplyType != applyTypeStatic,
+				DefaultValue: param.ParameterValue,
 			}
 		}
 		marker = resp.EngineDefaults.Marker
@@ -469,6 +513,7 @@ func (rm *resourceManager) getInstanceFamilyParameters(
 			familyMeta[pName] = util.ParamMeta{
 				IsModifiable: *param.IsModifiable,
 				IsDynamic:    *param.ApplyType != applyTypeStatic,
+				DefaultValue: param.ParameterValue,
 			}
 		}
 		marker = resp.EngineDefaults.Marker

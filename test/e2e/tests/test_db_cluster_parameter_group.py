@@ -121,6 +121,43 @@ def aurora_mysql80_logging_cluster_param_group():
     db_cluster_parameter_group.wait_until_deleted(resource_name)
 
 
+@pytest.fixture
+def aurora_pg14_mixed_source_cluster_param_group():
+    resource_name = random_suffix_name("aurora-pg14-mixed", 24)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["DB_CLUSTER_PARAMETER_GROUP_NAME"] = resource_name
+    replacements["DB_CLUSTER_PARAMETER_GROUP_DESC"] = "Test mixed source parameters"
+
+    resource_data = load_rds_resource(
+        "db_cluster_parameter_group_aurora_postgresql14_mixed_source",
+        additional_replacements=replacements,
+    )
+    logging.debug(resource_data)
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        resource_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+
+    yield ref, cr, resource_name
+
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_cluster_parameter_group.wait_until_deleted(resource_name)
+
+
 @service_marker
 @pytest.mark.canary
 class TestDBClusterParameterGroup:
@@ -272,3 +309,79 @@ class TestDBClusterParameterGroup:
         
         assert len(test_params) == len(expected_initial_values), \
             f"Expected {len(expected_initial_values)} parameters, found {len(test_params)}: {test_params}"
+
+    def test_mixed_source_parameters(self, aurora_pg14_mixed_source_cluster_param_group):
+        """Tests that parameters with different RDS source classifications
+        (user, engine-default, system) are all correctly tracked when the user
+        explicitly sets them. Also tests that removing parameters from the
+        desired spec triggers a reset.
+
+        This covers the bug where Source="user" filtering caused parameters
+        like shared_preload_libraries (source=engine-default) and ssl
+        (source=system) to be invisible to the controller.
+        """
+        ref, cr, resource_name = aurora_pg14_mixed_source_cluster_param_group
+
+        latest = db_cluster_parameter_group.get(resource_name)
+        assert latest is not None
+
+        # All 6 parameters should be set in AWS regardless of source classification
+        all_params = db_cluster_parameter_group.get_parameters(resource_name)
+        expected_params = {
+            "pgaudit.log": "none",
+            "rds.force_ssl": "1",
+            "rds.log_retention_period": "10080",
+            "shared_preload_libraries": "pg_stat_statements",
+            "ssl": "1",
+            "ssl_min_protocol_version": "TLSv1.2",
+        }
+
+        for param_name, expected_value in expected_params.items():
+            matching = [p for p in all_params if p["ParameterName"] == param_name]
+            assert len(matching) == 1, f"Parameter {param_name} not found in AWS"
+            assert matching[0].get("ParameterValue") == expected_value, \
+                f"Wrong value for {param_name}: expected {expected_value}, got {matching[0].get('ParameterValue')}"
+
+        # Wait for controller to reconcile and reach synced state
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # All 6 params should appear in parameterOverrideStatuses
+        cr = k8s.get_resource(ref)
+        assert 'status' in cr
+        assert 'parameterOverrideStatuses' in cr['status']
+        status_params = cr['status']['parameterOverrideStatuses']
+        status_param_names = [p['parameterName'] for p in status_params]
+        for param_name in expected_params:
+            assert param_name in status_param_names, \
+                f"{param_name} missing from parameterOverrideStatuses: {status_param_names}"
+
+        # Resource should be synced (no perpetual diff)
+        condition.assert_synced(ref)
+
+        # Now remove 3 parameters (including engine-default and system sourced ones)
+        # and verify they get reset
+        reduced_params = {
+            "pgaudit.log": "none",
+            "rds.force_ssl": "1",
+            "rds.log_retention_period": "10080",
+        }
+        updates = {
+            "spec": {
+                "parameterOverrides": reduced_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        # Verify only 3 params remain in status
+        cr = k8s.get_resource(ref)
+        status_params = cr['status']['parameterOverrideStatuses']
+        status_param_names = [p['parameterName'] for p in status_params]
+        for param_name in reduced_params:
+            assert param_name in status_param_names, \
+                f"{param_name} missing from parameterOverrideStatuses after update"
+        for removed_name in ["shared_preload_libraries", "ssl", "ssl_min_protocol_version"]:
+            assert removed_name not in status_param_names, \
+                f"{removed_name} should have been removed from parameterOverrideStatuses"
+
+        condition.assert_synced(ref)

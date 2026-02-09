@@ -1,0 +1,15 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBClusterParameterGroup
+metadata:
+  name: $DB_CLUSTER_PARAMETER_GROUP_NAME
+spec:
+  name: $DB_CLUSTER_PARAMETER_GROUP_NAME
+  description: $DB_CLUSTER_PARAMETER_GROUP_DESC
+  family: aurora-postgresql14
+  parameterOverrides:
+    pgaudit.log: "none"
+    rds.force_ssl: "1"
+    rds.log_retention_period: "10080"
+    shared_preload_libraries: "pg_stat_statements"
+    ssl: "1"
+    ssl_min_protocol_version: "TLSv1.2"

@@ -8,7 +8,8 @@
     }
     if ko.Spec.Name != nil {
         groupName := ko.Spec.Name
-        params, paramStatuses, err := rm.getParameters(ctx, groupName)
+        desiredParams := ko.Spec.ParameterOverrides
+        params, paramStatuses, err := rm.getParameters(ctx, groupName, desiredParams)
         if err != nil {
             return nil, err
         }
