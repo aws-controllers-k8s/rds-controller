@@ -1,8 +1,8 @@
 ack_generate_info:
-  build_date: "2026-02-09T04:13:29Z"
-  build_hash: a297e8e69efb57539e353961c1b33a93e31307bf
-  go_version: go1.25.6
-  version: v0.57.0-2-ga297e8e
+  build_date: "2026-02-09T21:48:52Z"
+  build_hash: e743d683160cf0f58a4864e052cdcb0927335ca7
+  go_version: go1.25.5
+  version: v0.57.0
 api_directory_checksum: a35626c9dd4783afbee4b0991d2ed63ab37f7444
 api_version: v1alpha1
 aws_sdk_go_version: v1.32.6
