@@ -80,10 +80,21 @@ def get_parameters(db_cluster_parameter_group_name):
     """
     c = boto3.client('rds')
     try:
-        resp = c.describe_db_cluster_parameters(
-            DBClusterParameterGroupName=db_cluster_parameter_group_name,
-        )
-        return resp['Parameters']
+        all_parameters = []
+        marker = None
+        while True:
+            params = {
+                'DBClusterParameterGroupName': db_cluster_parameter_group_name,
+            }
+            if marker:
+                params['Marker'] = marker
+            resp = c.describe_db_cluster_parameters(**params)
+            all_parameters.extend(resp['Parameters'])
+            if 'Marker' in resp:
+                marker = resp['Marker']
+            else:
+                break
+        return all_parameters
     except c.exceptions.DBParameterGroupNotFoundFault:
         return []
 
