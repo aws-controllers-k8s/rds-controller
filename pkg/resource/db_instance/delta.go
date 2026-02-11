@@ -64,6 +64,34 @@ func newResourceDelta(
 			delta.Add("Spec.BackupTarget", a.ko.Spec.BackupTarget, b.ko.Spec.BackupTarget)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.BackupCrossRegionReplication, b.ko.Spec.BackupCrossRegionReplication) {
+		delta.Add("Spec.BackupCrossRegionReplication", a.ko.Spec.BackupCrossRegionReplication, b.ko.Spec.BackupCrossRegionReplication)
+	} else if a.ko.Spec.BackupCrossRegionReplication != nil && b.ko.Spec.BackupCrossRegionReplication != nil {
+		if *a.ko.Spec.BackupCrossRegionReplication != *b.ko.Spec.BackupCrossRegionReplication {
+			delta.Add("Spec.BackupCrossRegionReplication", a.ko.Spec.BackupCrossRegionReplication, b.ko.Spec.BackupCrossRegionReplication)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.BackupCrossRegionReplicationDestinationRegion, b.ko.Spec.BackupCrossRegionReplicationDestinationRegion) {
+		delta.Add("Spec.BackupCrossRegionReplicationDestinationRegion", a.ko.Spec.BackupCrossRegionReplicationDestinationRegion, b.ko.Spec.BackupCrossRegionReplicationDestinationRegion)
+	} else if a.ko.Spec.BackupCrossRegionReplicationDestinationRegion != nil && b.ko.Spec.BackupCrossRegionReplicationDestinationRegion != nil {
+		if *a.ko.Spec.BackupCrossRegionReplicationDestinationRegion != *b.ko.Spec.BackupCrossRegionReplicationDestinationRegion {
+			delta.Add("Spec.BackupCrossRegionReplicationDestinationRegion", a.ko.Spec.BackupCrossRegionReplicationDestinationRegion, b.ko.Spec.BackupCrossRegionReplicationDestinationRegion)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.BackupCrossRegionReplicationRetentionPeriod, b.ko.Spec.BackupCrossRegionReplicationRetentionPeriod) {
+		delta.Add("Spec.BackupCrossRegionReplicationRetentionPeriod", a.ko.Spec.BackupCrossRegionReplicationRetentionPeriod, b.ko.Spec.BackupCrossRegionReplicationRetentionPeriod)
+	} else if a.ko.Spec.BackupCrossRegionReplicationRetentionPeriod != nil && b.ko.Spec.BackupCrossRegionReplicationRetentionPeriod != nil {
+		if *a.ko.Spec.BackupCrossRegionReplicationRetentionPeriod != *b.ko.Spec.BackupCrossRegionReplicationRetentionPeriod {
+			delta.Add("Spec.BackupCrossRegionReplicationRetentionPeriod", a.ko.Spec.BackupCrossRegionReplicationRetentionPeriod, b.ko.Spec.BackupCrossRegionReplicationRetentionPeriod)
+		}
+	}
+	if ackcompare.HasNilDifference(a.ko.Spec.BackupCrossRegionReplicationKMSKeyID, b.ko.Spec.BackupCrossRegionReplicationKMSKeyID) {
+		delta.Add("Spec.BackupCrossRegionReplicationKMSKeyID", a.ko.Spec.BackupCrossRegionReplicationKMSKeyID, b.ko.Spec.BackupCrossRegionReplicationKMSKeyID)
+	} else if a.ko.Spec.BackupCrossRegionReplicationKMSKeyID != nil && b.ko.Spec.BackupCrossRegionReplicationKMSKeyID != nil {
+		if *a.ko.Spec.BackupCrossRegionReplicationKMSKeyID != *b.ko.Spec.BackupCrossRegionReplicationKMSKeyID {
+			delta.Add("Spec.BackupCrossRegionReplicationKMSKeyID", a.ko.Spec.BackupCrossRegionReplicationKMSKeyID, b.ko.Spec.BackupCrossRegionReplicationKMSKeyID)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.CACertificateIdentifier, b.ko.Spec.CACertificateIdentifier) {
 		delta.Add("Spec.CACertificateIdentifier", a.ko.Spec.CACertificateIdentifier, b.ko.Spec.CACertificateIdentifier)
 	} else if a.ko.Spec.CACertificateIdentifier != nil && b.ko.Spec.CACertificateIdentifier != nil {
