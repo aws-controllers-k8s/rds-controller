@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AllocatedStorage", "AutoMinorVersionUpgrade", "AvailabilityZone", "BackupRetentionPeriod", "BackupTarget", "CACertificateIdentifier", "DatabaseInsightsMode", "DeletionProtection", "IOPS", "KMSKeyID", "LicenseModel", "MultiAZ", "NetworkType", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "StorageEncrypted", "StorageThroughput", "StorageType"}
+var lateInitializeFieldNames = []string{"AllocatedStorage", "AutoMinorVersionUpgrade", "AvailabilityZone", "BackupRetentionPeriod", "BackupTarget", "CACertificateIdentifier", "DatabaseInsightsMode", "DeletionProtection", "IOPS", "KMSKeyID", "LicenseModel", "MultiAZ", "NetworkType", "PerformanceInsightsEnabled", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "StorageEncrypted", "StorageThroughput", "StorageType"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -297,6 +297,9 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.NetworkType != nil && latestKo.Spec.NetworkType == nil {
 		latestKo.Spec.NetworkType = observedKo.Spec.NetworkType
+	}
+	if observedKo.Spec.PerformanceInsightsEnabled != nil && latestKo.Spec.PerformanceInsightsEnabled == nil {
+		latestKo.Spec.PerformanceInsightsEnabled = observedKo.Spec.PerformanceInsightsEnabled
 	}
 	if observedKo.Spec.PerformanceInsightsKMSKeyID != nil && latestKo.Spec.PerformanceInsightsKMSKeyID == nil {
 		latestKo.Spec.PerformanceInsightsKMSKeyID = observedKo.Spec.PerformanceInsightsKMSKeyID

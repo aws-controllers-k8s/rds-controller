@@ -198,6 +198,13 @@ func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
 				delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
 			}
 		}
+		if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled) {
+			delta.Add("Spec.PerformanceInsightsEnabled", a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled)
+		} else if a.ko.Spec.PerformanceInsightsEnabled != nil && b.ko.Spec.PerformanceInsightsEnabled != nil {
+			if *a.ko.Spec.PerformanceInsightsEnabled != *b.ko.Spec.PerformanceInsightsEnabled {
+				delta.Add("Spec.PerformanceInsightsEnabled", a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled)
+			}
+		}
 	}
 
 }

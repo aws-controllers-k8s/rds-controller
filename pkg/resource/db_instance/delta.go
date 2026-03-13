@@ -307,27 +307,6 @@ func newResourceDelta(
 			delta.Add("Spec.OptionGroupName", a.ko.Spec.OptionGroupName, b.ko.Spec.OptionGroupName)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled) {
-		delta.Add("Spec.PerformanceInsightsEnabled", a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled)
-	} else if a.ko.Spec.PerformanceInsightsEnabled != nil && b.ko.Spec.PerformanceInsightsEnabled != nil {
-		if *a.ko.Spec.PerformanceInsightsEnabled != *b.ko.Spec.PerformanceInsightsEnabled {
-			delta.Add("Spec.PerformanceInsightsEnabled", a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled)
-		}
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID) {
-		delta.Add("Spec.PerformanceInsightsKMSKeyID", a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID)
-	} else if a.ko.Spec.PerformanceInsightsKMSKeyID != nil && b.ko.Spec.PerformanceInsightsKMSKeyID != nil {
-		if *a.ko.Spec.PerformanceInsightsKMSKeyID != *b.ko.Spec.PerformanceInsightsKMSKeyID {
-			delta.Add("Spec.PerformanceInsightsKMSKeyID", a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID)
-		}
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod) {
-		delta.Add("Spec.PerformanceInsightsRetentionPeriod", a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod)
-	} else if a.ko.Spec.PerformanceInsightsRetentionPeriod != nil && b.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
-		if *a.ko.Spec.PerformanceInsightsRetentionPeriod != *b.ko.Spec.PerformanceInsightsRetentionPeriod {
-			delta.Add("Spec.PerformanceInsightsRetentionPeriod", a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Port, b.ko.Spec.Port) {
 		delta.Add("Spec.Port", a.ko.Spec.Port, b.ko.Spec.Port)
 	} else if a.ko.Spec.Port != nil && b.ko.Spec.Port != nil {
