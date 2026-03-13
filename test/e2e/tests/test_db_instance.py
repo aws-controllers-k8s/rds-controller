@@ -322,6 +322,7 @@ class TestDBInstance:
 
         # Wait for the resource to get synced
         assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        last_synced_time = k8s.get_resource_condition(ref, condition_name=condition.CONDITION_TYPE_RESOURCE_SYNCED)['lastTransitionTime']
 
         # After the resource is synced, assert that DBInstanceStatus is available
         latest = db_instance.get(db_instance_id)
@@ -338,15 +339,17 @@ class TestDBInstance:
         updates = {
             "spec": {"performanceInsightsEnabled": True},
         }
-        k8s.patch_custom_resource(ref, updates)
-        # Wait less time, so we can see it moving to ResourceSynced = False
-        time.sleep(5)
 
-        # Ensure the controller properly detects the status change
-        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "False", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(5)
 
         # The resource should eventually come back into ResourceSynced = True
         assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        synced_time = k8s.get_resource_condition(ref, condition_name=condition.CONDITION_TYPE_RESOURCE_SYNCED)['lastTransitionTime']
+
+        # Validate that last transitioned time of ResourceSynced condition has changed to validate that the condition transitioned
+        # from False after the update.
+        assert last_synced_time != synced_time
 
         # After resource is synced again, assert that patches are reflected in the AWS resource
         latest = db_instance.get(db_instance_id)
