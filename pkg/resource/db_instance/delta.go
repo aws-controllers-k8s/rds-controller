@@ -120,13 +120,6 @@ func newResourceDelta(
 			delta.Add("Spec.DBInstanceIdentifier", a.ko.Spec.DBInstanceIdentifier, b.ko.Spec.DBInstanceIdentifier)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.DBName, b.ko.Spec.DBName) {
-		delta.Add("Spec.DBName", a.ko.Spec.DBName, b.ko.Spec.DBName)
-	} else if a.ko.Spec.DBName != nil && b.ko.Spec.DBName != nil {
-		if *a.ko.Spec.DBName != *b.ko.Spec.DBName {
-			delta.Add("Spec.DBName", a.ko.Spec.DBName, b.ko.Spec.DBName)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBParameterGroupName, b.ko.Spec.DBParameterGroupName) {
 		delta.Add("Spec.DBParameterGroupName", a.ko.Spec.DBParameterGroupName, b.ko.Spec.DBParameterGroupName)
 	} else if a.ko.Spec.DBParameterGroupName != nil && b.ko.Spec.DBParameterGroupName != nil {
@@ -196,13 +189,6 @@ func newResourceDelta(
 			delta.Add("Spec.Engine", a.ko.Spec.Engine, b.ko.Spec.Engine)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion) {
-		delta.Add("Spec.EngineVersion", a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion)
-	} else if a.ko.Spec.EngineVersion != nil && b.ko.Spec.EngineVersion != nil {
-		if *a.ko.Spec.EngineVersion != *b.ko.Spec.EngineVersion {
-			delta.Add("Spec.EngineVersion", a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.IOPS, b.ko.Spec.IOPS) {
 		delta.Add("Spec.IOPS", a.ko.Spec.IOPS, b.ko.Spec.IOPS)
 	} else if a.ko.Spec.IOPS != nil && b.ko.Spec.IOPS != nil {
@@ -250,13 +236,6 @@ func newResourceDelta(
 	}
 	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef) {
 		delta.Add("Spec.MasterUserSecretKMSKeyRef", a.ko.Spec.MasterUserSecretKMSKeyRef, b.ko.Spec.MasterUserSecretKMSKeyRef)
-	}
-	if ackcompare.HasNilDifference(a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername) {
-		delta.Add("Spec.MasterUsername", a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername)
-	} else if a.ko.Spec.MasterUsername != nil && b.ko.Spec.MasterUsername != nil {
-		if *a.ko.Spec.MasterUsername != *b.ko.Spec.MasterUsername {
-			delta.Add("Spec.MasterUsername", a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername)
-		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage) {
 		delta.Add("Spec.MaxAllocatedStorage", a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage)

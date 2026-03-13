@@ -379,6 +379,21 @@ resources:
           is_ignored: true
       PerformanceInsightsRetentionPeriod:
         late_initialize:
+           skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      MasterUsername:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      DBName:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      EngineVersion:
+        late_initialize:
           skip_incomplete_check: {}
         compare:
           is_ignored: true

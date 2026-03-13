@@ -136,7 +136,7 @@ func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
 	}
 	if a.ko.Spec.PerformanceInsightsEnabled == nil &&
 		b.ko.Spec.PerformanceInsightsEnabled != nil {
-		a.ko.Spec.PerformanceInsightsEnabled = aws.Bool(false)
+		a.ko.Spec.PerformanceInsightsEnabled = b.ko.Spec.PerformanceInsightsEnabled
 	}
 
 	// RDS will choose preferred engine minor version if only
@@ -198,11 +198,46 @@ func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
 				delta.Add("Spec.DeletionProtection", a.ko.Spec.DeletionProtection, b.ko.Spec.DeletionProtection)
 			}
 		}
+		if ackcompare.HasNilDifference(a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion) {
+			delta.Add("Spec.EngineVersion", a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion)
+		} else if a.ko.Spec.EngineVersion != nil && b.ko.Spec.EngineVersion != nil {
+			if *a.ko.Spec.EngineVersion != *b.ko.Spec.EngineVersion {
+				delta.Add("Spec.EngineVersion", a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion)
+			}
+		}
+		if ackcompare.HasNilDifference(a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername) {
+			delta.Add("Spec.MasterUsername", a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername)
+		} else if a.ko.Spec.MasterUsername != nil && b.ko.Spec.MasterUsername != nil {
+			if *a.ko.Spec.MasterUsername != *b.ko.Spec.MasterUsername {
+				delta.Add("Spec.MasterUsername", a.ko.Spec.MasterUsername, b.ko.Spec.MasterUsername)
+			}
+		}
+		if ackcompare.HasNilDifference(a.ko.Spec.DBName, b.ko.Spec.DBName) {
+			delta.Add("Spec.DBName", a.ko.Spec.DBName, b.ko.Spec.DBName)
+		} else if a.ko.Spec.DBName != nil && b.ko.Spec.DBName != nil {
+			if *a.ko.Spec.DBName != *b.ko.Spec.DBName {
+				delta.Add("Spec.DBName", a.ko.Spec.DBName, b.ko.Spec.DBName)
+			}
+		}
 		if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled) {
 			delta.Add("Spec.PerformanceInsightsEnabled", a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled)
 		} else if a.ko.Spec.PerformanceInsightsEnabled != nil && b.ko.Spec.PerformanceInsightsEnabled != nil {
 			if *a.ko.Spec.PerformanceInsightsEnabled != *b.ko.Spec.PerformanceInsightsEnabled {
 				delta.Add("Spec.PerformanceInsightsEnabled", a.ko.Spec.PerformanceInsightsEnabled, b.ko.Spec.PerformanceInsightsEnabled)
+			}
+		}
+		if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID) {
+			delta.Add("Spec.PerformanceInsightsKMSKeyID", a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID)
+		} else if a.ko.Spec.PerformanceInsightsKMSKeyID != nil && b.ko.Spec.PerformanceInsightsKMSKeyID != nil {
+			if *a.ko.Spec.PerformanceInsightsKMSKeyID != *b.ko.Spec.PerformanceInsightsKMSKeyID {
+				delta.Add("Spec.PerformanceInsightsKMSKeyID", a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID)
+			}
+		}
+		if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod) {
+			delta.Add("Spec.PerformanceInsightsRetentionPeriod", a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod)
+		} else if a.ko.Spec.PerformanceInsightsRetentionPeriod != nil && b.ko.Spec.PerformanceInsightsRetentionPeriod != nil {
+			if *a.ko.Spec.PerformanceInsightsRetentionPeriod != *b.ko.Spec.PerformanceInsightsRetentionPeriod {
+				delta.Add("Spec.PerformanceInsightsRetentionPeriod", a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod)
 			}
 		}
 	}

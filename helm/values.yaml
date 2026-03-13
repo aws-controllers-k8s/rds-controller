@@ -116,7 +116,7 @@ installScope: cluster
 watchNamespace: ""
 
 # Set the value of labelsSelectors to be used by the controller to filter the resources to watch.
-# You can set multiple labelsSelectors by providing a comma separated list of a=b arguments. e.g "label1=value1,label2=value2"
+# You can set multiple labelsSelectors by providing a comma separated list of a=b arguments. e.g "label1=value1,label2=value2" 
 watchSelectors: ""
 
 resourceTags:
@@ -145,7 +145,7 @@ reconcile:
   # An object representing the reconcile max concurrent syncs configuration for each specific
   # resource.
   resourceMaxConcurrentSyncs: {}
-
+  
   # Set the value of resources to specify which resource kinds to reconcile.
   # If empty, all resources will be reconciled.
   # If specified, only the listed resource kinds will be reconciled.
@@ -192,9 +192,9 @@ featureGates:
   ServiceLevelCARM: false
   # Enables the Team level granularity for CARM. See https://github.com/aws-controllers-k8s/community/issues/2031
   TeamLevelCARM: false
-  # Enable ReadOnlyResources feature/annotation.
+  # Enable ReadOnlyResources feature/annotation. 
   ReadOnlyResources: true
-  # Enable ResourceAdoption feature/annotation.
+  # Enable ResourceAdoption feature/annotation. 
   ResourceAdoption: true
   # Enable IAMRoleSelector, a multirole feature, replacing CARM. See https://github.com/aws-controllers-k8s/community/pull/2628
   IAMRoleSelector: false

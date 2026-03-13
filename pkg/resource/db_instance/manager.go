@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AllocatedStorage", "AutoMinorVersionUpgrade", "AvailabilityZone", "BackupRetentionPeriod", "BackupTarget", "CACertificateIdentifier", "DatabaseInsightsMode", "DeletionProtection", "IOPS", "KMSKeyID", "LicenseModel", "MultiAZ", "NetworkType", "PerformanceInsightsEnabled", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "StorageEncrypted", "StorageThroughput", "StorageType"}
+var lateInitializeFieldNames = []string{"AllocatedStorage", "AutoMinorVersionUpgrade", "AvailabilityZone", "BackupRetentionPeriod", "BackupTarget", "CACertificateIdentifier", "DBName", "DatabaseInsightsMode", "DeletionProtection", "EngineVersion", "IOPS", "KMSKeyID", "LicenseModel", "MasterUsername", "MultiAZ", "NetworkType", "PerformanceInsightsEnabled", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "StorageEncrypted", "StorageThroughput", "StorageType"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -277,11 +277,17 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	if observedKo.Spec.CACertificateIdentifier != nil && latestKo.Spec.CACertificateIdentifier == nil {
 		latestKo.Spec.CACertificateIdentifier = observedKo.Spec.CACertificateIdentifier
 	}
+	if observedKo.Spec.DBName != nil && latestKo.Spec.DBName == nil {
+		latestKo.Spec.DBName = observedKo.Spec.DBName
+	}
 	if observedKo.Spec.DatabaseInsightsMode != nil && latestKo.Spec.DatabaseInsightsMode == nil {
 		latestKo.Spec.DatabaseInsightsMode = observedKo.Spec.DatabaseInsightsMode
 	}
 	if observedKo.Spec.DeletionProtection != nil && latestKo.Spec.DeletionProtection == nil {
 		latestKo.Spec.DeletionProtection = observedKo.Spec.DeletionProtection
+	}
+	if observedKo.Spec.EngineVersion != nil && latestKo.Spec.EngineVersion == nil {
+		latestKo.Spec.EngineVersion = observedKo.Spec.EngineVersion
 	}
 	if observedKo.Spec.IOPS != nil && latestKo.Spec.IOPS == nil {
 		latestKo.Spec.IOPS = observedKo.Spec.IOPS
@@ -291,6 +297,9 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.LicenseModel != nil && latestKo.Spec.LicenseModel == nil {
 		latestKo.Spec.LicenseModel = observedKo.Spec.LicenseModel
+	}
+	if observedKo.Spec.MasterUsername != nil && latestKo.Spec.MasterUsername == nil {
+		latestKo.Spec.MasterUsername = observedKo.Spec.MasterUsername
 	}
 	if observedKo.Spec.MultiAZ != nil && latestKo.Spec.MultiAZ == nil {
 		latestKo.Spec.MultiAZ = observedKo.Spec.MultiAZ
