@@ -367,6 +367,36 @@ resources:
       # custom compare will ensure that we check
       # these fields delta only when DBClusterIdentifier
       # is not set
+      PerformanceInsightsEnabled:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      PerformanceInsightsKMSKeyID:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      PerformanceInsightsRetentionPeriod:
+        late_initialize:
+           skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      MasterUsername:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      DBName:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
+      EngineVersion:
+        late_initialize:
+          skip_incomplete_check: {}
+        compare:
+          is_ignored: true
       DatabaseInsightsMode:
         late_initialize:
           skip_incomplete_check: {}
@@ -447,12 +477,6 @@ resources:
         from:
           operation: CreateDBInstanceReadReplica
           path: PreSignedUrl
-      PerformanceInsightsKMSKeyID:
-        late_initialize:
-          skip_incomplete_check: {}
-      PerformanceInsightsRetentionPeriod:
-        late_initialize:
-          skip_incomplete_check: {}
       IOPS:
         late_initialize:
           skip_incomplete_check: {}
