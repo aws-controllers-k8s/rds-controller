@@ -2,3 +2,6 @@
 
 approvers:
   - core-ack-team
+
+reviewers:
+  - core-ack-reviewers
