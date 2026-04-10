@@ -150,6 +150,22 @@ type DBInstanceSpec struct {
 	// Example: us-east-1d
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	AvailabilityZone *string `json:"availabilityZone,omitempty"`
+	// BackupCrossRegionReplication enables cross-region automated backup replication.
+	// When set to true, automated backups will be replicated to the specified destination region.
+	// Default: false
+	// +kubebuilder:validation:XValidation:rule="!self || has(self.backupCrossRegionReplicationDestinationRegion)",message="BackupCrossRegionReplicationDestinationRegion is required when BackupCrossRegionReplication is true"
+	BackupCrossRegionReplication *bool `json:"backupCrossRegionReplication,omitempty"`
+	// BackupCrossRegionReplicationDestinationRegion specifies the AWS region where
+	// automated backups should be replicated. Required when BackupCrossRegionReplication is true.
+	BackupCrossRegionReplicationDestinationRegion *string `json:"backupCrossRegionReplicationDestinationRegion,omitempty"`
+	// BackupCrossRegionReplicationKMSKeyID specifies the AWS KMS key identifier for encryption
+	// of the replicated automated backups. The KMS key ID is the Amazon Resource Name (ARN) for
+	// the KMS encryption key in the destination AWS Region.
+	BackupCrossRegionReplicationKMSKeyID *string `json:"backupCrossRegionReplicationKMSKeyID,omitempty"`
+	// BackupCrossRegionReplicationRetentionPeriod specifies the number of days to retain
+	// replicated automated backups in the destination region.
+	// Default: 7
+	BackupCrossRegionReplicationRetentionPeriod *int64 `json:"backupCrossRegionReplicationRetentionPeriod,omitempty"`
 	// The number of days for which automated backups are retained. Setting this
 	// parameter to a positive number enables backups. Setting this parameter to
 	// 0 disables automated backups.
