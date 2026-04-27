@@ -441,6 +441,8 @@ resources:
       StorageType:
         late_initialize:
           skip_incomplete_check: {}
+        compare:
+          is_ignored: true
       # Used by restore db instance from db snapshot
       DBSnapshotIdentifier:
         from:

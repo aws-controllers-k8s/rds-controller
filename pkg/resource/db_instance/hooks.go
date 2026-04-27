@@ -152,6 +152,13 @@ func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
 	// With the following change, we ensure we don't try to update the following fields id DBClusterIdentifier
 	// is defined.
 	if a.ko.Spec.DBClusterIdentifier == nil {
+		if ackcompare.HasNilDifference(a.ko.Spec.StorageType, b.ko.Spec.StorageType) {
+			delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
+		} else if a.ko.Spec.StorageType != nil && b.ko.Spec.StorageType != nil {
+			if *a.ko.Spec.StorageType != *b.ko.Spec.StorageType {
+				delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
+			}
+		}
 		if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
 			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
 		} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
