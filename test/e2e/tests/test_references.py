@@ -292,6 +292,38 @@ class TestReferences:
         time.sleep(CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
         assert k8s.wait_on_condition(db_instance_ref, "ACK.ResourceSynced", "True", wait_periods=CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
 
+        # Update DBInstance StorageType (field managed by DBCluster).
+        # When a DBInstance is owned by a DBCluster, including StorageType in
+        # the ModifyDBInstance payload results in an
+        # InvalidParameterCombination error. The controller should ignore
+        # StorageType drift when DBClusterIdentifier is set.
+        cr = k8s.get_resource(db_instance_ref)
+        original_storage_type = cr["spec"].get("storageType", None)
+
+        updates = {
+            "spec": {
+                "storageType": "io1"
+            }
+        }
+        k8s.patch_custom_resource(db_instance_ref, updates)
+        time.sleep(CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
+
+        # The resource should remain synced because StorageType changes are
+        # ignored for cluster-owned instances (no ModifyDBInstance call).
+        assert k8s.wait_on_condition(db_instance_ref, "ACK.ResourceSynced", "True", wait_periods=CHECK_WAIT_AFTER_REF_RESOLVE_SECONDS)
+
+        # Verify no terminal condition was set (i.e. no
+        # InvalidParameterCombination error from AWS).
+        cr = k8s.get_resource(db_instance_ref)
+        terminal_cond = k8s.get_resource_condition(db_instance_ref, "ACK.Terminal")
+        assert terminal_cond is None or terminal_cond.get("status", "False") == "False"
+
+        # Verify the AWS-side StorageType was NOT changed (the controller
+        # should have ignored the delta).
+        latest_aws = db_instance.get(db_instance_id)
+        assert latest_aws is not None
+        assert latest_aws["DBInstanceStatus"] == "available"
+
         # NOTE(jaypipes): We need to manually delete the DB Instance first
         # because pytest fixtures will try to clean up the DB Parameter Group
         # fixture *first* (because it was initialized after DB Instance) but if
