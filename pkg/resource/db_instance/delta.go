@@ -370,13 +370,6 @@ func newResourceDelta(
 			delta.Add("Spec.StorageThroughput", a.ko.Spec.StorageThroughput, b.ko.Spec.StorageThroughput)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.StorageType, b.ko.Spec.StorageType) {
-		delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
-	} else if a.ko.Spec.StorageType != nil && b.ko.Spec.StorageType != nil {
-		if *a.ko.Spec.StorageType != *b.ko.Spec.StorageType {
-			delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
-		}
-	}
 	if ackcompare.HasNilDifference(a.ko.Spec.TDECredentialARN, b.ko.Spec.TDECredentialARN) {
 		delta.Add("Spec.TDECredentialARN", a.ko.Spec.TDECredentialARN, b.ko.Spec.TDECredentialARN)
 	} else if a.ko.Spec.TDECredentialARN != nil && b.ko.Spec.TDECredentialARN != nil {
