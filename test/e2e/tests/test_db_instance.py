@@ -507,3 +507,33 @@ class TestDBInstance:
         assert latest is not None
         assert latest['DBInstanceStatus'] == 'available'
         assert latest['MultiAZ'] is True
+
+    def test_update_allocated_storage(
+            self,
+            postgres14_t3_micro_instance,
+    ):
+        (ref, cr, _) = postgres14_t3_micro_instance
+        db_instance_id = cr["spec"]["dbInstanceIdentifier"]
+
+        # Wait for the resource to get synced
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['DBInstanceStatus'] == 'available'
+        assert latest['AllocatedStorage'] == 5
+
+        updates = {
+            "spec": {"allocatedStorage": 10},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(35)
+
+        condition.assert_not_synced(ref)
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert cr['spec']['allocatedStorage'] == 10
+
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['PendingModifiedValues']['AllocatedStorage'] == 10

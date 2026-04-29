@@ -175,6 +175,14 @@ func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
 			}
 		}
 
+		if ackcompare.HasNilDifference(a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage) {
+			delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)
+		} else if a.ko.Spec.AllocatedStorage != nil && b.ko.Spec.AllocatedStorage != nil {
+			if *a.ko.Spec.AllocatedStorage != *b.ko.Spec.AllocatedStorage {
+				delta.Add("Spec.AllocatedStorage", a.ko.Spec.AllocatedStorage, b.ko.Spec.AllocatedStorage)
+			}
+		}
+
 		if ackcompare.HasNilDifference(a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage) {
 			delta.Add("Spec.MaxAllocatedStorage", a.ko.Spec.MaxAllocatedStorage, b.ko.Spec.MaxAllocatedStorage)
 		} else if a.ko.Spec.MaxAllocatedStorage != nil && b.ko.Spec.MaxAllocatedStorage != nil {
