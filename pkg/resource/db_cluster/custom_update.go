@@ -33,7 +33,7 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
-var r = regexp.MustCompile(`[0-9]*$`)
+var r = regexp.MustCompile(`^[0-9]+`)
 
 // customUpdate is required to fix
 // https://github.com/aws-controllers-k8s/community/issues/917. The Input shape
@@ -685,7 +685,7 @@ func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired 
 }
 
 func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
-	desiredMajorEngineVersion := r.ReplaceAllString(*desiredEngineVersion, "${1}")
-	latestMajorEngineVersion := r.ReplaceAllString(*latestEngineVersion, "${1}")
+	desiredMajorEngineVersion := r.FindString(*desiredEngineVersion)
+	latestMajorEngineVersion := r.FindString(*latestEngineVersion)
 	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
 }
