@@ -121,7 +121,7 @@ class TestDBInstanceAdoption:
             assert latest['DBInstanceClass'] == 'db.t4g.micro'
             assert latest['Engine'] == 'postgres'
             assert latest['EngineVersion'].startswith('17')
-            assert latest['ManageMasterUserPassword'] is True
+            assert 'MasterUserSecret' in latest
             assert latest['MasterUsername'] == 'dbadmin'
             assert latest['MultiAZ'] is False
             assert latest['StorageType'] == 'gp2'
