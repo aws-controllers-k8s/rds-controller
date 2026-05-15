@@ -1,0 +1,17 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBInstance
+metadata:
+  annotations:
+    services.k8s.aws/adoption-policy: adopt-or-create
+    services.k8s.aws/deletion-policy: retain
+  name: $DB_INSTANCE_ID
+spec:
+  allocatedStorage: 20
+  dbInstanceClass: db.t4g.micro
+  dbInstanceIdentifier: $DB_INSTANCE_ID
+  engine: postgres
+  engineVersion: "17"
+  manageMasterUserPassword: true
+  masterUsername: dbadmin
+  multiAZ: false
+  storageType: gp2

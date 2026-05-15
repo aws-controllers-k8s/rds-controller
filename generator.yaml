@@ -443,6 +443,15 @@ resources:
           skip_incomplete_check: {}
         compare:
           is_ignored: true
+      MonitoringInterval:
+        late_initialize:
+          skip_incomplete_check: {}
+      PubliclyAccessible:
+        late_initialize:
+          skip_incomplete_check: {}
+      CopyTagsToSnapshot:
+        late_initialize:
+          skip_incomplete_check: {}
       # Used by restore db instance from db snapshot
       DBSnapshotIdentifier:
         from:
