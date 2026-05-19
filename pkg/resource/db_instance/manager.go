@@ -75,6 +75,8 @@ type resourceManager struct {
 	awsAccountID ackv1alpha1.AWSAccountID
 	// The AWS Region that this resource manager targets
 	awsRegion ackv1alpha1.AWSRegion
+	// The AWS Partition that this resource manager targets
+	awsPartition ackv1alpha1.AWSPartition
 	// sdk is a pointer to the AWS service API client exposed by the
 	// aws-sdk-go-v2/services/{alias} package.
 	sdkapi *svcsdk.Client
@@ -193,7 +195,8 @@ func (rm *resourceManager) Delete(
 // name for the resource
 func (rm *resourceManager) ARNFromName(name string) string {
 	return fmt.Sprintf(
-		"arn:aws:rds:%s:%s:%s",
+		"arn:%s:rds:%s:%s:%s",
+		rm.awsPartition,
 		rm.awsRegion,
 		rm.awsAccountID,
 		name,
@@ -456,6 +459,7 @@ func newResourceManager(
 		rr:           rr,
 		awsAccountID: id,
 		awsRegion:    region,
+		awsPartition: ackv1alpha1.AWSPartition(cfg.Partition),
 		sdkapi:       svcsdk.NewFromConfig(clientcfg),
 	}, nil
 }

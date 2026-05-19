@@ -4,8 +4,8 @@ github.com/aws-controllers-k8s/ec2-controller v1.1.2 h1:Bry62L279S7mJofk0sS4o7T7
 github.com/aws-controllers-k8s/ec2-controller v1.1.2/go.mod h1:XZOZcSk0tzplY+A0dADqD4NK4a8g8Jqwf/Ouv2Sz/eQ=
 github.com/aws-controllers-k8s/kms-controller v1.0.8 h1:nDPYQhsgD2s14rEMNmGCwkm+e0Emjo/Usl3is7e9EFk=
 github.com/aws-controllers-k8s/kms-controller v1.0.8/go.mod h1:HjSBjtiljNL1yFzrOizxeQe2+88tW3mHD5fnEGwVYGE=
-github.com/aws-controllers-k8s/runtime v0.58.0 h1:PbM3hsM5z66BSPTb2CBBElYmGF3EgSbUO88efLXxL78=
-github.com/aws-controllers-k8s/runtime v0.58.0/go.mod h1:WPlOiAG+xGySh1I076llz5g6nbuUeH62Qxh49hnieGo=
+github.com/aws-controllers-k8s/runtime v0.59.1 h1:7UDKl9/dif8oNjxx/5Z5ciUfuyn86MS4BvoG9LqF6h4=
+github.com/aws-controllers-k8s/runtime v0.59.1/go.mod h1:ljWD1IdtVx/qC7C4lVobF4vLNhno/xX5A78BOke1Ksk=
 github.com/aws/aws-sdk-go v1.49.0 h1:g9BkW1fo9GqKfwg2+zCD+TW/D36Ux+vtfJ8guF4AYmY=
 github.com/aws/aws-sdk-go v1.49.0/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/aws/aws-sdk-go-v2 v1.34.0 h1:9iyL+cjifckRGEVpRKZP3eIxVlL06Qk1Tk13vreaVQU=
@@ -114,8 +114,8 @@ github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
-github.com/micahhausler/aws-iam-policy v0.4.4 h1:1aMhJ+0CkvUJ8HGN1chX+noXHs8uvGLkD7xIBeYd31c=
-github.com/micahhausler/aws-iam-policy v0.4.4/go.mod h1:H+yWljTu4XWJjNJJYgrPUai0AUTGNHc8pumkN57/foI=
+github.com/micahhausler/aws-iam-policy v0.4.5-0.20260511184658-411e29b8ffd2 h1:J1D4vj3/AVzVoo1allyJJD3mh7J6bPWXVoQHOBQ+p5Y=
+github.com/micahhausler/aws-iam-policy v0.4.5-0.20260511184658-411e29b8ffd2/go.mod h1:H+yWljTu4XWJjNJJYgrPUai0AUTGNHc8pumkN57/foI=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=

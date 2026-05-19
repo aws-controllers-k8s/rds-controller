@@ -473,6 +473,9 @@ func (rm *resourceManager) setStatusDefaults(
 	if ko.Status.ACKResourceMetadata.Region == nil {
 		ko.Status.ACKResourceMetadata.Region = &rm.awsRegion
 	}
+	if ko.Status.ACKResourceMetadata.Partition == nil {
+		ko.Status.ACKResourceMetadata.Partition = &rm.awsPartition
+	}
 	if ko.Status.ACKResourceMetadata.OwnerAccountID == nil {
 		ko.Status.ACKResourceMetadata.OwnerAccountID = &rm.awsAccountID
 	}
