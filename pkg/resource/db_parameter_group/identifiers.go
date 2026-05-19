@@ -53,3 +53,12 @@ func (ri *resourceIdentifiers) Region() *ackv1alpha1.AWSRegion {
 	}
 	return nil
 }
+
+// Partition returns the AWS partition in which the reosurce exists, or
+// nil if this information is not known.
+func (ri *resourceIdentifiers) Partition() *ackv1alpha1.AWSPartition {
+	if ri.meta != nil {
+		return ri.meta.Partition
+	}
+	return nil
+}
