@@ -80,6 +80,8 @@ type GlobalClusterSpec struct {
 	//   - Can't be specified if SourceDBClusterIdentifier is specified. In this
 	//     case, Amazon Aurora uses the setting from the source DB cluster.
 	StorageEncrypted *bool `json:"storageEncrypted,omitempty"`
+	// Tags to assign to the global cluster.
+	Tags []*Tag `json:"tags,omitempty"`
 }
 
 // GlobalClusterStatus defines the observed state of GlobalCluster

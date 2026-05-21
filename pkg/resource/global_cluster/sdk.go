@@ -30,6 +30,7 @@ import (
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -178,6 +179,22 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.StorageEncrypted = elem.StorageEncrypted
 		} else {
 			ko.Spec.StorageEncrypted = nil
+		}
+		if elem.TagList != nil {
+			f12 := []*svcapitypes.Tag{}
+			for _, f12iter := range elem.TagList {
+				f12elem := &svcapitypes.Tag{}
+				if f12iter.Key != nil {
+					f12elem.Key = f12iter.Key
+				}
+				if f12iter.Value != nil {
+					f12elem.Value = f12iter.Value
+				}
+				f12 = append(f12, f12elem)
+			}
+			ko.Spec.Tags = f12
+		} else {
+			ko.Spec.Tags = nil
 		}
 		found = true
 		break
@@ -330,6 +347,22 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.StorageEncrypted = nil
 	}
+	if resp.GlobalCluster.TagList != nil {
+		f12 := []*svcapitypes.Tag{}
+		for _, f12iter := range resp.GlobalCluster.TagList {
+			f12elem := &svcapitypes.Tag{}
+			if f12iter.Key != nil {
+				f12elem.Key = f12iter.Key
+			}
+			if f12iter.Value != nil {
+				f12elem.Value = f12iter.Value
+			}
+			f12 = append(f12, f12elem)
+		}
+		ko.Spec.Tags = f12
+	} else {
+		ko.Spec.Tags = nil
+	}
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
@@ -364,6 +397,20 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.StorageEncrypted != nil {
 		res.StorageEncrypted = r.ko.Spec.StorageEncrypted
 	}
+	if r.ko.Spec.Tags != nil {
+		f7 := []svcsdktypes.Tag{}
+		for _, f7iter := range r.ko.Spec.Tags {
+			f7elem := &svcsdktypes.Tag{}
+			if f7iter.Key != nil {
+				f7elem.Key = f7iter.Key
+			}
+			if f7iter.Value != nil {
+				f7elem.Value = f7iter.Value
+			}
+			f7 = append(f7, *f7elem)
+		}
+		res.Tags = f7
+	}
 
 	return res, nil
 }
@@ -381,6 +428,16 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	updatedko := desired.ko.DeepCopy()
+	updatedko.Status = latest.ko.Status
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return &resource{updatedko}, err
+		}
+	}
+	if !delta.DifferentExcept("Spec.Tags") {
+		return &resource{updatedko}, nil
+	}
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err

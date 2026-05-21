@@ -19,23 +19,94 @@ import time
 import pytest
 
 from acktest.k8s import resource as k8s
+from acktest.resources import random_suffix_name
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
 from e2e import global_cluster
-from e2e.fixtures import k8s_secret
 from e2e import tag
-from e2e.bootstrap_resources import get_bootstrap_resources
 
 RESOURCE_PLURAL = 'globalclusters'
 
 DELETE_WAIT_AFTER_SECONDS = 120
 
-# Time we wait after resource becoming available in RDS and checking the CR's
-# Status has been updated.
-CHECK_STATUS_WAIT_SECONDS = 60*4
-
 MODIFY_WAIT_AFTER_SECONDS = 20
+
+
+@pytest.fixture
+def postgresql_global_cluster():
+    global_cluster_id = random_suffix_name("my-gc", 20)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["GLOBAL_CLUSTER_NAME"] = global_cluster_id
+    replacements["GLOBAL_CLUSTER_ENGINE"] = "aurora-postgresql"
+    replacements["GLOBAL_CLUSTER_DB_NAME"] = "testdb"
+
+    resource_data = load_rds_resource(
+        "global_cluster",
+        additional_replacements=replacements,
+    )
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        global_cluster_id, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert 'status' in cr
+    assert 'status' in cr['status']
+    assert cr['status']['status'] == 'available'
+
+    yield (ref, cr, global_cluster_id)
+
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    global_cluster.wait_until_deleted(global_cluster_id)
+
+
+@pytest.fixture
+def tagged_global_cluster():
+    global_cluster_id = random_suffix_name("my-gc-tags", 20)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["GLOBAL_CLUSTER_NAME"] = global_cluster_id
+    replacements["GLOBAL_CLUSTER_ENGINE"] = "aurora-postgresql"
+    replacements["GLOBAL_CLUSTER_DB_NAME"] = "testdb"
+
+    resource_data = load_rds_resource(
+        "global_cluster_tags",
+        additional_replacements=replacements,
+    )
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        global_cluster_id, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert 'status' in cr
+    assert 'status' in cr['status']
+    assert cr['status']['status'] == 'available'
+
+    yield (ref, cr, global_cluster_id)
+
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    global_cluster.wait_until_deleted(global_cluster_id)
 
 
 @service_marker
@@ -43,37 +114,10 @@ MODIFY_WAIT_AFTER_SECONDS = 20
 class TestGlobalCluster:
 
     def test_crud_postgresql_globalcluster(
-            self,
+            self, postgresql_global_cluster,
     ):
-        global_cluster_id = "my-test-global-cluster"
-        global_cluster_engine = "aurora-postgresql"
-        global_cluster_db_name = 'testdb'
+        ref, cr, global_cluster_id = postgresql_global_cluster
 
-        replacements = REPLACEMENT_VALUES.copy()
-        replacements["GLOBAL_CLUSTER_NAME"] = global_cluster_id
-        replacements["GLOBAL_CLUSTER_ENGINE"] = global_cluster_engine
-        replacements["GLOBAL_CLUSTER_DB_NAME"] = global_cluster_db_name
-
-        resource_data = load_rds_resource(
-            "global_cluster",
-            additional_replacements=replacements,
-        )
-
-        ref = k8s.CustomResourceReference(
-            CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
-            global_cluster_id, namespace="default",
-        )
-        # First try create global cluster 
-        k8s.create_custom_resource(ref, resource_data)
-        cr = k8s.wait_resource_consumed_by_controller(ref)
-
-        # global cluster is available immediately upon created
-        assert cr is not None
-        assert 'status' in cr
-        assert 'status' in cr['status']
-        assert cr['status']['status'] == 'available'
-
-        # assert global cluster is synced
         cr = k8s.get_resource(ref)
         assert cr is not None
         assert 'status' in cr
@@ -81,11 +125,46 @@ class TestGlobalCluster:
         condition.assert_synced(ref)
 
         latest = global_cluster.get(global_cluster_id)
+        assert latest is not None
+        assert 'GlobalClusterArn' in latest
+
+    def test_crud_globalcluster_tags(
+            self, tagged_global_cluster,
+    ):
+        ref, _, global_cluster_id = tagged_global_cluster
+
+        condition.assert_synced(ref)
+
+        latest = global_cluster.get(global_cluster_id)
         arn = latest['GlobalClusterArn']
 
-        # now start delete global cluster
-        k8s.delete_custom_resource(ref)
+        # Verify tags were applied on creation
+        expect_tags = [
+            {"Key": "environment", "Value": "dev"}
+        ]
+        latest_tags = tag.clean(global_cluster.get_tags(arn))
+        assert expect_tags == latest_tags
 
-        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+        # Update tags
+        new_tags = [
+            {
+                "key": "environment",
+                "value": "prod",
+            },
+            {
+                "key": "team",
+                "value": "platform",
+            },
+        ]
+        updates = {
+            "spec": {"tags": new_tags},
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
 
-        global_cluster.wait_until_deleted(global_cluster_id)
+        after_update_expected_tags = [
+            {"Key": "environment", "Value": "prod"},
+            {"Key": "team", "Value": "platform"},
+        ]
+        latest_tags = tag.clean(global_cluster.get_tags(arn))
+        assert latest_tags == after_update_expected_tags
