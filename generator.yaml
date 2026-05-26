@@ -192,6 +192,12 @@ resources:
         references:
           resource: DBClusterParameterGroup
           path: Spec.Name
+      DBInstanceParameterGroupName:
+        from:
+          operation: ModifyDBCluster
+          path: DBInstanceParameterGroupName
+        compare:
+          is_ignored: true
       DBSubnetGroupName:
         references:
           resource: DBSubnetGroup
