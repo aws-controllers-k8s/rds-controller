@@ -528,6 +528,9 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 
 	res.ApplyImmediately = aws.Bool(true)
 	res.AllowMajorVersionUpgrade = aws.Bool(true)
+	if desired.ko.Spec.AutoMinorVersionUpgrade != nil && delta.DifferentAt("Spec.AutoMinorVersionUpgrade") {
+		res.AutoMinorVersionUpgrade = desired.ko.Spec.AutoMinorVersionUpgrade
+	}
 	if desired.ko.Spec.BacktrackWindow != nil && delta.DifferentAt("Spec.BacktrackWindow") {
 		res.BacktrackWindow = desired.ko.Spec.BacktrackWindow
 	}
