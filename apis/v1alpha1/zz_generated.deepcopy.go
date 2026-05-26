@@ -1686,6 +1686,16 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.DBInstanceParameterGroupName != nil {
+		in, out := &in.DBInstanceParameterGroupName, &out.DBInstanceParameterGroupName
+		*out = new(string)
+		**out = **in
+	}
+	if in.DBInstanceParameterGroupRef != nil {
+		in, out := &in.DBInstanceParameterGroupRef, &out.DBInstanceParameterGroupRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.DBSubnetGroupName != nil {
 		in, out := &in.DBSubnetGroupName, &out.DBSubnetGroupName
 		*out = new(string)
