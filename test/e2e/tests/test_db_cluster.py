@@ -301,6 +301,21 @@ class TestDBCluster:
         assert latest is not None
         assert latest["IAMDatabaseAuthenticationEnabled"] == True
 
+        assert latest["AutoMinorVersionUpgrade"] == False
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"autoMinorVersionUpgrade": True}},
+        )
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.AttributeMatcher("AutoMinorVersionUpgrade", True),
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest["AutoMinorVersionUpgrade"] == True
+
     def test_enable_cloudwatch_logs_exports(
         self, aurora_postgres_cluster,
     ):
