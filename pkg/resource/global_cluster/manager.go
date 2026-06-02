@@ -286,7 +286,17 @@ func (rm *resourceManager) EnsureTags(
 	res acktypes.AWSResource,
 	md acktypes.ServiceControllerMetadata,
 ) error {
-
+	r := rm.concreteResource(res)
+	if r.ko == nil {
+		// Should never happen... if it does, it's buggy code.
+		panic("resource manager's EnsureTags method received resource with nil CR object")
+	}
+	defaultTags := ackrt.GetDefaultTags(&rm.cfg, r.ko, md)
+	var existingTags []*svcapitypes.Tag
+	existingTags = r.ko.Spec.Tags
+	resourceTags, keyOrder := convertToOrderedACKTags(existingTags)
+	tags := acktags.Merge(resourceTags, defaultTags)
+	r.ko.Spec.Tags = fromACKTags(tags, keyOrder)
 	return nil
 }
 
@@ -310,7 +320,15 @@ func (rm *resourceManager) EnsureTags(
 //   - aws:eks:cluster-name (EKS)
 //   - services.k8s.aws/* (Kubernetes-managed)
 func (rm *resourceManager) FilterSystemTags(res acktypes.AWSResource, systemTags []string) {
-
+	r := rm.concreteResource(res)
+	if r == nil || r.ko == nil {
+		return
+	}
+	var existingTags []*svcapitypes.Tag
+	existingTags = r.ko.Spec.Tags
+	resourceTags, tagKeyOrder := convertToOrderedACKTags(existingTags)
+	ignoreSystemTags(resourceTags, systemTags)
+	r.ko.Spec.Tags = fromACKTags(resourceTags, tagKeyOrder)
 }
 
 // mirrorAWSTags ensures that AWS tags are included in the desired resource
@@ -325,7 +343,17 @@ func (rm *resourceManager) FilterSystemTags(res acktypes.AWSResource, systemTags
 // tags, mirrowAWSTags tries to make sure tags injected by AWS are mirrored
 // from the latest resoruce to the desired resource.
 func mirrorAWSTags(a *resource, b *resource) {
-
+	if a == nil || a.ko == nil || b == nil || b.ko == nil {
+		return
+	}
+	var existingLatestTags []*svcapitypes.Tag
+	var existingDesiredTags []*svcapitypes.Tag
+	existingDesiredTags = a.ko.Spec.Tags
+	existingLatestTags = b.ko.Spec.Tags
+	desiredTags, desiredTagKeyOrder := convertToOrderedACKTags(existingDesiredTags)
+	latestTags, _ := convertToOrderedACKTags(existingLatestTags)
+	syncAWSTags(desiredTags, latestTags)
+	a.ko.Spec.Tags = fromACKTags(desiredTags, desiredTagKeyOrder)
 }
 
 // newResourceManager returns a new struct implementing

@@ -1194,6 +1194,13 @@ type GlobalCluster_SDK struct {
 	GlobalClusterResourceID *string                `json:"globalClusterResourceID,omitempty"`
 	Status                  *string                `json:"status,omitempty"`
 	StorageEncrypted        *bool                  `json:"storageEncrypted,omitempty"`
+	// A list of tags.
+	//
+	// For more information, see Tagging Amazon RDS resources (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html)
+	// in the Amazon RDS User Guide or Tagging Amazon Aurora and Amazon RDS resources
+	// (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html)
+	// in the Amazon Aurora User Guide.
+	TagList []*Tag `json:"tagList,omitempty"`
 }
 
 // This data type is used as a response element in the DescribeDBSecurityGroups

@@ -90,9 +90,9 @@ ignore:
     - ClusterPendingModifiedValues.StorageType
     - CreateGlobalClusterInput.EngineLifecycleSupport
     # ignoring tags until we can handle them in new PR
-    - CreateGlobalClusterInput.Tags
+    # - CreateGlobalClusterInput.Tags
     - CreateGlobalClusterOutput.GlobalCluster.Endpoint
-    - CreateGlobalClusterOutput.GlobalCluster.TagList
+    # - CreateGlobalClusterOutput.GlobalCluster.TagList
     - CreateGlobalClusterOutput.GlobalCluster.FailoverState.IsDataLossAllowed
     - GlobalClusterMember.SynchronizationStatus
     - CreateDBClusterEndpointOutput.EndpointType
@@ -508,11 +508,21 @@ resources:
       terminal_codes:
         - GlobalClusterAlreadyExistsFault
         - GlobalClusterQuotaExceededFault
+    renames:
+      operations:
+        DescribeGlobalClusters:
+          output_fields:
+            TagList: Tags
+        CreateGlobalCluster:
+          output_fields:
+            TagList: Tags
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/global_cluster/sdk_update_pre_build_request.go.tpl
     fields:
       GlobalClusterIdentifier:
         is_primary_key: true
-    tags:
-      ignore: true
+
   DBParameterGroup:
     renames:
       operations:
