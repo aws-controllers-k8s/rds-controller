@@ -617,6 +617,7 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ackcondition.SetSynced(&resource{ko}, corev1.ConditionTrue, nil, nil)
 	}
+	clearAuroraAllocatedStorage(ko)
 	if len(r.ko.Spec.VPCSecurityGroupIDs) > 0 {
 		// If the desired resource has security groups specified then update the spec of the latest resource with the
 		// value from the status. This is done so that when a cluster is created without security groups and gets a
@@ -1241,6 +1242,7 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
+	clearAuroraAllocatedStorage(ko)
 	// set the last-applied-secret-reference annotation on the DB instance
 	// resource.
 	r := &resource{ko}

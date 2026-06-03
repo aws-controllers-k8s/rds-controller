@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	"github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -151,6 +152,23 @@ func clusterDeleting(r *resource) bool {
 	}
 	dbcs := *r.ko.Status.Status
 	return dbcs == StatusDeleting
+}
+
+// isAuroraEngine returns true if the engine string indicates an Aurora cluster
+// (aurora, aurora-mysql, aurora-postgresql).
+func isAuroraEngine(engine *string) bool {
+	if engine == nil {
+		return false
+	}
+	return strings.HasPrefix(*engine, "aurora")
+}
+
+// clearAuroraAllocatedStorage nils out AllocatedStorage for Aurora engines.
+// AWS always returns AllocatedStorage=1 for Aurora but rejects it on input.
+func clearAuroraAllocatedStorage(ko *svcapitypes.DBCluster) {
+	if isAuroraEngine(ko.Spec.Engine) {
+		ko.Spec.AllocatedStorage = nil
+	}
 }
 
 // syncTags keeps the resource's tags in sync
@@ -299,6 +317,7 @@ func (rm *resourceManager) restoreDbClusterFromSnapshot(
 
 	rm.setResourceFromRestoreDBClusterFromSnapshotOutput(r, resp)
 	rm.setStatusDefaults(r.ko)
+	clearAuroraAllocatedStorage(r.ko)
 
 	// We expect the DB cluster to be in 'creating' status since we just
 	// issued the call to create it, but I suppose it doesn't hurt to check
@@ -332,6 +351,7 @@ func (rm *resourceManager) restoreDbClusterToPointInTime(
 
 	rm.setResourceFromRestoreDBClusterToPointInTimeOutput(r, resp)
 	rm.setStatusDefaults(r.ko)
+	clearAuroraAllocatedStorage(r.ko)
 
 	// We expect the DB cluster to be in 'creating' status since we just
 	// issued the call to create it, but I suppose it doesn't hurt to check

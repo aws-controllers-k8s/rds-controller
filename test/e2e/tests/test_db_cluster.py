@@ -275,6 +275,22 @@ class TestDBCluster:
         ]
         assert latest_tags == after_update_expected_tags
 
+    def test_aurora_no_allocated_storage_writeback(
+            self, aurora_postgres_cluster,
+    ):
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        time.sleep(CHECK_STATUS_WAIT_SECONDS)
+
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert cr['spec'].get('allocatedStorage') is None
+        condition.assert_synced(ref)
+
     def test_flip_enable_iam_db_authn(
             self, aurora_postgres_cluster,
     ):

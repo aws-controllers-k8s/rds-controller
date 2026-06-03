@@ -1,3 +1,4 @@
+	clearAuroraAllocatedStorage(ko)
 	// set the last-applied-secret-reference annotation on the DB instance
 	// resource.
 	r := &resource{ko}

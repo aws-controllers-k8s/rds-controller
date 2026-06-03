@@ -118,10 +118,8 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.ActivityStreamStatus = nil
 	}
-	if resp.DBCluster.AllocatedStorage != nil {
+	if resp.DBCluster.AllocatedStorage != nil && !isAuroraEngine(resp.DBCluster.Engine) {
 		ko.Spec.AllocatedStorage = aws.Int64(int64(*resp.DBCluster.AllocatedStorage))
-	} else {
-		ko.Spec.AllocatedStorage = nil
 	}
 	if resp.DBCluster.AssociatedRoles != nil {
 		f5 := []*svcapitypes.DBClusterRole{}
