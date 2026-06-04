@@ -574,6 +574,9 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
 			res.EngineVersion = desired.ko.Spec.EngineVersion
+			if desired.ko.Spec.DBInstanceParameterGroupName != nil {
+				res.DBInstanceParameterGroupName = desired.ko.Spec.DBInstanceParameterGroupName
+			}
 		}
 	}
 	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {

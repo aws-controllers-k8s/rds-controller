@@ -21,7 +21,7 @@ import pytest
 from acktest.k8s import resource as k8s
 from acktest.resources import random_suffix_name
 from e2e import (CRD_GROUP, CRD_VERSION, condition, db_cluster,
-                 load_rds_resource, service_marker, tag)
+                 db_parameter_group, load_rds_resource, service_marker, tag)
 from e2e.fixtures import k8s_secret
 from e2e.replacement_values import REPLACEMENT_VALUES
 
@@ -51,6 +51,7 @@ DELETE_WAIT_AFTER_SECONDS = 120
 CHECK_STATUS_WAIT_SECONDS = 60*2
 
 MODIFY_WAIT_AFTER_SECONDS = 20
+MAJOR_UPGRADE_TIMEOUT_SECONDS = 60*15
 
 # MUP == Master user password...
 MUP_NS = "default"
@@ -523,3 +524,58 @@ class TestDBCluster:
         assert latest["DatabaseInsightsMode"] == "advanced"
         assert latest["PerformanceInsightsEnabled"] == True
         assert latest["PerformanceInsightsRetentionPeriod"] == 465
+
+    def test_major_version_upgrade_with_instance_parameter_group(
+        self, aurora_postgres_cluster,
+    ):
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        pg_name = random_suffix_name("pg-aurora-pg15", 24)
+        pg_replacements = REPLACEMENT_VALUES.copy()
+        pg_replacements["DB_PARAMETER_GROUP_NAME"] = pg_name
+        pg_replacements["DB_PARAMETER_GROUP_DESC"] = "Aurora PG 15 instance params"
+
+        pg_resource_data = load_rds_resource(
+            "db_parameter_group_aurora_postgresql15",
+            additional_replacements=pg_replacements,
+        )
+
+        pg_ref = k8s.CustomResourceReference(
+            CRD_GROUP, CRD_VERSION, 'dbparametergroups',
+            pg_name, namespace="default",
+        )
+        k8s.create_custom_resource(pg_ref, pg_resource_data)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        pg_cr = k8s.wait_resource_consumed_by_controller(pg_ref)
+        assert pg_cr is not None
+
+        updates = {
+            "spec": {
+                "engineVersion": "15.4",
+                "dbInstanceParameterGroupName": pg_name,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+            timeout_seconds=MAJOR_UPGRADE_TIMEOUT_SECONDS,
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest["EngineVersion"].startswith("15.")
+
+        try:
+            _, deleted = k8s.delete_custom_resource(pg_ref, 3, 10)
+            assert deleted
+            time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        except:
+            pass
+
+        db_parameter_group.wait_until_deleted(pg_name)

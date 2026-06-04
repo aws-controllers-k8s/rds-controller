@@ -140,6 +140,24 @@ type DBClusterSpec struct {
 	//     group.
 	DBClusterParameterGroupName *string                                  `json:"dbClusterParameterGroupName,omitempty"`
 	DBClusterParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterParameterGroupRef,omitempty"`
+	// The name of the DB parameter group to apply to all instances of the DB cluster.
+	//
+	// When you apply a parameter group using the DBInstanceParameterGroupName parameter,
+	// the DB cluster isn't rebooted automatically. Also, parameter changes are
+	// applied immediately rather than during the next maintenance window.
+	//
+	// Valid for Cluster Type: Aurora DB clusters only
+	//
+	// Default: The existing name setting
+	//
+	// Constraints:
+	//
+	//   - The DB parameter group must be in the same DB parameter group family
+	//     as this DB cluster.
+	//
+	//   - The DBInstanceParameterGroupName parameter is valid in combination with
+	//     the AllowMajorVersionUpgrade parameter for a major version upgrade only.
+	DBInstanceParameterGroupName *string `json:"dbInstanceParameterGroupName,omitempty"`
 	// A DB subnet group to associate with this DB cluster.
 	//
 	// This setting is required to create a Multi-AZ DB cluster.
