@@ -46,6 +46,12 @@ var (
 		errParameterGroupJustCreated,
 		100*time.Millisecond,
 	)
+
+	errParametersModified         = fmt.Errorf("parameter overrides modified, requeuing to refresh status")
+	requeueWaitAfterParameterSync = ackrequeue.NeededAfter(
+		errParametersModified,
+		5*time.Second,
+	)
 )
 
 // customUpdate is required to fix
@@ -73,6 +79,7 @@ func (rm *resourceManager) customUpdate(
 		if err = rm.syncParameters(ctx, desired, latest); err != nil {
 			return nil, err
 		}
+		return desired, requeueWaitAfterParameterSync
 	}
 	return desired, nil
 }
@@ -299,6 +306,9 @@ func (rm *resourceManager) getParameters(
 				}
 			}
 
+			if param.ParameterValue == nil {
+				continue
+			}
 			params[pName] = param.ParameterValue
 			p := svcapitypes.Parameter{
 				ParameterName:  param.ParameterName,

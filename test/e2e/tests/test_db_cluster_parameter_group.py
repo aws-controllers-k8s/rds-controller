@@ -158,6 +158,43 @@ def aurora_pg14_mixed_source_cluster_param_group():
     db_cluster_parameter_group.wait_until_deleted(resource_name)
 
 
+@pytest.fixture
+def aurora_pg14_single_param_cluster_param_group():
+    resource_name = random_suffix_name("aurora-pg14-single", 24)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["DB_CLUSTER_PARAMETER_GROUP_NAME"] = resource_name
+    replacements["DB_CLUSTER_PARAMETER_GROUP_DESC"] = "Test adding new parameter overrides"
+
+    resource_data = load_rds_resource(
+        "db_cluster_parameter_group_aurora_postgresql14_single_param",
+        additional_replacements=replacements,
+    )
+    logging.debug(resource_data)
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        resource_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+    time.sleep(CREATE_WAIT_AFTER_SECONDS)
+
+    assert cr is not None
+    assert k8s.get_resource_exists(ref)
+
+    yield ref, cr, resource_name
+
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(DELETE_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_cluster_parameter_group.wait_until_deleted(resource_name)
+
+
 @service_marker
 @pytest.mark.canary
 class TestDBClusterParameterGroup:
@@ -418,3 +455,49 @@ class TestDBClusterParameterGroup:
         # Even if status still contains some removed parameters temporarily,
         # controller conditions should remain healthy after processing update.
         condition.assert_synced(ref)
+
+    def test_add_parameter_override_updates_status(self, aurora_pg14_single_param_cluster_param_group):
+        ref, cr, resource_name = aurora_pg14_single_param_cluster_param_group
+
+        latest = db_cluster_parameter_group.get(resource_name)
+        assert latest is not None
+
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        cr = k8s.get_resource(ref)
+        assert 'status' in cr
+        assert 'parameterOverrideStatuses' in cr['status']
+        status_params = cr['status']['parameterOverrideStatuses']
+        status_param_names = [p['parameterName'] for p in status_params]
+        assert "log_min_duration_statement" in status_param_names
+
+        condition.assert_synced(ref)
+
+        new_params = {
+            "log_min_duration_statement": "5000",
+            "log_statement": "ddl",
+        }
+        updates = {
+            "spec": {
+                "parameterOverrides": new_params,
+            },
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+
+        cr = k8s.get_resource(ref)
+        assert 'status' in cr
+        assert 'parameterOverrideStatuses' in cr['status']
+        status_params = cr['status']['parameterOverrideStatuses']
+        status_param_names = [p['parameterName'] for p in status_params]
+        assert "log_min_duration_statement" in status_param_names, \
+            f"log_min_duration_statement missing from status after update: {status_param_names}"
+        assert "log_statement" in status_param_names, \
+            f"log_statement missing from parameterOverrideStatuses after adding new override: {status_param_names}"
+
+        condition.assert_synced(ref)
+
+        all_params = db_cluster_parameter_group.get_parameters(resource_name)
+        log_statement_param = [p for p in all_params if p["ParameterName"] == "log_statement"]
+        assert len(log_statement_param) == 1
+        assert log_statement_param[0]["ParameterValue"] == "ddl"
