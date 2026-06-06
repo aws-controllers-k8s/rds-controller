@@ -77,6 +77,32 @@ metrics:
     # Which Type to use for the Kubernetes Service?
     # See: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: "ClusterIP"
+  serviceMonitor:
+    # Set to true to automatically create a Prometheus ServiceMonitor resource
+    # Requires the Prometheus Operator CRDs to be installed
+    enabled: false
+    # Additional labels for the ServiceMonitor (e.g., for Prometheus selector)
+    additionalLabels: {}
+    # Scrape interval
+    interval: 30s
+    # Scrape timeout
+    scrapeTimeout: 10s
+  prometheusRule:
+    # Set to true to automatically create a Prometheus PrometheusRule resource
+    # Requires the Prometheus Operator CRDs to be installed
+    enabled: false
+    # Additional labels for the PrometheusRule (e.g., for Prometheus selector)
+    additionalLabels: {}
+    # Alert rules (can be overridden or extended)
+    rules:
+      - alert: RDSControllerSyncErrors
+        expr: sum by (controller) (rate(controller_runtime_reconcile_errors_total{job="rds-controller-metrics"}[10m])) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: RDS controller having sync errors in the last 10 minutes for controller {{ $labels.controller }}
+          summary: RDS controller having sync errors with one or more objects
 
 resources:
   requests:
