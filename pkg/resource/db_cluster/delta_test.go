@@ -168,3 +168,67 @@ func TestNewResourceDelta_EngineVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestNewResourceDelta_AllocatedStorage(t *testing.T) {
+	tests := []struct {
+		name                    string
+		engine                  string
+		desiredAllocatedStorage *int64
+		latestAllocatedStorage  *int64
+		expectDifferentAt       bool
+	}{
+		{
+			name:                    "aurora with allocatedStorage in spec, observed nil",
+			engine:                  "aurora-postgresql",
+			desiredAllocatedStorage: aws.Int64(1),
+			latestAllocatedStorage:  nil,
+			expectDifferentAt:       false,
+		},
+		{
+			name:                    "aurora mysql with allocatedStorage in spec, observed nil",
+			engine:                  "aurora-mysql",
+			desiredAllocatedStorage: aws.Int64(100),
+			latestAllocatedStorage:  nil,
+			expectDifferentAt:       false,
+		},
+		{
+			name:                    "non-aurora with matching allocatedStorage",
+			engine:                  "mysql",
+			desiredAllocatedStorage: aws.Int64(100),
+			latestAllocatedStorage:  aws.Int64(100),
+			expectDifferentAt:       false,
+		},
+		{
+			name:                    "non-aurora with changed allocatedStorage",
+			engine:                  "mysql",
+			desiredAllocatedStorage: aws.Int64(200),
+			latestAllocatedStorage:  aws.Int64(100),
+			expectDifferentAt:       true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			desired := &resource{
+				ko: &svcapitypes.DBCluster{
+					Spec: svcapitypes.DBClusterSpec{
+						Engine:           aws.String(tc.engine),
+						AllocatedStorage: tc.desiredAllocatedStorage,
+					},
+				},
+			}
+			latest := &resource{
+				ko: &svcapitypes.DBCluster{
+					Spec: svcapitypes.DBClusterSpec{
+						Engine:           aws.String(tc.engine),
+						AllocatedStorage: tc.latestAllocatedStorage,
+					},
+				},
+			}
+
+			delta := newResourceDelta(desired, latest)
+			assert.Equal(t, tc.expectDifferentAt, delta.DifferentAt("Spec.AllocatedStorage"),
+				"Spec.AllocatedStorage delta mismatch")
+		})
+	}
+}

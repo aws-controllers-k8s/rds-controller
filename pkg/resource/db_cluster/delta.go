@@ -50,6 +50,13 @@ func newResourceDelta(
 		b.ko.Spec.StorageType = aws.String("aurora")
 	}
 
+	// Clear AllocatedStorage on the desired side for Aurora; the observed side
+	// is already cleared on create/read (v1.9.0+). This mainly covers clusters
+	// created before that fix, which retain a stale allocatedStorage in spec
+	// that otherwise produces a delta every reconcile ModifyDBCluster can't
+	// resolve, leaving the cluster perpetually out of sync.
+	clearAuroraAllocatedStorage(a.ko)
+
 	// When autoMinorVersionUpgrade is enabled and the engine version
 	// difference is only a minor version change (same major version),
 	// normalize the desired engine version to match the latest. This
