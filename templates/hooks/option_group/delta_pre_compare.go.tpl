@@ -1,1 +1,0 @@
-    compareTags(delta, a, b)

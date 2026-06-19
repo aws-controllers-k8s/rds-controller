@@ -26,6 +26,7 @@ import (
 type OptionGroupSpec struct {
 
 	// The description of the option group.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
 	Description *string `json:"description"`
 	// The name of the engine to associate this option group with.
@@ -58,10 +59,12 @@ type OptionGroupSpec struct {
 	//
 	//   - sqlserver-web
 	//
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
 	EngineName *string `json:"engineName"`
 	// Specifies the major version of the engine that this option group should be
 	// associated with.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	// +kubebuilder:validation:Required
 	MajorEngineVersion *string `json:"majorEngineVersion"`
 	// Specifies the name of the option group to be created.
@@ -77,6 +80,9 @@ type OptionGroupSpec struct {
 	// Example: myoptiongroup
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
+	// Options in this list are added to the option group or, if already present,
+	// the specified configuration is used to update the existing configuration.
+	Options []*OptionConfiguration `json:"options,omitempty"`
 	// Tags to assign to the option group.
 	Tags []*Tag `json:"tags,omitempty"`
 }
@@ -104,7 +110,7 @@ type OptionGroupStatus struct {
 	CopyTimestamp *metav1.Time `json:"copyTimestamp,omitempty"`
 	// Indicates what options are available in the option group.
 	// +kubebuilder:validation:Optional
-	Options []*Option `json:"options,omitempty"`
+	ObservedOptions []*Option `json:"observedOptions,omitempty"`
 	// Specifies the Amazon Web Services account ID for the option group from which
 	// this option group is copied.
 	// +kubebuilder:validation:Optional

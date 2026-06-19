@@ -41,6 +41,9 @@ spec:
               description:
                 description: The description of the option group.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               engineName:
                 description: |-
                   The name of the engine to associate this option group with.
@@ -73,11 +76,17 @@ spec:
 
                     - sqlserver-web
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               majorEngineVersion:
                 description: |-
                   Specifies the major version of the engine that this option group should be
                   associated with.
                 type: string
+                x-kubernetes-validations:
+                - message: Value is immutable once set
+                  rule: self == oldSelf
               name:
                 description: |-
                   Specifies the name of the option group to be created.
@@ -92,6 +101,58 @@ spec:
 
                   Example: myoptiongroup
                 type: string
+              options:
+                description: |-
+                  Options in this list are added to the option group or, if already present,
+                  the specified configuration is used to update the existing configuration.
+                items:
+                  description: A list of all available options for an option group.
+                  properties:
+                    dbSecurityGroupMemberships:
+                      items:
+                        type: string
+                      type: array
+                    optionName:
+                      type: string
+                    optionSettings:
+                      items:
+                        description: |-
+                          Option settings are the actual settings being applied or configured for that
+                          option. It is used when you modify an option group or describe option groups.
+                          For example, the NATIVE_NETWORK_ENCRYPTION option has a setting called SQLNET.ENCRYPTION_SERVER
+                          that can have several different values.
+                        properties:
+                          allowedValues:
+                            type: string
+                          applyType:
+                            type: string
+                          dataType:
+                            type: string
+                          defaultValue:
+                            type: string
+                          description:
+                            type: string
+                          isCollection:
+                            type: boolean
+                          isModifiable:
+                            type: boolean
+                          name:
+                            type: string
+                          value:
+                            type: string
+                        type: object
+                      type: array
+                    optionVersion:
+                      type: string
+                    port:
+                      format: int64
+                      type: integer
+                    vpcSecurityGroupMemberships:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
               tags:
                 description: Tags to assign to the option group.
                 items:
@@ -138,6 +199,10 @@ spec:
                     description: |-
                       OwnerAccountID is the AWS Account ID of the account that owns the
                       backend AWS service API resource.
+                    type: string
+                  partition:
+                    description: Partition is the AWS partition in which the resource
+                      exists or will exist
                     type: string
                   region:
                     description: Region is the AWS region in which the resource exists
@@ -192,7 +257,7 @@ spec:
                 description: Indicates when the option group was copied.
                 format: date-time
                 type: string
-              options:
+              observedOptions:
                 description: Indicates what options are available in the option group.
                 items:
                   description: The details of an option.

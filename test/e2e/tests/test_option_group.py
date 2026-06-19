@@ -18,6 +18,7 @@ import logging
 import time
 
 import pytest
+from kubernetes.client.exceptions import ApiException
 
 from acktest.k8s import resource as k8s
 from acktest.resources import random_suffix_name
@@ -129,3 +130,61 @@ class TestOptionGroup:
         assert latest['OptionGroupName'] == resource_name
         assert latest['EngineName'] == ENGINE_NAME
         assert latest['MajorEngineVersion'] == MAJOR_ENGINE_VERSION
+
+    def test_options(self, option_group_resource):
+        ref, cr, resource_name = option_group_resource
+
+        latest = option_group.get(resource_name)
+        assert latest is not None
+        assert len(latest['Options']) == 0
+
+        updates = {
+            "spec": {
+                "options": [
+                    {
+                        "optionName": "MARIADB_AUDIT_PLUGIN",
+                        "optionSettings": [
+                            {"name": "SERVER_AUDIT_EVENTS", "value": "CONNECT"}
+                        ],
+                    }
+                ]
+            }
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=5)
+
+        latest = option_group.get(resource_name)
+        option_names = [o['OptionName'] for o in latest['Options']]
+        assert "MARIADB_AUDIT_PLUGIN" in option_names
+        audit = next(o for o in latest['Options'] if o['OptionName'] == "MARIADB_AUDIT_PLUGIN")
+        events = next(s for s in audit['OptionSettings'] if s['Name'] == "SERVER_AUDIT_EVENTS")
+        assert events['Value'] == "CONNECT"
+
+        updates = {
+            "spec": {
+                "options": []
+            }
+        }
+        k8s.patch_custom_resource(ref, updates)
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=5)
+
+        latest = option_group.get(resource_name)
+        option_names = [o['OptionName'] for o in latest['Options']]
+        assert "MARIADB_AUDIT_PLUGIN" not in option_names
+
+    def test_immutable_description(self, option_group_resource):
+        ref, cr, resource_name = option_group_resource
+
+        updates = {
+            "spec": {
+                "description": "a different description"
+            }
+        }
+        with pytest.raises(ApiException) as exc:
+            k8s.patch_custom_resource(ref, updates)
+        assert exc.value.status == 422
+
+        latest = option_group.get(resource_name)
+        assert latest['OptionGroupDescription'] == OPTION_GROUP_DESCRIPTION

@@ -216,9 +216,9 @@ func (rm *resourceManager) sdkFind(
 				}
 				f7 = append(f7, f7elem)
 			}
-			ko.Status.Options = f7
+			ko.Status.ObservedOptions = f7
 		} else {
-			ko.Status.Options = nil
+			ko.Status.ObservedOptions = nil
 		}
 		if elem.SourceAccountId != nil {
 			ko.Status.SourceAccountID = elem.SourceAccountId
@@ -251,6 +251,10 @@ func (rm *resourceManager) sdkFind(
 		}
 		ko.Spec.Tags = tags
 	}
+	// Project the observed options (the richer DescribeOptionGroups read
+	// shape) back into the desired Spec.Options shape so the custom
+	// comparison can detect drift between desired and observed options.
+	ko.Spec.Options = optionConfigurationsFromObserved(ko.Status.ObservedOptions)
 
 	return &resource{ko}, nil
 }
@@ -438,9 +442,9 @@ func (rm *resourceManager) sdkCreate(
 			}
 			f7 = append(f7, f7elem)
 		}
-		ko.Status.Options = f7
+		ko.Status.ObservedOptions = f7
 	} else {
-		ko.Status.Options = nil
+		ko.Status.ObservedOptions = nil
 	}
 	if resp.OptionGroup.SourceAccountId != nil {
 		ko.Status.SourceAccountID = resp.OptionGroup.SourceAccountId
@@ -459,6 +463,16 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
+	// CreateOptionGroup does not accept any options; they are configured via
+	// ModifyOptionGroup. Rather than make that call here, mark the resource as
+	// not yet synced when options are desired so the next reconciliation runs
+	// the update path and syncs them through the normal delta flow.
+	if len(ko.Spec.Options) > 0 {
+		msg := "option group created, options will be configured on the next reconciliation"
+		reason := "options pending configuration"
+		ackcondition.SetSynced(&resource{ko}, corev1.ConditionFalse, &msg, &reason)
+	}
+
 	return &resource{ko}, nil
 }
 
@@ -507,201 +521,8 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (updated *resource, err error) {
-	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.sdkUpdate")
-	defer func() {
-		exit(err)
-	}()
-	if delta.DifferentAt("Spec.Tags") {
-		if err = rm.syncTags(ctx, desired, latest); err != nil {
-			return nil, err
-		}
-	}
-
-	if !delta.DifferentExcept("Spec.Tags") {
-		return desired, nil
-	}
-
-	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp *svcsdk.ModifyOptionGroupOutput
-	_ = resp
-	resp, err = rm.sdkapi.ModifyOptionGroup(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "ModifyOptionGroup", err)
-	if err != nil {
-		return nil, err
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := desired.ko.DeepCopy()
-
-	if resp.OptionGroup.AllowsVpcAndNonVpcInstanceMemberships != nil {
-		ko.Status.AllowsVPCAndNonVPCInstanceMemberships = resp.OptionGroup.AllowsVpcAndNonVpcInstanceMemberships
-	} else {
-		ko.Status.AllowsVPCAndNonVPCInstanceMemberships = nil
-	}
-	if resp.OptionGroup.CopyTimestamp != nil {
-		ko.Status.CopyTimestamp = &metav1.Time{*resp.OptionGroup.CopyTimestamp}
-	} else {
-		ko.Status.CopyTimestamp = nil
-	}
-	if resp.OptionGroup.EngineName != nil {
-		ko.Spec.EngineName = resp.OptionGroup.EngineName
-	} else {
-		ko.Spec.EngineName = nil
-	}
-	if resp.OptionGroup.MajorEngineVersion != nil {
-		ko.Spec.MajorEngineVersion = resp.OptionGroup.MajorEngineVersion
-	} else {
-		ko.Spec.MajorEngineVersion = nil
-	}
-	if ko.Status.ACKResourceMetadata == nil {
-		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
-	}
-	if resp.OptionGroup.OptionGroupArn != nil {
-		arn := ackv1alpha1.AWSResourceName(*resp.OptionGroup.OptionGroupArn)
-		ko.Status.ACKResourceMetadata.ARN = &arn
-	}
-	if resp.OptionGroup.OptionGroupDescription != nil {
-		ko.Spec.Description = resp.OptionGroup.OptionGroupDescription
-	} else {
-		ko.Spec.Description = nil
-	}
-	if resp.OptionGroup.OptionGroupName != nil {
-		ko.Spec.Name = resp.OptionGroup.OptionGroupName
-	} else {
-		ko.Spec.Name = nil
-	}
-	if resp.OptionGroup.Options != nil {
-		f7 := []*svcapitypes.Option{}
-		for _, f7iter := range resp.OptionGroup.Options {
-			f7elem := &svcapitypes.Option{}
-			if f7iter.DBSecurityGroupMemberships != nil {
-				f7elemf0 := []*svcapitypes.DBSecurityGroupMembership{}
-				for _, f7elemf0iter := range f7iter.DBSecurityGroupMemberships {
-					f7elemf0elem := &svcapitypes.DBSecurityGroupMembership{}
-					if f7elemf0iter.DBSecurityGroupName != nil {
-						f7elemf0elem.DBSecurityGroupName = f7elemf0iter.DBSecurityGroupName
-					}
-					if f7elemf0iter.Status != nil {
-						f7elemf0elem.Status = f7elemf0iter.Status
-					}
-					f7elemf0 = append(f7elemf0, f7elemf0elem)
-				}
-				f7elem.DBSecurityGroupMemberships = f7elemf0
-			}
-			if f7iter.OptionDescription != nil {
-				f7elem.OptionDescription = f7iter.OptionDescription
-			}
-			if f7iter.OptionName != nil {
-				f7elem.OptionName = f7iter.OptionName
-			}
-			if f7iter.OptionSettings != nil {
-				f7elemf3 := []*svcapitypes.OptionSetting{}
-				for _, f7elemf3iter := range f7iter.OptionSettings {
-					f7elemf3elem := &svcapitypes.OptionSetting{}
-					if f7elemf3iter.AllowedValues != nil {
-						f7elemf3elem.AllowedValues = f7elemf3iter.AllowedValues
-					}
-					if f7elemf3iter.ApplyType != nil {
-						f7elemf3elem.ApplyType = f7elemf3iter.ApplyType
-					}
-					if f7elemf3iter.DataType != nil {
-						f7elemf3elem.DataType = f7elemf3iter.DataType
-					}
-					if f7elemf3iter.DefaultValue != nil {
-						f7elemf3elem.DefaultValue = f7elemf3iter.DefaultValue
-					}
-					if f7elemf3iter.Description != nil {
-						f7elemf3elem.Description = f7elemf3iter.Description
-					}
-					if f7elemf3iter.IsCollection != nil {
-						f7elemf3elem.IsCollection = f7elemf3iter.IsCollection
-					}
-					if f7elemf3iter.IsModifiable != nil {
-						f7elemf3elem.IsModifiable = f7elemf3iter.IsModifiable
-					}
-					if f7elemf3iter.Name != nil {
-						f7elemf3elem.Name = f7elemf3iter.Name
-					}
-					if f7elemf3iter.Value != nil {
-						f7elemf3elem.Value = f7elemf3iter.Value
-					}
-					f7elemf3 = append(f7elemf3, f7elemf3elem)
-				}
-				f7elem.OptionSettings = f7elemf3
-			}
-			if f7iter.OptionVersion != nil {
-				f7elem.OptionVersion = f7iter.OptionVersion
-			}
-			if f7iter.Permanent != nil {
-				f7elem.Permanent = f7iter.Permanent
-			}
-			if f7iter.Persistent != nil {
-				f7elem.Persistent = f7iter.Persistent
-			}
-			if f7iter.Port != nil {
-				portCopy := int64(*f7iter.Port)
-				f7elem.Port = &portCopy
-			}
-			if f7iter.VpcSecurityGroupMemberships != nil {
-				f7elemf8 := []*svcapitypes.VPCSecurityGroupMembership{}
-				for _, f7elemf8iter := range f7iter.VpcSecurityGroupMemberships {
-					f7elemf8elem := &svcapitypes.VPCSecurityGroupMembership{}
-					if f7elemf8iter.Status != nil {
-						f7elemf8elem.Status = f7elemf8iter.Status
-					}
-					if f7elemf8iter.VpcSecurityGroupId != nil {
-						f7elemf8elem.VPCSecurityGroupID = f7elemf8iter.VpcSecurityGroupId
-					}
-					f7elemf8 = append(f7elemf8, f7elemf8elem)
-				}
-				f7elem.VPCSecurityGroupMemberships = f7elemf8
-			}
-			f7 = append(f7, f7elem)
-		}
-		ko.Status.Options = f7
-	} else {
-		ko.Status.Options = nil
-	}
-	if resp.OptionGroup.SourceAccountId != nil {
-		ko.Status.SourceAccountID = resp.OptionGroup.SourceAccountId
-	} else {
-		ko.Status.SourceAccountID = nil
-	}
-	if resp.OptionGroup.SourceOptionGroup != nil {
-		ko.Status.SourceOptionGroup = resp.OptionGroup.SourceOptionGroup
-	} else {
-		ko.Status.SourceOptionGroup = nil
-	}
-	if resp.OptionGroup.VpcId != nil {
-		ko.Status.VPCID = resp.OptionGroup.VpcId
-	} else {
-		ko.Status.VPCID = nil
-	}
-
-	rm.setStatusDefaults(ko)
-	return &resource{ko}, nil
-}
-
-// newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
-// payload of the Update API call for the resource
-func (rm *resourceManager) newUpdateRequestPayload(
-	ctx context.Context,
-	r *resource,
-	delta *ackcompare.Delta,
-) (*svcsdk.ModifyOptionGroupInput, error) {
-	res := &svcsdk.ModifyOptionGroupInput{}
-
-	if r.ko.Spec.Name != nil {
-		res.OptionGroupName = r.ko.Spec.Name
-	}
-
-	return res, nil
+) (*resource, error) {
+	return rm.customUpdate(ctx, desired, latest, delta)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API
@@ -748,6 +569,9 @@ func (rm *resourceManager) setStatusDefaults(
 	}
 	if ko.Status.ACKResourceMetadata.Region == nil {
 		ko.Status.ACKResourceMetadata.Region = &rm.awsRegion
+	}
+	if ko.Status.ACKResourceMetadata.Partition == nil {
+		ko.Status.ACKResourceMetadata.Partition = &rm.awsPartition
 	}
 	if ko.Status.ACKResourceMetadata.OwnerAccountID == nil {
 		ko.Status.ACKResourceMetadata.OwnerAccountID = &rm.awsAccountID
@@ -838,6 +662,19 @@ func (rm *resourceManager) updateConditions(
 // and if the exception indicates that it is a Terminal exception
 // 'Terminal' exception are specified in generator configuration
 func (rm *resourceManager) terminalAWSError(err error) bool {
-	// No terminal_errors specified for this resource in generator config
-	return false
+	if err == nil {
+		return false
+	}
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
+		return false
+	}
+	switch terminalErr.ErrorCode() {
+	case "InvalidParameterValue",
+		"InvalidParameterCombination":
+		return true
+	default:
+		return false
+	}
 }

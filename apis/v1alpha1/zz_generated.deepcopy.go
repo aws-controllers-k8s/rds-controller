@@ -7406,6 +7406,17 @@ func (in *OptionGroupSpec) DeepCopyInto(out *OptionGroupSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.Options != nil {
+		in, out := &in.Options, &out.Options
+		*out = make([]*OptionConfiguration, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(OptionConfiguration)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make([]*Tag, len(*in))
@@ -7457,8 +7468,8 @@ func (in *OptionGroupStatus) DeepCopyInto(out *OptionGroupStatus) {
 		in, out := &in.CopyTimestamp, &out.CopyTimestamp
 		*out = (*in).DeepCopy()
 	}
-	if in.Options != nil {
-		in, out := &in.Options, &out.Options
+	if in.ObservedOptions != nil {
+		in, out := &in.ObservedOptions, &out.ObservedOptions
 		*out = make([]*Option, len(*in))
 		for i := range *in {
 			if (*in)[i] != nil {
