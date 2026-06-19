@@ -17,7 +17,7 @@ ignore:
     #- DBSubnetGroup
     - EventSubscription
     #- GlobalCluster
-    - OptionGroup
+    #- OptionGroup
     - Integration
     - DBShardGroup
     - TenantDatabase
@@ -717,3 +717,80 @@ resources:
         template_path: hooks/db_cluster_endpoint/sdk_update_pre_build_request.go.tpl
       delta_pre_compare:
         template_path: hooks/db_cluster_endpoint/delta_pre_compare.go.tpl
+  OptionGroup:
+    renames:
+      operations:
+        CreateOptionGroup:
+          input_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+          output_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+            # The read shape's observed options bind to Status.ObservedOptions;
+            # the desired options live in Spec.Options (from OptionsToInclude).
+            Options: ObservedOptions
+        DeleteOptionGroup:
+          input_fields:
+            OptionGroupName: Name
+        DescribeOptionGroups:
+          input_fields:
+            OptionGroupName: Name
+          output_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+            Options: ObservedOptions
+        ModifyOptionGroup:
+          input_fields:
+            OptionGroupName: Name
+          output_fields:
+            OptionGroupDescription: Description
+            OptionGroupName: Name
+            Options: ObservedOptions
+    update_operation:
+      # CreateOptionGroup cannot set Options; they are configured via
+      # ModifyOptionGroup's OptionsToInclude/OptionsToRemove. We compute the
+      # add/remove sets ourselves in customUpdate.
+      custom_method_name: customUpdate
+    exceptions:
+      terminal_codes:
+        - InvalidParameterValue
+        - InvalidParameterCombination
+    fields:
+      Name:
+        is_primary_key: true
+      # These three fields are only accepted by CreateOptionGroup; the RDS
+      # ModifyOptionGroup API has no way to change them, so a change must be
+      # rejected as terminal rather than retried forever.
+      Description:
+        is_immutable: true
+      EngineName:
+        is_immutable: true
+      MajorEngineVersion:
+        is_immutable: true
+      # The desired set of options for the group, sourced from
+      # ModifyOptionGroup's OptionsToInclude shape. We reconcile these against
+      # the observed options via a custom comparison + update.
+      Options:
+        from:
+          operation: ModifyOptionGroup
+          path: OptionsToInclude
+        compare:
+          is_ignored: true
+      # The observed options as returned by DescribeOptionGroups. This is the
+      # richer read shape (includes server-applied defaults and statuses).
+      ObservedOptions:
+        from:
+          operation: DescribeOptionGroups
+          path: OptionGroupsList.Options
+        is_read_only: true
+      Tags:
+        compare:
+          is_ignored: true
+    hooks:
+      sdk_read_many_post_set_output:
+        template_path: hooks/option_group/sdk_read_many_post_set_output.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/option_group/sdk_create_post_set_output.go.tpl
+      delta_pre_compare:
+        code: customPreCompare(delta, a, b)

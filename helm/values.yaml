@@ -160,6 +160,7 @@ reconcile:
     - DBSnapshot
     - DBSubnetGroup
     - GlobalCluster
+    - OptionGroup
 
 serviceAccount:
   # Specifies whether a service account should be created
