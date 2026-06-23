@@ -1832,6 +1832,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.MonitoringRoleRef != nil {
+		in, out := &in.MonitoringRoleRef, &out.MonitoringRoleRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.NetworkType != nil {
 		in, out := &in.NetworkType, &out.NetworkType
 		*out = new(string)
@@ -1846,6 +1851,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		in, out := &in.PerformanceInsightsKMSKeyID, &out.PerformanceInsightsKMSKeyID
 		*out = new(string)
 		**out = **in
+	}
+	if in.PerformanceInsightsKMSKeyRef != nil {
+		in, out := &in.PerformanceInsightsKMSKeyRef, &out.PerformanceInsightsKMSKeyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.PerformanceInsightsRetentionPeriod != nil {
 		in, out := &in.PerformanceInsightsRetentionPeriod, &out.PerformanceInsightsRetentionPeriod
@@ -3361,6 +3371,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.MonitoringRoleRef != nil {
+		in, out := &in.MonitoringRoleRef, &out.MonitoringRoleRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.MultiAZ != nil {
 		in, out := &in.MultiAZ, &out.MultiAZ
 		*out = new(bool)
@@ -3390,6 +3405,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		in, out := &in.PerformanceInsightsKMSKeyID, &out.PerformanceInsightsKMSKeyID
 		*out = new(string)
 		**out = **in
+	}
+	if in.PerformanceInsightsKMSKeyRef != nil {
+		in, out := &in.PerformanceInsightsKMSKeyRef, &out.PerformanceInsightsKMSKeyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.PerformanceInsightsRetentionPeriod != nil {
 		in, out := &in.PerformanceInsightsRetentionPeriod, &out.PerformanceInsightsRetentionPeriod
@@ -4712,6 +4732,11 @@ func (in *DBProxySpec) DeepCopyInto(out *DBProxySpec) {
 		in, out := &in.RoleARN, &out.RoleARN
 		*out = new(string)
 		**out = **in
+	}
+	if in.RoleRef != nil {
+		in, out := &in.RoleRef, &out.RoleRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags

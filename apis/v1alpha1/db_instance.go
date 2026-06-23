@@ -440,7 +440,11 @@ type DBInstanceSpec struct {
 	// Example: mydbsubnetgroup
 	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
 	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
-	// Specifies the mode of Database Insights to enable for the instance.
+	// The mode of Database Insights to enable for the DB instance.
+	//
+	// This setting only applies to Amazon Aurora DB instances.
+	//
+	// Currently, this value is inherited from the DB cluster and can't be changed.
 	DatabaseInsightsMode *string `json:"databaseInsightsMode,omitempty"`
 	// Specifies whether the DB instance has deletion protection enabled. The database
 	// can't be deleted when deletion protection is enabled. By default, deletion
@@ -813,7 +817,8 @@ type DBInstanceSpec struct {
 	// a MonitoringRoleArn value.
 	//
 	// This setting doesn't apply to RDS Custom DB instances.
-	MonitoringRoleARN *string `json:"monitoringRoleARN,omitempty"`
+	MonitoringRoleARN *string                                  `json:"monitoringRoleARN,omitempty"`
+	MonitoringRoleRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"monitoringRoleRef,omitempty"`
 	// Specifies whether the DB instance is a Multi-AZ deployment. You can't set
 	// the AvailabilityZone parameter if the DB instance is a Multi-AZ deployment.
 	//
@@ -865,7 +870,8 @@ type DBInstanceSpec struct {
 	// KMS key for each Amazon Web Services Region.
 	//
 	// This setting doesn't apply to RDS Custom DB instances.
-	PerformanceInsightsKMSKeyID *string `json:"performanceInsightsKMSKeyID,omitempty"`
+	PerformanceInsightsKMSKeyID  *string                                  `json:"performanceInsightsKMSKeyID,omitempty"`
+	PerformanceInsightsKMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"performanceInsightsKMSKeyRef,omitempty"`
 	// The number of days to retain Performance Insights data.
 	//
 	// This setting doesn't apply to RDS Custom DB instances.

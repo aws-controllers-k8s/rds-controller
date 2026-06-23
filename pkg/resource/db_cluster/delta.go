@@ -331,6 +331,9 @@ func newResourceDelta(
 			delta.Add("Spec.MonitoringRoleARN", a.ko.Spec.MonitoringRoleARN, b.ko.Spec.MonitoringRoleARN)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.MonitoringRoleRef, b.ko.Spec.MonitoringRoleRef) {
+		delta.Add("Spec.MonitoringRoleRef", a.ko.Spec.MonitoringRoleRef, b.ko.Spec.MonitoringRoleRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.NetworkType, b.ko.Spec.NetworkType) {
 		delta.Add("Spec.NetworkType", a.ko.Spec.NetworkType, b.ko.Spec.NetworkType)
 	} else if a.ko.Spec.NetworkType != nil && b.ko.Spec.NetworkType != nil {
@@ -351,6 +354,9 @@ func newResourceDelta(
 		if *a.ko.Spec.PerformanceInsightsKMSKeyID != *b.ko.Spec.PerformanceInsightsKMSKeyID {
 			delta.Add("Spec.PerformanceInsightsKMSKeyID", a.ko.Spec.PerformanceInsightsKMSKeyID, b.ko.Spec.PerformanceInsightsKMSKeyID)
 		}
+	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.PerformanceInsightsKMSKeyRef, b.ko.Spec.PerformanceInsightsKMSKeyRef) {
+		delta.Add("Spec.PerformanceInsightsKMSKeyRef", a.ko.Spec.PerformanceInsightsKMSKeyRef, b.ko.Spec.PerformanceInsightsKMSKeyRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod) {
 		delta.Add("Spec.PerformanceInsightsRetentionPeriod", a.ko.Spec.PerformanceInsightsRetentionPeriod, b.ko.Spec.PerformanceInsightsRetentionPeriod)
