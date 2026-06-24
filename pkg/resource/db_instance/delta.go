@@ -258,6 +258,9 @@ func newResourceDelta(
 			delta.Add("Spec.MonitoringRoleARN", a.ko.Spec.MonitoringRoleARN, b.ko.Spec.MonitoringRoleARN)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.MonitoringRoleRef, b.ko.Spec.MonitoringRoleRef) {
+		delta.Add("Spec.MonitoringRoleRef", a.ko.Spec.MonitoringRoleRef, b.ko.Spec.MonitoringRoleRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MultiAZ, b.ko.Spec.MultiAZ) {
 		delta.Add("Spec.MultiAZ", a.ko.Spec.MultiAZ, b.ko.Spec.MultiAZ)
 	} else if a.ko.Spec.MultiAZ != nil && b.ko.Spec.MultiAZ != nil {
@@ -285,6 +288,9 @@ func newResourceDelta(
 		if *a.ko.Spec.OptionGroupName != *b.ko.Spec.OptionGroupName {
 			delta.Add("Spec.OptionGroupName", a.ko.Spec.OptionGroupName, b.ko.Spec.OptionGroupName)
 		}
+	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.PerformanceInsightsKMSKeyRef, b.ko.Spec.PerformanceInsightsKMSKeyRef) {
+		delta.Add("Spec.PerformanceInsightsKMSKeyRef", a.ko.Spec.PerformanceInsightsKMSKeyRef, b.ko.Spec.PerformanceInsightsKMSKeyRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Port, b.ko.Spec.Port) {
 		delta.Add("Spec.Port", a.ko.Spec.Port, b.ko.Spec.Port)

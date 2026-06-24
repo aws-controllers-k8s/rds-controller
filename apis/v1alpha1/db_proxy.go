@@ -63,8 +63,8 @@ type DBProxySpec struct {
 	RequireTLS *bool `json:"requireTLS,omitempty"`
 	// The Amazon Resource Name (ARN) of the IAM role that the proxy uses to access
 	// secrets in Amazon Web Services Secrets Manager.
-	// +kubebuilder:validation:Required
-	RoleARN *string `json:"roleARN"`
+	RoleARN *string                                  `json:"roleARN,omitempty"`
+	RoleRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"roleRef,omitempty"`
 	// An optional set of key-value pairs to associate arbitrary data of your choosing
 	// with the proxy.
 	Tags []*Tag `json:"tags,omitempty"`

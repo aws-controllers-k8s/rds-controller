@@ -53,7 +53,7 @@ type DBClusterSpec struct {
 	// DB cluster during the maintenance window. By default, minor engine upgrades
 	// are applied automatically.
 	//
-	// Valid for Cluster Type: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB cluster
 	AutoMinorVersionUpgrade *bool `json:"autoMinorVersionUpgrade,omitempty"`
 	// A list of Availability Zones (AZs) where you specifically want to create
 	// DB instances in the DB cluster.
@@ -155,7 +155,13 @@ type DBClusterSpec struct {
 	DBSubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSubnetGroupRef,omitempty"`
 	// Reserved for future use.
 	DBSystemID *string `json:"dbSystemID,omitempty"`
-	// Specifies the mode of Database Insights to enable for the cluster.
+	// The mode of Database Insights to enable for the DB cluster.
+	//
+	// If you set this value to advanced, you must also set the PerformanceInsightsEnabled
+	// parameter to true and the PerformanceInsightsRetentionPeriod parameter to
+	// 465.
+	//
+	// Valid for Cluster Type: Aurora DB clusters only
 	DatabaseInsightsMode *string `json:"databaseInsightsMode,omitempty"`
 	// The name for your database of up to 64 alphanumeric characters. A database
 	// named postgres is always created. If this parameter is specified, an additional
@@ -229,12 +235,6 @@ type DBClusterSpec struct {
 	// (RDS Data API) for running SQL queries on the DB cluster. You can also query
 	// your database from inside the RDS console with the RDS query editor.
 	//
-	// RDS Data API is supported with the following DB clusters:
-	//
-	//   - Aurora PostgreSQL Serverless v2 and provisioned
-	//
-	//   - Aurora PostgreSQL and Aurora MySQL Serverless v1
-	//
 	// For more information, see Using RDS Data API (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
 	// in the Amazon Aurora User Guide.
 	//
@@ -256,7 +256,7 @@ type DBClusterSpec struct {
 	// For more information, see Using Amazon Performance Insights (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html)
 	// in the Amazon RDS User Guide.
 	//
-	// Valid for Cluster Type: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	EnablePerformanceInsights *bool `json:"enablePerformanceInsights,omitempty"`
 	// The database engine to use for this DB cluster.
 	//
@@ -449,7 +449,7 @@ type DBClusterSpec struct {
 	// If MonitoringRoleArn is specified, also set MonitoringInterval to a value
 	// other than 0.
 	//
-	// Valid for Cluster Type: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Valid Values: 0 | 1 | 5 | 10 | 15 | 30 | 60
 	//
@@ -464,8 +464,9 @@ type DBClusterSpec struct {
 	// If MonitoringInterval is set to a value other than 0, supply a MonitoringRoleArn
 	// value.
 	//
-	// Valid for Cluster Type: Multi-AZ DB clusters only
-	MonitoringRoleARN *string `json:"monitoringRoleARN,omitempty"`
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
+	MonitoringRoleARN *string                                  `json:"monitoringRoleARN,omitempty"`
+	MonitoringRoleRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"monitoringRoleRef,omitempty"`
 	// The network type of the DB cluster.
 	//
 	// The network type is determined by the DBSubnetGroup specified for the DB
@@ -494,11 +495,12 @@ type DBClusterSpec struct {
 	// Web Services account. Your Amazon Web Services account has a different default
 	// KMS key for each Amazon Web Services Region.
 	//
-	// Valid for Cluster Type: Multi-AZ DB clusters only
-	PerformanceInsightsKMSKeyID *string `json:"performanceInsightsKMSKeyID,omitempty"`
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
+	PerformanceInsightsKMSKeyID  *string                                  `json:"performanceInsightsKMSKeyID,omitempty"`
+	PerformanceInsightsKMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"performanceInsightsKMSKeyRef,omitempty"`
 	// The number of days to retain Performance Insights data.
 	//
-	// Valid for Cluster Type: Multi-AZ DB clusters only
+	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	//
 	// Valid Values:
 	//
@@ -921,7 +923,7 @@ type DBClusterStatus struct {
 	PercentProgress *string `json:"percentProgress,omitempty"`
 	// Indicates whether Performance Insights is enabled for the DB cluster.
 	//
-	// This setting is only for non-Aurora Multi-AZ DB clusters.
+	// This setting is only for Aurora DB clusters and Multi-AZ DB clusters.
 	// +kubebuilder:validation:Optional
 	PerformanceInsightsEnabled *bool `json:"performanceInsightsEnabled,omitempty"`
 	// Contains one or more identifiers of the read replicas associated with this

@@ -188,6 +188,16 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      MonitoringRoleARN:
+        references:
+          resource: Role
+          service_name: iam
+          path: Status.ACKResourceMetadata.ARN
+      PerformanceInsightsKMSKeyID:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
       DBClusterParameterGroupName:
         references:
           resource: DBClusterParameterGroup
@@ -339,6 +349,11 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+      MonitoringRoleARN:
+        references:
+          resource: Role
+          service_name: iam
+          path: Status.ACKResourceMetadata.ARN
       DBParameterGroupName:
         references:
           resource: DBParameterGroup
@@ -377,6 +392,10 @@ resources:
           skip_incomplete_check: {}
         compare:
           is_ignored: true
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
       PerformanceInsightsRetentionPeriod:
         late_initialize:
            skip_incomplete_check: {}
@@ -625,6 +644,11 @@ resources:
     fields:
       Name:
         is_primary_key: true
+      RoleARN:
+        references:
+          resource: Role
+          service_name: iam
+          path: Status.ACKResourceMetadata.ARN
     renames:
       operations:
         CreateDBProxy:

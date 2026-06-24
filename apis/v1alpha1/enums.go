@@ -70,10 +70,11 @@ const (
 type ClientPasswordAuthType string
 
 const (
-	ClientPasswordAuthType_MYSQL_NATIVE_PASSWORD     ClientPasswordAuthType = "MYSQL_NATIVE_PASSWORD"
-	ClientPasswordAuthType_POSTGRES_MD5              ClientPasswordAuthType = "POSTGRES_MD5"
-	ClientPasswordAuthType_POSTGRES_SCRAM_SHA_256    ClientPasswordAuthType = "POSTGRES_SCRAM_SHA_256"
-	ClientPasswordAuthType_SQL_SERVER_AUTHENTICATION ClientPasswordAuthType = "SQL_SERVER_AUTHENTICATION"
+	ClientPasswordAuthType_MYSQL_CACHING_SHA2_PASSWORD ClientPasswordAuthType = "MYSQL_CACHING_SHA2_PASSWORD"
+	ClientPasswordAuthType_MYSQL_NATIVE_PASSWORD       ClientPasswordAuthType = "MYSQL_NATIVE_PASSWORD"
+	ClientPasswordAuthType_POSTGRES_MD5                ClientPasswordAuthType = "POSTGRES_MD5"
+	ClientPasswordAuthType_POSTGRES_SCRAM_SHA_256      ClientPasswordAuthType = "POSTGRES_SCRAM_SHA_256"
+	ClientPasswordAuthType_SQL_SERVER_AUTHENTICATION   ClientPasswordAuthType = "SQL_SERVER_AUTHENTICATION"
 )
 
 type ClusterScalabilityType string
