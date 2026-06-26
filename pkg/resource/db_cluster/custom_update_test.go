@@ -104,3 +104,108 @@ func TestNewCustomUpdateRequestPayload_PreferredBackupWindowNotInDelta(t *testin
 	assert.NotNil(t, input)
 	assert.Nil(t, input.PreferredBackupWindow)
 }
+
+func TestNewCustomUpdateRequestPayload_DBInstanceParameterGroupName_MajorUpgrade(t *testing.T) {
+	rm := &resourceManager{}
+	ctx := context.Background()
+
+	desired := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier:          aws.String("test-cluster"),
+				EngineVersion:                aws.String("17.1"),
+				DBInstanceParameterGroupName: aws.String("custom-pg-17"),
+			},
+		},
+	}
+
+	latest := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier:          aws.String("test-cluster"),
+				EngineVersion:                aws.String("16.4"),
+				DBInstanceParameterGroupName: aws.String("custom-pg-17"),
+			},
+		},
+	}
+
+	delta := ackcompare.NewDelta()
+	delta.Add("Spec.EngineVersion", latest.ko.Spec.EngineVersion, desired.ko.Spec.EngineVersion)
+
+	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, input)
+	assert.Equal(t, "17.1", *input.EngineVersion)
+	assert.Equal(t, "custom-pg-17", *input.DBInstanceParameterGroupName)
+}
+
+func TestNewCustomUpdateRequestPayload_DBInstanceParameterGroupName_NoEngineChange(t *testing.T) {
+	rm := &resourceManager{}
+	ctx := context.Background()
+
+	desired := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier:          aws.String("test-cluster"),
+				EngineVersion:                aws.String("16.4"),
+				DBInstanceParameterGroupName: aws.String("custom-pg-16"),
+			},
+		},
+	}
+
+	latest := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier: aws.String("test-cluster"),
+				EngineVersion:       aws.String("16.4"),
+			},
+		},
+	}
+
+	delta := ackcompare.NewDelta()
+	delta.Add("Spec.DBInstanceParameterGroupName", latest.ko.Spec.DBInstanceParameterGroupName, desired.ko.Spec.DBInstanceParameterGroupName)
+
+	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, input)
+	assert.Nil(t, input.EngineVersion)
+	assert.Nil(t, input.DBInstanceParameterGroupName)
+}
+
+func TestNewCustomUpdateRequestPayload_DBInstanceParameterGroupName_MinorUpgrade(t *testing.T) {
+	rm := &resourceManager{}
+	ctx := context.Background()
+
+	desired := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier:          aws.String("test-cluster"),
+				EngineVersion:                aws.String("16.5"),
+				AutoMinorVersionUpgrade:      aws.Bool(true),
+				DBInstanceParameterGroupName: aws.String("custom-pg-16"),
+			},
+		},
+	}
+
+	latest := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier:     aws.String("test-cluster"),
+				EngineVersion:           aws.String("16.4"),
+				AutoMinorVersionUpgrade: aws.Bool(true),
+			},
+		},
+	}
+
+	delta := ackcompare.NewDelta()
+	delta.Add("Spec.EngineVersion", latest.ko.Spec.EngineVersion, desired.ko.Spec.EngineVersion)
+
+	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, input)
+	assert.Nil(t, input.EngineVersion)
+	assert.Nil(t, input.DBInstanceParameterGroupName)
+}
