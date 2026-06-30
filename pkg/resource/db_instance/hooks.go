@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -530,17 +531,53 @@ func (rm *resourceManager) createDBInstanceReadReplica(
 	return &resource{r.ko}, nil
 }
 
+// majorEngineVersionRegexp captures the leading major-version component of an
+// engine version string (e.g. "14" from "14.2").
+var majorEngineVersionRegexp = regexp.MustCompile(`^[0-9]+`)
+
 // RDS will choose preferred engine minor version if only
 // engine major version is provided and controler should not
 // treat them as different, such as spec has 14, status has 14.1
-// controller should treat them as same
+// controller should treat them as same.
+//
+// Additionally, when autoMinorVersionUpgrade is enabled (the API default),
+// RDS may automatically upgrade the instance's minor version. In that case a
+// difference that is limited to the minor version (same major version) should
+// not be treated as drift, otherwise the controller would attempt to "correct"
+// the engine version on every reconcile. See the equivalent handling for
+// DBCluster in pkg/resource/db_cluster.
 func reconcileEngineVersion(
 	a *resource,
 	b *resource,
 ) {
-	if a != nil && b != nil && a.ko.Spec.EngineVersion != nil && b.ko.Spec.EngineVersion != nil && strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) {
+	if a == nil || b == nil ||
+		a.ko.Spec.EngineVersion == nil || b.ko.Spec.EngineVersion == nil {
+		return
+	}
+	// RDS chose a preferred minor version for a major-version-only spec.
+	if strings.HasPrefix(*b.ko.Spec.EngineVersion, *a.ko.Spec.EngineVersion) {
+		a.ko.Spec.EngineVersion = b.ko.Spec.EngineVersion
+		return
+	}
+	// autoMinorVersionUpgrade defaults to true to match the RDS API default.
+	autoMinorVersionUpgrade := true
+	if a.ko.Spec.AutoMinorVersionUpgrade != nil {
+		autoMinorVersionUpgrade = *a.ko.Spec.AutoMinorVersionUpgrade
+	}
+	if !requireEngineVersionUpdate(a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
 		a.ko.Spec.EngineVersion = b.ko.Spec.EngineVersion
 	}
+}
+
+// requireEngineVersionUpdate returns true when the desired engine version
+// represents a meaningful change from the latest observed version that the
+// controller must act on. When autoMinorVersionUpgrade is enabled, a
+// difference confined to the minor version (same major version) is left to RDS
+// and not treated as drift.
+func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
+	desiredMajorEngineVersion := majorEngineVersionRegexp.FindString(*desiredEngineVersion)
+	latestMajorEngineVersion := majorEngineVersionRegexp.FindString(*latestEngineVersion)
+	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
 }
 
 // syncTags keeps the resource's tags in sync
