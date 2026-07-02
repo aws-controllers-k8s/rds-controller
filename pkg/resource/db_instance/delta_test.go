@@ -445,3 +445,114 @@ func TestNewResourceDelta_CustomPreCompare_DBClusterIdentifierSet(t *testing.T) 
 		})
 	}
 }
+
+// TestNewResourceDelta_EngineVersion_AutoMinorVersionUpgrade validates that a
+// difference confined to the engine minor version (same major version) is
+// suppressed when autoMinorVersionUpgrade is enabled (or unset, since the API
+// default is true), but is still detected when it is explicitly disabled or
+// when the major version differs.
+func TestNewResourceDelta_EngineVersion_AutoMinorVersionUpgrade(t *testing.T) {
+	tests := []struct {
+		name            string
+		desired         func() *svcapitypes.DBInstanceSpec
+		latest          func() *svcapitypes.DBInstanceSpec
+		expectDifferent bool
+	}{
+		{
+			name: "minor version drift suppressed when autoMinorVersionUpgrade is unset (defaults to true)",
+			desired: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					EngineVersion: aws.String("14.1"),
+				}
+			},
+			latest: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					EngineVersion: aws.String("14.2"),
+				}
+			},
+			expectDifferent: false,
+		},
+		{
+			name: "minor version drift suppressed when autoMinorVersionUpgrade is true",
+			desired: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(true),
+					EngineVersion:           aws.String("14.1"),
+				}
+			},
+			latest: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(true),
+					EngineVersion:           aws.String("14.2"),
+				}
+			},
+			expectDifferent: false,
+		},
+		{
+			name: "minor version drift detected when autoMinorVersionUpgrade is false",
+			desired: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(false),
+					EngineVersion:           aws.String("14.1"),
+				}
+			},
+			latest: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(false),
+					EngineVersion:           aws.String("14.2"),
+				}
+			},
+			expectDifferent: true,
+		},
+		{
+			name: "major version difference detected even when autoMinorVersionUpgrade is true",
+			desired: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(true),
+					EngineVersion:           aws.String("15.2"),
+				}
+			},
+			latest: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(true),
+					EngineVersion:           aws.String("14.2"),
+				}
+			},
+			expectDifferent: true,
+		},
+		{
+			name: "major-version-only spec suppressed against preferred minor version",
+			desired: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(false),
+					EngineVersion:           aws.String("14"),
+				}
+			},
+			latest: func() *svcapitypes.DBInstanceSpec {
+				return &svcapitypes.DBInstanceSpec{
+					AutoMinorVersionUpgrade: aws.Bool(false),
+					EngineVersion:           aws.String("14.2"),
+				}
+			},
+			expectDifferent: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			desired := &resource{
+				ko: &svcapitypes.DBInstance{
+					Spec: *tc.desired(),
+				},
+			}
+			latest := &resource{
+				ko: &svcapitypes.DBInstance{
+					Spec: *tc.latest(),
+				},
+			}
+			delta := newResourceDelta(desired, latest)
+			assert.Equal(t, tc.expectDifferent, delta.DifferentAt("Spec.EngineVersion"),
+				"unexpected Spec.EngineVersion delta result for case %q", tc.name)
+		})
+	}
+}
