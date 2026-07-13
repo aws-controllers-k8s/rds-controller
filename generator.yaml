@@ -132,11 +132,13 @@ operations:
       # makes to a resource's Spec to be reconciled by the ACK service
       # controller, not a different service.
       ApplyImmediately: aws.Bool(true)
-      # We override the value of the ApplyImmediately field in the modify
-      # operations to "true" because we want changes that a Kubernetes user
-      # makes to a resource's Spec to be reconciled by the ACK service
-      # controller, not a different service.
-      AllowMajorVersionUpgrade: aws.Bool(true)
+      # NOTE: AllowMajorVersionUpgrade is intentionally NOT set here as an
+      # override_value. Setting it unconditionally caused a reconcile loop
+      # where ModifyDBInstance was called on every reconcile even when no
+      # fields had changed. Instead, AllowMajorVersionUpgrade is set
+      # conditionally in the sdk_update_post_build_request hook only when
+      # an engine version change is actually required.
+      # See: https://github.com/aws-controllers-k8s/community/issues/2956
 resources:
   DBCluster:
     update_operation:

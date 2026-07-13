@@ -2690,7 +2690,13 @@ func (rm *resourceManager) newUpdateRequestPayload(
 			res.AllocatedStorage = &allocatedStorageCopy
 		}
 	}
-	res.AllowMajorVersionUpgrade = aws.Bool(true)
+	// AllowMajorVersionUpgrade is only required when the engine version is
+	// actually changing. Sending it unconditionally on every reconcile caused
+	// a continuous no-op ModifyDBInstance loop even when nothing had changed.
+	// See: https://github.com/aws-controllers-k8s/community/issues/2956
+	if delta.DifferentAt("Spec.EngineVersion") {
+		res.AllowMajorVersionUpgrade = aws.Bool(true)
+	}
 	res.ApplyImmediately = aws.Bool(true)
 	if delta.DifferentAt("Spec.AutoMinorVersionUpgrade") {
 		if r.ko.Spec.AutoMinorVersionUpgrade != nil {
