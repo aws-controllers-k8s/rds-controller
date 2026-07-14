@@ -160,9 +160,11 @@ func customPreCompare(delta *ackcompare.Delta, a *resource, b *resource) {
 				delta.Add("Spec.StorageType", a.ko.Spec.StorageType, b.ko.Spec.StorageType)
 			}
 		}
-		if ackcompare.HasNilDifference(a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode) {
-			delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
-		} else if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
+		// Only compare DatabaseInsightsMode when both are non-nil (user explicitly set it).
+		// When desired is nil (user didn't set it), skip the comparison to avoid a reconcile
+		// loop caused by AWS defaulting to "standard" on every DescribeDBInstances response.
+		// See: https://github.com/aws-controllers-k8s/community/issues/2956
+		if a.ko.Spec.DatabaseInsightsMode != nil && b.ko.Spec.DatabaseInsightsMode != nil {
 			if *a.ko.Spec.DatabaseInsightsMode != *b.ko.Spec.DatabaseInsightsMode {
 				delta.Add("Spec.DatabaseInsightsMode", a.ko.Spec.DatabaseInsightsMode, b.ko.Spec.DatabaseInsightsMode)
 			}
