@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AllocatedStorage", "AutoMinorVersionUpgrade", "AvailabilityZone", "BackupRetentionPeriod", "BackupTarget", "CACertificateIdentifier", "CopyTagsToSnapshot", "DBName", "DatabaseInsightsMode", "DeletionProtection", "EngineVersion", "IOPS", "KMSKeyID", "LicenseModel", "MasterUsername", "MonitoringInterval", "MultiAZ", "NetworkType", "PerformanceInsightsEnabled", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "PubliclyAccessible", "StorageEncrypted", "StorageThroughput", "StorageType"}
+var lateInitializeFieldNames = []string{"AllocatedStorage", "AutoMinorVersionUpgrade", "AvailabilityZone", "BackupRetentionPeriod", "BackupTarget", "CACertificateIdentifier", "CopyTagsToSnapshot", "DBName", "DatabaseInsightsMode", "DeletionProtection", "EngineVersion", "IOPS", "KMSKeyID", "LicenseModel", "MasterUsername", "MonitoringInterval", "MultiAZ", "NetworkType", "PerformanceInsightsEnabled", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "PreferredBackupWindow", "PreferredMaintenanceWindow", "PromotionTier", "PubliclyAccessible", "StorageEncrypted", "StorageThroughput", "StorageType"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -330,6 +330,9 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.PreferredMaintenanceWindow != nil && latestKo.Spec.PreferredMaintenanceWindow == nil {
 		latestKo.Spec.PreferredMaintenanceWindow = observedKo.Spec.PreferredMaintenanceWindow
+	}
+	if observedKo.Spec.PromotionTier != nil && latestKo.Spec.PromotionTier == nil {
+		latestKo.Spec.PromotionTier = observedKo.Spec.PromotionTier
 	}
 	if observedKo.Spec.PubliclyAccessible != nil && latestKo.Spec.PubliclyAccessible == nil {
 		latestKo.Spec.PubliclyAccessible = observedKo.Spec.PubliclyAccessible

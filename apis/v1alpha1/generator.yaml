@@ -231,6 +231,9 @@ resources:
         from:
           operation: RestoreDBClusterToPointInTime
           path: UseLatestRestorableTime
+      NetworkType:
+        late_initialize:
+          skip_incomplete_check: {}
       Tags:
         compare:
           # We have a custom comparison function...
@@ -466,6 +469,9 @@ resources:
         late_initialize:
           skip_incomplete_check: {}
       PubliclyAccessible:
+        late_initialize:
+          skip_incomplete_check: {}
+      PromotionTier:
         late_initialize:
           skip_incomplete_check: {}
       CopyTagsToSnapshot:
