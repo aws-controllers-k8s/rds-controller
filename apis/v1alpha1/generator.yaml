@@ -202,6 +202,13 @@ resources:
         references:
           resource: DBClusterParameterGroup
           path: Spec.Name
+      DBInstanceParameterGroupName:
+        from:
+          operation: ModifyDBCluster
+          path: DBInstanceParameterGroupName
+        references:
+          resource: DBParameterGroup
+          path: Spec.Name
       DBSubnetGroupName:
         references:
           resource: DBSubnetGroup
