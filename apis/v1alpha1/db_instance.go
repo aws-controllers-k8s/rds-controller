@@ -227,11 +227,13 @@ type DBInstanceSpec struct {
 	// For the list of permissions required for the IAM role, see Configure IAM
 	// and your VPC (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-setup-orcl.html#custom-setup-orcl.iam-vpc)
 	// in the Amazon RDS User Guide.
-	CustomIAMInstanceProfile *string `json:"customIAMInstanceProfile,omitempty"`
+	CustomIAMInstanceProfile    *string                                  `json:"customIAMInstanceProfile,omitempty"`
+	CustomIAMInstanceProfileRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"customIAMInstanceProfileRef,omitempty"`
 	// The identifier of the DB cluster that this DB instance will belong to.
 	//
 	// This setting doesn't apply to RDS Custom DB instances.
-	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
+	DBClusterIdentifier    *string                                  `json:"dbClusterIdentifier,omitempty"`
+	DBClusterIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterIdentifierRef,omitempty"`
 	// The identifier for the Multi-AZ DB cluster snapshot to restore from.
 	//
 	// For more information on Multi-AZ DB clusters, see Multi-AZ DB cluster deployments
@@ -250,7 +252,8 @@ type DBInstanceSpec struct {
 	//     the DBClusterSnapshotIdentifier must be the ARN of the shared snapshot.
 	//
 	//   - Can't be the identifier of an Aurora DB cluster snapshot.
-	DBClusterSnapshotIdentifier *string `json:"dbClusterSnapshotIdentifier,omitempty"`
+	DBClusterSnapshotIdentifier    *string                                  `json:"dbClusterSnapshotIdentifier,omitempty"`
+	DBClusterSnapshotIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterSnapshotIdentifierRef,omitempty"`
 	// The compute and memory capacity of the DB instance, for example db.m5.large.
 	// Not all DB instance classes are available in all Amazon Web Services Regions,
 	// or for all database engines. For the full list of DB instance classes, and
@@ -430,7 +433,8 @@ type DBInstanceSpec struct {
 	//
 	//   - If you are restoring from a shared manual DB snapshot, the DBSnapshotIdentifier
 	//     must be the ARN of the shared DB snapshot.
-	DBSnapshotIdentifier *string `json:"dbSnapshotIdentifier,omitempty"`
+	DBSnapshotIdentifier    *string                                  `json:"dbSnapshotIdentifier,omitempty"`
+	DBSnapshotIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbSnapshotIdentifierRef,omitempty"`
 	// A DB subnet group to associate with this DB instance.
 	//
 	// Constraints:
@@ -478,7 +482,8 @@ type DBInstanceSpec struct {
 	//   - Amazon Aurora (The domain is managed by the DB cluster.)
 	//
 	//   - RDS Custom
-	DomainIAMRoleName *string `json:"domainIAMRoleName,omitempty"`
+	DomainIAMRoleName *string                                  `json:"domainIAMRoleName,omitempty"`
+	DomainIAMRoleRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"domainIAMRoleRef,omitempty"`
 	// The list of log types to enable for exporting to CloudWatch Logs. For more
 	// information, see Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
 	// in the Amazon RDS User Guide.
@@ -1118,7 +1123,8 @@ type DBInstanceSpec struct {
 	//     see Constructing an ARN for Amazon RDS (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.ARN.html#USER_Tagging.ARN.Constructing)
 	//     in the Amazon RDS User Guide. This doesn't apply to SQL Server or RDS
 	//     Custom, which don't support cross-Region replicas.
-	SourceDBInstanceIdentifier *string `json:"sourceDBInstanceIdentifier,omitempty"`
+	SourceDBInstanceIdentifier    *string                                  `json:"sourceDBInstanceIdentifier,omitempty"`
+	SourceDBInstanceIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"sourceDBInstanceIdentifierRef,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
 	// sent over the wire and is only used for presigning. This value should always
 	// have the same region as the source ARN.

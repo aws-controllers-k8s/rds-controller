@@ -106,12 +106,18 @@ func newResourceDelta(
 			delta.Add("Spec.VPCSecurityGroupIDs", a.ko.Spec.VPCSecurityGroupIDs, b.ko.Spec.VPCSecurityGroupIDs)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs) {
+		delta.Add("Spec.VPCSecurityGroupRefs", a.ko.Spec.VPCSecurityGroupRefs, b.ko.Spec.VPCSecurityGroupRefs)
+	}
 	if len(a.ko.Spec.VPCSubnetIDs) != len(b.ko.Spec.VPCSubnetIDs) {
 		delta.Add("Spec.VPCSubnetIDs", a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs)
 	} else if len(a.ko.Spec.VPCSubnetIDs) > 0 {
 		if !ackcompare.SliceStringPEqual(a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs) {
 			delta.Add("Spec.VPCSubnetIDs", a.ko.Spec.VPCSubnetIDs, b.ko.Spec.VPCSubnetIDs)
 		}
+	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.VPCSubnetRefs, b.ko.Spec.VPCSubnetRefs) {
+		delta.Add("Spec.VPCSubnetRefs", a.ko.Spec.VPCSubnetRefs, b.ko.Spec.VPCSubnetRefs)
 	}
 
 	return delta

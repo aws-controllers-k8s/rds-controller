@@ -206,6 +206,9 @@ func newResourceDelta(
 			delta.Add("Spec.DomainIAMRoleName", a.ko.Spec.DomainIAMRoleName, b.ko.Spec.DomainIAMRoleName)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DomainIAMRoleRef, b.ko.Spec.DomainIAMRoleRef) {
+		delta.Add("Spec.DomainIAMRoleRef", a.ko.Spec.DomainIAMRoleRef, b.ko.Spec.DomainIAMRoleRef)
+	}
 	if len(a.ko.Spec.EnableCloudwatchLogsExports) != len(b.ko.Spec.EnableCloudwatchLogsExports) {
 		delta.Add("Spec.EnableCloudwatchLogsExports", a.ko.Spec.EnableCloudwatchLogsExports, b.ko.Spec.EnableCloudwatchLogsExports)
 	} else if len(a.ko.Spec.EnableCloudwatchLogsExports) > 0 {
@@ -505,6 +508,9 @@ func newResourceDelta(
 		if *a.ko.Spec.SourceDBClusterIdentifier != *b.ko.Spec.SourceDBClusterIdentifier {
 			delta.Add("Spec.SourceDBClusterIdentifier", a.ko.Spec.SourceDBClusterIdentifier, b.ko.Spec.SourceDBClusterIdentifier)
 		}
+	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SourceDBClusterIdentifierRef, b.ko.Spec.SourceDBClusterIdentifierRef) {
+		delta.Add("Spec.SourceDBClusterIdentifierRef", a.ko.Spec.SourceDBClusterIdentifierRef, b.ko.Spec.SourceDBClusterIdentifierRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion) {
 		delta.Add("Spec.SourceRegion", a.ko.Spec.SourceRegion, b.ko.Spec.SourceRegion)

@@ -71,7 +71,8 @@ type GlobalClusterSpec struct {
 	//   - EngineVersion
 	//
 	//   - StorageEncrypted
-	SourceDBClusterIdentifier *string `json:"sourceDBClusterIdentifier,omitempty"`
+	SourceDBClusterIdentifier    *string                                  `json:"sourceDBClusterIdentifier,omitempty"`
+	SourceDBClusterIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"sourceDBClusterIdentifierRef,omitempty"`
 	// Specifies whether to enable storage encryption for the new global database
 	// cluster.
 	//

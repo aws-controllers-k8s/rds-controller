@@ -190,7 +190,8 @@ type DBClusterSpec struct {
 	// The name of the IAM role to use when making API calls to the Directory Service.
 	//
 	// Valid for Cluster Type: Aurora DB clusters only
-	DomainIAMRoleName *string `json:"domainIAMRoleName,omitempty"`
+	DomainIAMRoleName *string                                  `json:"domainIAMRoleName,omitempty"`
+	DomainIAMRoleRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"domainIAMRoleRef,omitempty"`
 	// The list of log types that need to be enabled for exporting to CloudWatch
 	// Logs.
 	//
@@ -708,7 +709,8 @@ type DBClusterSpec struct {
 	//   - Must match the identifier of an existing DBCluster.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
-	SourceDBClusterIdentifier *string `json:"sourceDBClusterIdentifier,omitempty"`
+	SourceDBClusterIdentifier    *string                                  `json:"sourceDBClusterIdentifier,omitempty"`
+	SourceDBClusterIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"sourceDBClusterIdentifierRef,omitempty"`
 	// SourceRegion is the source region where the resource exists. This is not
 	// sent over the wire and is only used for presigning. This value should always
 	// have the same region as the source ARN.
