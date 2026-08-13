@@ -21,7 +21,7 @@ import pytest
 from acktest.k8s import resource as k8s
 from acktest.resources import random_suffix_name
 from e2e import (CRD_GROUP, CRD_VERSION, condition, db_cluster,
-                 load_rds_resource, service_marker, tag)
+                 db_parameter_group, load_rds_resource, service_marker, tag)
 from e2e.fixtures import k8s_secret
 from e2e.replacement_values import REPLACEMENT_VALUES
 
@@ -51,6 +51,20 @@ DELETE_WAIT_AFTER_SECONDS = 120
 CHECK_STATUS_WAIT_SECONDS = 60*2
 
 MODIFY_WAIT_AFTER_SECONDS = 20
+
+# A major version upgrade of an Aurora PostgreSQL cluster takes considerably
+# longer than a normal modification, since Aurora snapshots and clones the
+# cluster volume before running pg_upgrade.
+MAJOR_UPGRADE_TIMEOUT_SECONDS = 60*30
+
+MAX_WAIT_FOR_SYNCED_MINUTES = 20
+
+# Must be a valid major version upgrade target for the engine version in
+# db_cluster_aurora_postgres.yaml. To refresh:
+#   aws rds describe-db-engine-versions --engine aurora-postgresql \
+#     --engine-version <current> \
+#     --query 'DBEngineVersions[].ValidUpgradeTarget[?IsMajorVersionUpgrade==`true`].EngineVersion'
+MAJOR_UPGRADE_ENGINE_VERSION = "15.18"
 
 # MUP == Master user password...
 MUP_NS = "default"
@@ -198,6 +212,40 @@ def aurora_postgres_cluster_log_exports(k8s_secret):
         pass
 
     db_cluster.wait_until_deleted(db_cluster_id)
+
+@pytest.fixture
+def aurora_postgres15_parameter_group():
+    pg_name = random_suffix_name("pg-aurora-pg15", 24)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["DB_PARAMETER_GROUP_NAME"] = pg_name
+    replacements["DB_PARAMETER_GROUP_DESC"] = "Aurora PG 15 instance params"
+
+    resource_data = load_rds_resource(
+        "db_parameter_group_aurora_postgresql15",
+        additional_replacements=replacements,
+    )
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, 'dbparametergroups',
+        pg_name, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+    assert cr is not None
+    assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=10)
+
+    yield (ref, pg_name)
+
+    try:
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert deleted
+        time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+    except:
+        pass
+
+    db_parameter_group.wait_until_deleted(pg_name)
+
 
 @service_marker
 @pytest.mark.target
@@ -523,3 +571,44 @@ class TestDBCluster:
         assert latest["DatabaseInsightsMode"] == "advanced"
         assert latest["PerformanceInsightsEnabled"] == True
         assert latest["PerformanceInsightsRetentionPeriod"] == 465
+
+    def test_major_version_upgrade_with_instance_parameter_group(
+        self, aurora_postgres_cluster, aurora_postgres15_parameter_group,
+    ):
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
+        _, pg_name = aurora_postgres15_parameter_group
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+        assert not current["EngineVersion"].startswith("15.")
+
+        k8s.patch_custom_resource(
+            ref,
+            {
+                "spec": {
+                    "engineVersion": MAJOR_UPGRADE_ENGINE_VERSION,
+                    "dbInstanceParameterGroupName": pg_name,
+                },
+            },
+        )
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "False", wait_periods=3)
+
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.AttributeMatcher("EngineVersion", MAJOR_UPGRADE_ENGINE_VERSION),
+            timeout_seconds=MAJOR_UPGRADE_TIMEOUT_SECONDS,
+        )
+
+        assert k8s.wait_on_condition(
+            ref, "ACK.ResourceSynced", "True",
+            wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        assert latest["EngineVersion"] == MAJOR_UPGRADE_ENGINE_VERSION

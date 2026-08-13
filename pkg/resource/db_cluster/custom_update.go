@@ -574,6 +574,14 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 		}
 		if requireEngineVersionUpdate(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion, autoMinorVersionUpgrade) {
 			res.EngineVersion = desired.ko.Spec.EngineVersion
+			// AWS only accepts DBInstanceParameterGroupName in combination
+			// with AllowMajorVersionUpgrade, and only for a major version
+			// upgrade. Sending it on a minor version change fails with
+			// InvalidParameterCombination.
+			if desired.ko.Spec.DBInstanceParameterGroupName != nil &&
+				isMajorVersionUpgrade(desired.ko.Spec.EngineVersion, latest.ko.Spec.EngineVersion) {
+				res.DBInstanceParameterGroupName = desired.ko.Spec.DBInstanceParameterGroupName
+			}
 		}
 	}
 	if desired.ko.Spec.MasterUserPassword != nil && delta.DifferentAt("Spec.MasterUserPassword") {
@@ -686,7 +694,14 @@ func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired 
 }
 
 func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
-	desiredMajorEngineVersion := r.FindString(*desiredEngineVersion)
-	latestMajorEngineVersion := r.FindString(*latestEngineVersion)
-	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
+	return !autoMinorVersionUpgrade || isMajorVersionUpgrade(desiredEngineVersion, latestEngineVersion)
+}
+
+// isMajorVersionUpgrade returns true when the desired engine version is in a
+// different major version family than the latest observed engine version.
+func isMajorVersionUpgrade(desiredEngineVersion *string, latestEngineVersion *string) bool {
+	if desiredEngineVersion == nil || latestEngineVersion == nil {
+		return false
+	}
+	return r.FindString(*desiredEngineVersion) != r.FindString(*latestEngineVersion)
 }

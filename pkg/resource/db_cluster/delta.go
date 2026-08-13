@@ -147,6 +147,16 @@ func newResourceDelta(
 	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DBClusterParameterGroupRef, b.ko.Spec.DBClusterParameterGroupRef) {
 		delta.Add("Spec.DBClusterParameterGroupRef", a.ko.Spec.DBClusterParameterGroupRef, b.ko.Spec.DBClusterParameterGroupRef)
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DBInstanceParameterGroupName, b.ko.Spec.DBInstanceParameterGroupName) {
+		delta.Add("Spec.DBInstanceParameterGroupName", a.ko.Spec.DBInstanceParameterGroupName, b.ko.Spec.DBInstanceParameterGroupName)
+	} else if a.ko.Spec.DBInstanceParameterGroupName != nil && b.ko.Spec.DBInstanceParameterGroupName != nil {
+		if *a.ko.Spec.DBInstanceParameterGroupName != *b.ko.Spec.DBInstanceParameterGroupName {
+			delta.Add("Spec.DBInstanceParameterGroupName", a.ko.Spec.DBInstanceParameterGroupName, b.ko.Spec.DBInstanceParameterGroupName)
+		}
+	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.DBInstanceParameterGroupRef, b.ko.Spec.DBInstanceParameterGroupRef) {
+		delta.Add("Spec.DBInstanceParameterGroupRef", a.ko.Spec.DBInstanceParameterGroupRef, b.ko.Spec.DBInstanceParameterGroupRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName) {
 		delta.Add("Spec.DBSubnetGroupName", a.ko.Spec.DBSubnetGroupName, b.ko.Spec.DBSubnetGroupName)
 	} else if a.ko.Spec.DBSubnetGroupName != nil && b.ko.Spec.DBSubnetGroupName != nil {
