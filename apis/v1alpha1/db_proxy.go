@@ -69,10 +69,11 @@ type DBProxySpec struct {
 	// with the proxy.
 	Tags []*Tag `json:"tags,omitempty"`
 	// One or more VPC security group IDs to associate with the new proxy.
-	VPCSecurityGroupIDs []*string `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSecurityGroupIDs  []*string                                  `json:"vpcSecurityGroupIDs,omitempty"`
+	VPCSecurityGroupRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"vpcSecurityGroupRefs,omitempty"`
 	// One or more VPC subnet IDs to associate with the new proxy.
-	// +kubebuilder:validation:Required
-	VPCSubnetIDs []*string `json:"vpcSubnetIDs"`
+	VPCSubnetIDs  []*string                                  `json:"vpcSubnetIDs,omitempty"`
+	VPCSubnetRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"vpcSubnetRefs,omitempty"`
 }
 
 // DBProxyStatus defines the observed state of DBProxy

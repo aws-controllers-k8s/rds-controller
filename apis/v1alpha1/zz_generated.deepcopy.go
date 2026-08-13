@@ -723,6 +723,17 @@ func (in *DBClusterEndpointSpec) DeepCopyInto(out *DBClusterEndpointSpec) {
 			}
 		}
 	}
+	if in.StaticMemberRefs != nil {
+		in, out := &in.StaticMemberRefs, &out.StaticMemberRefs
+		*out = make([]*corev1alpha1.AWSResourceReferenceWrapper, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.StaticMembers != nil {
 		in, out := &in.StaticMembers, &out.StaticMembers
 		*out = make([]*string, len(*in))
@@ -1731,6 +1742,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DomainIAMRoleRef != nil {
+		in, out := &in.DomainIAMRoleRef, &out.DomainIAMRoleRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.EnableCloudwatchLogsExports != nil {
 		in, out := &in.EnableCloudwatchLogsExports, &out.EnableCloudwatchLogsExports
 		*out = make([]*string, len(*in))
@@ -1920,6 +1936,11 @@ func (in *DBClusterSpec) DeepCopyInto(out *DBClusterSpec) {
 		in, out := &in.SourceDBClusterIdentifier, &out.SourceDBClusterIdentifier
 		*out = new(string)
 		**out = **in
+	}
+	if in.SourceDBClusterIdentifierRef != nil {
+		in, out := &in.SourceDBClusterIdentifierRef, &out.SourceDBClusterIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.SourceRegion != nil {
 		in, out := &in.SourceRegion, &out.SourceRegion
@@ -3205,15 +3226,30 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.CustomIAMInstanceProfileRef != nil {
+		in, out := &in.CustomIAMInstanceProfileRef, &out.CustomIAMInstanceProfileRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.DBClusterIdentifier != nil {
 		in, out := &in.DBClusterIdentifier, &out.DBClusterIdentifier
 		*out = new(string)
 		**out = **in
 	}
+	if in.DBClusterIdentifierRef != nil {
+		in, out := &in.DBClusterIdentifierRef, &out.DBClusterIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.DBClusterSnapshotIdentifier != nil {
 		in, out := &in.DBClusterSnapshotIdentifier, &out.DBClusterSnapshotIdentifier
 		*out = new(string)
 		**out = **in
+	}
+	if in.DBClusterSnapshotIdentifierRef != nil {
+		in, out := &in.DBClusterSnapshotIdentifierRef, &out.DBClusterSnapshotIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.DBInstanceClass != nil {
 		in, out := &in.DBInstanceClass, &out.DBInstanceClass
@@ -3244,6 +3280,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		in, out := &in.DBSnapshotIdentifier, &out.DBSnapshotIdentifier
 		*out = new(string)
 		**out = **in
+	}
+	if in.DBSnapshotIdentifierRef != nil {
+		in, out := &in.DBSnapshotIdentifierRef, &out.DBSnapshotIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.DBSubnetGroupName != nil {
 		in, out := &in.DBSubnetGroupName, &out.DBSubnetGroupName
@@ -3279,6 +3320,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		in, out := &in.DomainIAMRoleName, &out.DomainIAMRoleName
 		*out = new(string)
 		**out = **in
+	}
+	if in.DomainIAMRoleRef != nil {
+		in, out := &in.DomainIAMRoleRef, &out.DomainIAMRoleRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.EnableCloudwatchLogsExports != nil {
 		in, out := &in.EnableCloudwatchLogsExports, &out.EnableCloudwatchLogsExports
@@ -3466,6 +3512,11 @@ func (in *DBInstanceSpec) DeepCopyInto(out *DBInstanceSpec) {
 		in, out := &in.SourceDBInstanceIdentifier, &out.SourceDBInstanceIdentifier
 		*out = new(string)
 		**out = **in
+	}
+	if in.SourceDBInstanceIdentifierRef != nil {
+		in, out := &in.SourceDBInstanceIdentifierRef, &out.SourceDBInstanceIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.SourceRegion != nil {
 		in, out := &in.SourceRegion, &out.SourceRegion
@@ -4760,6 +4811,17 @@ func (in *DBProxySpec) DeepCopyInto(out *DBProxySpec) {
 			}
 		}
 	}
+	if in.VPCSecurityGroupRefs != nil {
+		in, out := &in.VPCSecurityGroupRefs, &out.VPCSecurityGroupRefs
+		*out = make([]*corev1alpha1.AWSResourceReferenceWrapper, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.VPCSubnetIDs != nil {
 		in, out := &in.VPCSubnetIDs, &out.VPCSubnetIDs
 		*out = make([]*string, len(*in))
@@ -4768,6 +4830,17 @@ func (in *DBProxySpec) DeepCopyInto(out *DBProxySpec) {
 				in, out := &(*in)[i], &(*out)[i]
 				*out = new(string)
 				**out = **in
+			}
+		}
+	}
+	if in.VPCSubnetRefs != nil {
+		in, out := &in.VPCSubnetRefs, &out.VPCSubnetRefs
+		*out = make([]*corev1alpha1.AWSResourceReferenceWrapper, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+				(*in).DeepCopyInto(*out)
 			}
 		}
 	}
@@ -6665,6 +6738,11 @@ func (in *GlobalClusterSpec) DeepCopyInto(out *GlobalClusterSpec) {
 		in, out := &in.SourceDBClusterIdentifier, &out.SourceDBClusterIdentifier
 		*out = new(string)
 		**out = **in
+	}
+	if in.SourceDBClusterIdentifierRef != nil {
+		in, out := &in.SourceDBClusterIdentifierRef, &out.SourceDBClusterIdentifierRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.StorageEncrypted != nil {
 		in, out := &in.StorageEncrypted, &out.StorageEncrypted

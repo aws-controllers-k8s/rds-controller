@@ -74,6 +74,9 @@ func newResourceDelta(
 			delta.Add("Spec.ExcludedMembers", a.ko.Spec.ExcludedMembers, b.ko.Spec.ExcludedMembers)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.StaticMemberRefs, b.ko.Spec.StaticMemberRefs) {
+		delta.Add("Spec.StaticMemberRefs", a.ko.Spec.StaticMemberRefs, b.ko.Spec.StaticMemberRefs)
+	}
 	if len(a.ko.Spec.StaticMembers) != len(b.ko.Spec.StaticMembers) {
 		delta.Add("Spec.StaticMembers", a.ko.Spec.StaticMembers, b.ko.Spec.StaticMembers)
 	} else if len(a.ko.Spec.StaticMembers) > 0 {

@@ -279,6 +279,23 @@ spec:
 
                   Valid for Cluster Type: Aurora DB clusters only
                 type: string
+              domainIAMRoleRef:
+                description: "AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference\ntype to provide more user friendly syntax
+                  for references using 'from' field\nEx:\nAPIIDRef:\n\n\tfrom:\n\t
+                  \ name: my-api"
+                properties:
+                  from:
+                    description: |-
+                      AWSResourceReference provides all the values necessary to reference another
+                      k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    type: object
+                type: object
               enableCloudwatchLogsExports:
                 description: |-
                   The list of log types that need to be enabled for exporting to CloudWatch
@@ -976,6 +993,23 @@ spec:
 
                   Valid for: Aurora DB clusters and Multi-AZ DB clusters
                 type: string
+              sourceDBClusterIdentifierRef:
+                description: "AWSResourceReferenceWrapper provides a wrapper around
+                  *AWSResourceReference\ntype to provide more user friendly syntax
+                  for references using 'from' field\nEx:\nAPIIDRef:\n\n\tfrom:\n\t
+                  \ name: my-api"
+                properties:
+                  from:
+                    description: |-
+                      AWSResourceReference provides all the values necessary to reference another
+                      k8s resource for finding the identifier(Id/ARN/Name)
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    type: object
+                type: object
               sourceRegion:
                 description: |-
                   SourceRegion is the source region where the resource exists. This is not
