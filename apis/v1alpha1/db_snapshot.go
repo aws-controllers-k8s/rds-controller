@@ -31,20 +31,20 @@ type DBSnapshotSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must match the identifier of an existing DBInstance.
+	//    * Must match the identifier of an existing DBInstance.
 	DBInstanceIdentifier    *string                                  `json:"dbInstanceIdentifier,omitempty"`
 	DBInstanceIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbInstanceIdentifierRef,omitempty"`
 	// The identifier for the DB snapshot.
 	//
 	// Constraints:
 	//
-	//   - Can't be null, empty, or blank
+	//    * Can't be null, empty, or blank
 	//
-	//   - Must contain from 1 to 255 letters, numbers, or hyphens
+	//    * Must contain from 1 to 255 letters, numbers, or hyphens
 	//
-	//   - First character must be a letter
+	//    * First character must be a letter
 	//
-	//   - Can't end with a hyphen or contain two consecutive hyphens
+	//    * Can't end with a hyphen or contain two consecutive hyphens
 	//
 	// Example: my-snapshot-id
 	// +kubebuilder:validation:Required

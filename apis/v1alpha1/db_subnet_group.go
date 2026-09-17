@@ -35,12 +35,12 @@ type DBSubnetGroupSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must contain no more than 255 letters, numbers, periods, underscores,
-	//     spaces, or hyphens.
+	//    * Must contain no more than 255 letters, numbers, periods, underscores,
+	//    spaces, or hyphens.
 	//
-	//   - Must not be default.
+	//    * Must not be default.
 	//
-	//   - First character must be a letter.
+	//    * First character must be a letter.
 	//
 	// Example: mydbsubnetgroup
 	// +kubebuilder:validation:Required

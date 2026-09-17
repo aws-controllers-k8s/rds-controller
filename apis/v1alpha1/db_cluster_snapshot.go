@@ -33,7 +33,7 @@ type DBClusterSnapshotSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must match the identifier of an existing DBCluster.
+	//    * Must match the identifier of an existing DBCluster.
 	//
 	// Example: my-cluster1
 	DBClusterIdentifier    *string                                  `json:"dbClusterIdentifier,omitempty"`
@@ -43,11 +43,11 @@ type DBClusterSnapshotSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must contain from 1 to 63 letters, numbers, or hyphens.
+	//    * Must contain from 1 to 63 letters, numbers, or hyphens.
 	//
-	//   - First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   - Can't end with a hyphen or contain two consecutive hyphens.
+	//    * Can't end with a hyphen or contain two consecutive hyphens.
 	//
 	// Example: my-cluster1-snapshot1
 	// +kubebuilder:validation:Required

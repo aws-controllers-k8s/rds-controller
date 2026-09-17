@@ -31,8 +31,8 @@ type GlobalClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Can't be specified if SourceDBClusterIdentifier is specified. In this
-	//     case, Amazon Aurora uses the database name from the source DB cluster.
+	//    * Can't be specified if SourceDBClusterIdentifier is specified. In this
+	//    case, Amazon Aurora uses the database name from the source DB cluster.
 	DatabaseName *string `json:"databaseName,omitempty"`
 	// Specifies whether to enable deletion protection for the new global database
 	// cluster. The global database can't be deleted when deletion protection is
@@ -44,15 +44,15 @@ type GlobalClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Can't be specified if SourceDBClusterIdentifier is specified. In this
-	//     case, Amazon Aurora uses the engine of the source DB cluster.
+	//    * Can't be specified if SourceDBClusterIdentifier is specified. In this
+	//    case, Amazon Aurora uses the engine of the source DB cluster.
 	Engine *string `json:"engine,omitempty"`
 	// The engine version to use for this global database cluster.
 	//
 	// Constraints:
 	//
-	//   - Can't be specified if SourceDBClusterIdentifier is specified. In this
-	//     case, Amazon Aurora uses the engine version of the source DB cluster.
+	//    * Can't be specified if SourceDBClusterIdentifier is specified. In this
+	//    case, Amazon Aurora uses the engine version of the source DB cluster.
 	EngineVersion *string `json:"engineVersion,omitempty"`
 	// The cluster identifier for this global database cluster. This parameter is
 	// stored as a lowercase string.
@@ -64,13 +64,13 @@ type GlobalClusterSpec struct {
 	// settings because Amazon Aurora uses the values from the specified source
 	// DB cluster:
 	//
-	//   - DatabaseName
+	//    * DatabaseName
 	//
-	//   - Engine
+	//    * Engine
 	//
-	//   - EngineVersion
+	//    * EngineVersion
 	//
-	//   - StorageEncrypted
+	//    * StorageEncrypted
 	SourceDBClusterIdentifier    *string                                  `json:"sourceDBClusterIdentifier,omitempty"`
 	SourceDBClusterIdentifierRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"sourceDBClusterIdentifierRef,omitempty"`
 	// Specifies whether to enable storage encryption for the new global database
@@ -78,8 +78,8 @@ type GlobalClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Can't be specified if SourceDBClusterIdentifier is specified. In this
-	//     case, Amazon Aurora uses the setting from the source DB cluster.
+	//    * Can't be specified if SourceDBClusterIdentifier is specified. In this
+	//    case, Amazon Aurora uses the setting from the source DB cluster.
 	StorageEncrypted *bool `json:"storageEncrypted,omitempty"`
 	// Tags to assign to the global cluster.
 	Tags []*Tag `json:"tags,omitempty"`

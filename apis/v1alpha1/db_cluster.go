@@ -65,7 +65,7 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Can't specify more than three AZs.
+	//    * Can't specify more than three AZs.
 	AvailabilityZones []*string `json:"availabilityZones,omitempty"`
 	// The target backtrack window, in seconds. To disable backtracking, set this
 	// value to 0.
@@ -76,8 +76,8 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - If specified, this value must be set to a number from 0 to 259,200 (72
-	//     hours).
+	//    * If specified, this value must be set to a number from 0 to 259,200 (72
+	//    hours).
 	BacktrackWindow *int64 `json:"backtrackWindow,omitempty"`
 	// The number of days for which automated backups are retained.
 	//
@@ -87,7 +87,7 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must be a value from 1 to 35.
+	//    * Must be a value from 1 to 35.
 	BackupRetentionPeriod *int64 `json:"backupRetentionPeriod,omitempty"`
 	// The name of the character set (CharacterSet) to associate the DB cluster
 	// with.
@@ -106,12 +106,12 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must contain from 1 to 63 (for Aurora DB clusters) or 1 to 52 (for Multi-AZ
-	//     DB clusters) letters, numbers, or hyphens.
+	//    * Must contain from 1 to 63 (for Aurora DB clusters) or 1 to 52 (for Multi-AZ
+	//    DB clusters) letters, numbers, or hyphens.
 	//
-	//   - First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   - Can't end with a hyphen or contain two consecutive hyphens.
+	//    * Can't end with a hyphen or contain two consecutive hyphens.
 	//
 	// Example: my-cluster1
 	// +kubebuilder:validation:Required
@@ -136,8 +136,8 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - If supplied, must match the name of an existing DB cluster parameter
-	//     group.
+	//    * If supplied, must match the name of an existing DB cluster parameter
+	//    group.
 	DBClusterParameterGroupName *string                                  `json:"dbClusterParameterGroupName,omitempty"`
 	DBClusterParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"dbClusterParameterGroupRef,omitempty"`
 	// A DB subnet group to associate with this DB cluster.
@@ -148,7 +148,7 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must match the name of an existing DB subnet group.
+	//    * Must match the name of an existing DB subnet group.
 	//
 	// Example: mydbsubnetgroup
 	DBSubnetGroupName *string                                  `json:"dbSubnetGroupName,omitempty"`
@@ -198,13 +198,13 @@ type DBClusterSpec struct {
 	//
 	// The following values are valid for each DB engine:
 	//
-	//   - Aurora MySQL - audit | error | general | slowquery
+	//    * Aurora MySQL - audit | error | general | slowquery
 	//
-	//   - Aurora PostgreSQL - postgresql
+	//    * Aurora PostgreSQL - postgresql
 	//
-	//   - RDS for MySQL - error | general | slowquery
+	//    * RDS for MySQL - error | general | slowquery
 	//
-	//   - RDS for PostgreSQL - postgresql | upgrade
+	//    * RDS for PostgreSQL - postgresql | upgrade
 	//
 	// For more information about exporting CloudWatch Logs for Amazon RDS, see
 	// Publishing Database Logs to Amazon CloudWatch Logs (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch)
@@ -264,17 +264,16 @@ type DBClusterSpec struct {
 	//
 	// Valid Values:
 	//
-	//   - aurora-mysql
+	//    * aurora-mysql
 	//
-	//   - aurora-postgresql
+	//    * aurora-postgresql
 	//
-	//   - mysql
+	//    * mysql
 	//
-	//   - postgres
+	//    * postgres
 	//
-	//   - neptune - For information about using Amazon Neptune, see the Amazon
-	//     Neptune User Guide (https://docs.aws.amazon.com/neptune/latest/userguide/intro.html).
-	//
+	//    * neptune - For information about using Amazon Neptune, see the Amazon
+	//    Neptune User Guide (https://docs.aws.amazon.com/neptune/latest/userguide/intro.html).
 	// +kubebuilder:validation:Required
 	Engine *string `json:"engine"`
 	// The DB engine mode of the DB cluster, either provisioned or serverless.
@@ -285,9 +284,9 @@ type DBClusterSpec struct {
 	// For information about limitations and requirements for Serverless DB clusters,
 	// see the following sections in the Amazon Aurora User Guide:
 	//
-	//   - Limitations of Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
+	//    * Limitations of Aurora Serverless v1 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations)
 	//
-	//   - Requirements for Aurora Serverless v2 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.requirements.html)
+	//    * Requirements for Aurora Serverless v2 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.requirements.html)
 	//
 	// Valid for Cluster Type: Aurora DB clusters only
 	EngineMode *string `json:"engineMode,omitempty"`
@@ -318,18 +317,18 @@ type DBClusterSpec struct {
 	//
 	// For information about a specific engine, see the following topics:
 	//
-	//   - Aurora MySQL - see Database engine updates for Amazon Aurora MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
-	//     in the Amazon Aurora User Guide.
+	//    * Aurora MySQL - see Database engine updates for Amazon Aurora MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Updates.html)
+	//    in the Amazon Aurora User Guide.
 	//
-	//   - Aurora PostgreSQL - see Amazon Aurora PostgreSQL releases and engine
-	//     versions (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Updates.20180305.html)
-	//     in the Amazon Aurora User Guide.
+	//    * Aurora PostgreSQL - see Amazon Aurora PostgreSQL releases and engine
+	//    versions (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.Updates.20180305.html)
+	//    in the Amazon Aurora User Guide.
 	//
-	//   - RDS for MySQL - see Amazon RDS for MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
-	//     in the Amazon RDS User Guide.
+	//    * RDS for MySQL - see Amazon RDS for MySQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt)
+	//    in the Amazon RDS User Guide.
 	//
-	//   - RDS for PostgreSQL - see Amazon RDS for PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
-	//     in the Amazon RDS User Guide.
+	//    * RDS for PostgreSQL - see Amazon RDS for PostgreSQL (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts)
+	//    in the Amazon RDS User Guide.
 	//
 	// Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters
 	EngineVersion *string `json:"engineVersion,omitempty"`
@@ -350,8 +349,8 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must be a multiple between .5 and 50 of the storage amount for the DB
-	//     cluster.
+	//    * Must be a multiple between .5 and 50 of the storage amount for the DB
+	//    cluster.
 	IOPS *int64 `json:"iops,omitempty"`
 	// The Amazon Web Services KMS key identifier for an encrypted DB cluster.
 	//
@@ -361,12 +360,12 @@ type DBClusterSpec struct {
 	//
 	// When a KMS key isn't specified in KmsKeyId:
 	//
-	//   - If ReplicationSourceIdentifier identifies an encrypted source, then
-	//     Amazon RDS uses the KMS key used to encrypt the source. Otherwise, Amazon
-	//     RDS uses your default KMS key.
+	//    * If ReplicationSourceIdentifier identifies an encrypted source, then
+	//    Amazon RDS uses the KMS key used to encrypt the source. Otherwise, Amazon
+	//    RDS uses your default KMS key.
 	//
-	//   - If the StorageEncrypted parameter is enabled and ReplicationSourceIdentifier
-	//     isn't specified, then Amazon RDS uses your default KMS key.
+	//    * If the StorageEncrypted parameter is enabled and ReplicationSourceIdentifier
+	//    isn't specified, then Amazon RDS uses your default KMS key.
 	//
 	// There is a default KMS key for your Amazon Web Services account. Your Amazon
 	// Web Services account has a different default KMS key for each Amazon Web
@@ -393,8 +392,8 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Can't manage the master user password with Amazon Web Services Secrets
-	//     Manager if MasterUserPassword is specified.
+	//    * Can't manage the master user password with Amazon Web Services Secrets
+	//    Manager if MasterUserPassword is specified.
 	ManageMasterUserPassword *bool `json:"manageMasterUserPassword,omitempty"`
 	// The password for the master database user.
 	//
@@ -402,11 +401,11 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must contain from 8 to 41 characters.
+	//    * Must contain from 8 to 41 characters.
 	//
-	//   - Can contain any printable ASCII character except "/", """, or "@".
+	//    * Can contain any printable ASCII character except "/", """, or "@".
 	//
-	//   - Can't be specified if ManageMasterUserPassword is turned on.
+	//    * Can't be specified if ManageMasterUserPassword is turned on.
 	MasterUserPassword *ackv1alpha1.SecretKeyReference `json:"masterUserPassword,omitempty"`
 	// The Amazon Web Services KMS key identifier to encrypt a secret that is automatically
 	// generated and managed in Amazon Web Services Secrets Manager.
@@ -436,11 +435,11 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must be 1 to 16 letters or numbers.
+	//    * Must be 1 to 16 letters or numbers.
 	//
-	//   - First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   - Can't be a reserved word for the chosen database engine.
+	//    * Can't be a reserved word for the chosen database engine.
 	MasterUsername *string `json:"masterUsername,omitempty"`
 	// The interval, in seconds, between points when Enhanced Monitoring metrics
 	// are collected for the DB cluster. To turn off collecting Enhanced Monitoring
@@ -504,12 +503,12 @@ type DBClusterSpec struct {
 	//
 	// Valid Values:
 	//
-	//   - 7
+	//    * 7
 	//
-	//   - month * 31, where month is a number of months from 1-23. Examples: 93
-	//     (3 months * 31), 341 (11 months * 31), 589 (19 months * 31)
+	//    * month * 31, where month is a number of months from 1-23. Examples: 93
+	//    (3 months * 31), 341 (11 months * 31), 589 (19 months * 31)
 	//
-	//   - 731
+	//    * 731
 	//
 	// Default: 7 days
 	//
@@ -524,9 +523,9 @@ type DBClusterSpec struct {
 	//
 	// Default:
 	//
-	//   - RDS for MySQL and Aurora MySQL - 3306
+	//    * RDS for MySQL and Aurora MySQL - 3306
 	//
-	//   - RDS for PostgreSQL and Aurora PostgreSQL - 5432
+	//    * RDS for PostgreSQL and Aurora PostgreSQL - 5432
 	Port *int64 `json:"port,omitempty"`
 	// When you are replicating a DB cluster from one Amazon Web Services GovCloud
 	// (US) Region to another, an URL that contains a Signature Version 4 signed
@@ -541,21 +540,21 @@ type DBClusterSpec struct {
 	//
 	// The presigned URL request must contain the following parameter values:
 	//
-	//   - KmsKeyId - The KMS key identifier for the KMS key to use to encrypt
-	//     the copy of the DB cluster in the destination Amazon Web Services Region.
-	//     This should refer to the same KMS key for both the CreateDBCluster operation
-	//     that is called in the destination Amazon Web Services Region, and the
-	//     operation contained in the presigned URL.
+	//    * KmsKeyId - The KMS key identifier for the KMS key to use to encrypt
+	//    the copy of the DB cluster in the destination Amazon Web Services Region.
+	//    This should refer to the same KMS key for both the CreateDBCluster operation
+	//    that is called in the destination Amazon Web Services Region, and the
+	//    operation contained in the presigned URL.
 	//
-	//   - DestinationRegion - The name of the Amazon Web Services Region that
-	//     Aurora read replica will be created in.
+	//    * DestinationRegion - The name of the Amazon Web Services Region that
+	//    Aurora read replica will be created in.
 	//
-	//   - ReplicationSourceIdentifier - The DB cluster identifier for the encrypted
-	//     DB cluster to be copied. This identifier must be in the Amazon Resource
-	//     Name (ARN) format for the source Amazon Web Services Region. For example,
-	//     if you are copying an encrypted DB cluster from the us-west-2 Amazon Web
-	//     Services Region, then your ReplicationSourceIdentifier would look like
-	//     Example: arn:aws:rds:us-west-2:123456789012:cluster:aurora-cluster1.
+	//    * ReplicationSourceIdentifier - The DB cluster identifier for the encrypted
+	//    DB cluster to be copied. This identifier must be in the Amazon Resource
+	//    Name (ARN) format for the source Amazon Web Services Region. For example,
+	//    if you are copying an encrypted DB cluster from the us-west-2 Amazon Web
+	//    Services Region, then your ReplicationSourceIdentifier would look like
+	//    Example: arn:aws:rds:us-west-2:123456789012:cluster:aurora-cluster1.
 	//
 	// To learn how to generate a Signature Version 4 signed request, see Authenticating
 	// Requests: Using Query Parameters (Amazon Web Services Signature Version 4)
@@ -582,13 +581,13 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must be in the format hh24:mi-hh24:mi.
+	//    * Must be in the format hh24:mi-hh24:mi.
 	//
-	//   - Must be in Universal Coordinated Time (UTC).
+	//    * Must be in Universal Coordinated Time (UTC).
 	//
-	//   - Must not conflict with the preferred maintenance window.
+	//    * Must not conflict with the preferred maintenance window.
 	//
-	//   - Must be at least 30 minutes.
+	//    * Must be at least 30 minutes.
 	PreferredBackupWindow *string `json:"preferredBackupWindow,omitempty"`
 	// The weekly time range during which system maintenance can occur.
 	//
@@ -602,13 +601,13 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must be in the format ddd:hh24:mi-ddd:hh24:mi.
+	//    * Must be in the format ddd:hh24:mi-ddd:hh24:mi.
 	//
-	//   - Days must be one of Mon | Tue | Wed | Thu | Fri | Sat | Sun.
+	//    * Days must be one of Mon | Tue | Wed | Thu | Fri | Sat | Sun.
 	//
-	//   - Must be in Universal Coordinated Time (UTC).
+	//    * Must be in Universal Coordinated Time (UTC).
 	//
-	//   - Must be at least 30 minutes.
+	//    * Must be at least 30 minutes.
 	PreferredMaintenanceWindow *string `json:"preferredMaintenanceWindow,omitempty"`
 	// Specifies whether the DB cluster is publicly accessible.
 	//
@@ -631,20 +630,20 @@ type DBClusterSpec struct {
 	// If DBSubnetGroupName isn't specified, and PubliclyAccessible isn't specified,
 	// the following applies:
 	//
-	//   - If the default VPC in the target Region doesn’t have an internet gateway
-	//     attached to it, the DB cluster is private.
+	//    * If the default VPC in the target Region doesn’t have an internet gateway
+	//    attached to it, the DB cluster is private.
 	//
-	//   - If the default VPC in the target Region has an internet gateway attached
-	//     to it, the DB cluster is public.
+	//    * If the default VPC in the target Region has an internet gateway attached
+	//    to it, the DB cluster is public.
 	//
 	// If DBSubnetGroupName is specified, and PubliclyAccessible isn't specified,
 	// the following applies:
 	//
-	//   - If the subnets are part of a VPC that doesn’t have an internet gateway
-	//     attached to it, the DB cluster is private.
+	//    * If the subnets are part of a VPC that doesn’t have an internet gateway
+	//    attached to it, the DB cluster is private.
 	//
-	//   - If the subnets are part of a VPC that has an internet gateway attached
-	//     to it, the DB cluster is public.
+	//    * If the subnets are part of a VPC that has an internet gateway attached
+	//    to it, the DB cluster is public.
 	PubliclyAccessible *bool `json:"publiclyAccessible,omitempty"`
 	// The Amazon Resource Name (ARN) of the source DB instance or DB cluster if
 	// this DB cluster is created as a read replica.
@@ -657,13 +656,13 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must be before the latest restorable time for the DB instance
+	//    * Must be before the latest restorable time for the DB instance
 	//
-	//   - Must be specified if UseLatestRestorableTime parameter isn't provided
+	//    * Must be specified if UseLatestRestorableTime parameter isn't provided
 	//
-	//   - Can't be specified if the UseLatestRestorableTime parameter is enabled
+	//    * Can't be specified if the UseLatestRestorableTime parameter is enabled
 	//
-	//   - Can't be specified if the RestoreType parameter is copy-on-write
+	//    * Can't be specified if the RestoreType parameter is copy-on-write
 	//
 	// Example: 2015-03-07T23:45:00Z
 	//
@@ -672,11 +671,11 @@ type DBClusterSpec struct {
 	// The type of restore to be performed. You can specify one of the following
 	// values:
 	//
-	//   - full-copy - The new DB cluster is restored as a full copy of the source
-	//     DB cluster.
+	//    * full-copy - The new DB cluster is restored as a full copy of the source
+	//    DB cluster.
 	//
-	//   - copy-on-write - The new DB cluster is restored as a clone of the source
-	//     DB cluster.
+	//    * copy-on-write - The new DB cluster is restored as a clone of the source
+	//    DB cluster.
 	//
 	// If you don't specify a RestoreType value, then the new DB cluster is restored
 	// as a full copy of the source DB cluster.
@@ -697,7 +696,7 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must match the identifier of an existing Snapshot.
+	//    * Must match the identifier of an existing Snapshot.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	SnapshotIdentifier *string `json:"snapshotIdentifier,omitempty"`
@@ -705,7 +704,7 @@ type DBClusterSpec struct {
 	//
 	// Constraints:
 	//
-	//   - Must match the identifier of an existing DBCluster.
+	//    * Must match the identifier of an existing DBCluster.
 	//
 	// Valid for: Aurora DB clusters and Multi-AZ DB clusters
 	SourceDBClusterIdentifier    *string                                  `json:"sourceDBClusterIdentifier,omitempty"`
@@ -734,15 +733,15 @@ type DBClusterSpec struct {
 	//
 	// Valid Values:
 	//
-	//   - Aurora DB clusters - aurora | aurora-iopt1
+	//    * Aurora DB clusters - aurora | aurora-iopt1
 	//
-	//   - Multi-AZ DB clusters - io1 | io2 | gp3
+	//    * Multi-AZ DB clusters - io1 | io2 | gp3
 	//
 	// Default:
 	//
-	//   - Aurora DB clusters - aurora
+	//    * Aurora DB clusters - aurora
 	//
-	//   - Multi-AZ DB clusters - io1
+	//    * Multi-AZ DB clusters - io1
 	//
 	// When you create an Aurora DB cluster with the storage type set to aurora-iopt1,
 	// the storage type is returned in the response. The storage type isn't returned
