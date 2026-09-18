@@ -622,16 +622,25 @@ func (rm *resourceManager) newCustomUpdateRequestPayload(
 	if desired.ko.Spec.VPCSecurityGroupIDs != nil && delta.DifferentAt("Spec.VPCSecurityGroupIDs") {
 		res.VpcSecurityGroupIds = aws.ToStringSlice(desired.ko.Spec.VPCSecurityGroupIDs)
 	}
-	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity,  both need appear in modify call to get ServerlessV2ScalingConfiguration modified
+	// For ServerlessV2ScalingConfiguration, MaxCapacity and MinCapacity both
+	// need to appear in the modify call to get ServerlessV2ScalingConfiguration
+	// modified. We copy MinCapacity and MaxCapacity whenever the parent
+	// Spec.ServerlessV2ScalingConfiguration differs (mirroring the
+	// unconditional create path), rather than gating on a child-level
+	// delta.DifferentAt("...MaxCapacity")/("...MinCapacity"). The child-level
+	// gate is unreliable on the nil->populated (first-time add) case: the delta
+	// records only the parent path "Spec.ServerlessV2ScalingConfiguration" (not
+	// the child paths), so the child DifferentAt checks return false and an
+	// empty ServerlessV2ScalingConfiguration{} would be sent to ModifyDBCluster,
+	// which AWS treats as no-change and never converges (silent reconcile loop,
+	// aws-controllers-k8s/community#3036).
 	if desired.ko.Spec.ServerlessV2ScalingConfiguration != nil && delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration") {
 		f23 := &svcsdktypes.ServerlessV2ScalingConfiguration{}
-		if delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MaxCapacity") || delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration.MinCapacity") {
-			if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-				f23.MaxCapacity = desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity
-			}
-			if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
-				f23.MinCapacity = desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity
-			}
+		if desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity != nil {
+			f23.MaxCapacity = desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity
+		}
+		if desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity != nil {
+			f23.MinCapacity = desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity
 		}
 		res.ServerlessV2ScalingConfiguration = f23
 	}

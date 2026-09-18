@@ -104,3 +104,71 @@ func TestNewCustomUpdateRequestPayload_PreferredBackupWindowNotInDelta(t *testin
 	assert.NotNil(t, input)
 	assert.Nil(t, input.PreferredBackupWindow)
 }
+
+// TestNewCustomUpdateRequestPayload_ServerlessV2ScalingConfiguration_FirstTimeAdd
+// is a regression test for aws-controllers-k8s/community#3036. Adding
+// ServerlessV2ScalingConfiguration to a DBCluster that previously had none
+// (nil->populated) must produce a ModifyDBClusterInput whose
+// ServerlessV2ScalingConfiguration carries MinCapacity/MaxCapacity, so the
+// change actually reaches AWS. This drives the REAL newResourceDelta and the
+// REAL newCustomUpdateRequestPayload (no AWS, no mocks). It FAILS before the
+// fix (empty struct sent) and PASSES after.
+func TestNewCustomUpdateRequestPayload_ServerlessV2ScalingConfiguration_FirstTimeAdd(t *testing.T) {
+	assert := assert.New(t)
+
+	rm := &resourceManager{}
+	ctx := context.Background()
+
+	// desired: cluster spec now includes SV2SC {MinCapacity:0.5, MaxCapacity:2}
+	desired := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier: aws.String("test-cluster"),
+				ServerlessV2ScalingConfiguration: &svcapitypes.ServerlessV2ScalingConfiguration{
+					MinCapacity: aws.Float64(0.5),
+					MaxCapacity: aws.Float64(2),
+				},
+			},
+		},
+	}
+
+	// latest: observed cluster has NO SV2SC (nil).
+	latest := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier: aws.String("test-cluster"),
+			},
+		},
+	}
+
+	// Use the REAL delta computation, not a hand-built delta.
+	delta := newResourceDelta(desired, latest)
+
+	// The parent path must be flagged different (nil->populated).
+	assert.True(
+		delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration"),
+		"expected parent Spec.ServerlessV2ScalingConfiguration to differ on nil->populated",
+	)
+
+	// Call the function under test.
+	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
+	assert.NoError(err)
+	assert.NotNil(input)
+
+	// POST-FIX expectation: min/max must be carried into the modify input so
+	// the change actually converges at AWS.
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration,
+		"ServerlessV2ScalingConfiguration must be attached to ModifyDBClusterInput",
+	)
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration.MaxCapacity,
+		"MaxCapacity must be set on first-time add (community#3036)",
+	)
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration.MinCapacity,
+		"MinCapacity must be set on first-time add (community#3036)",
+	)
+	assert.Equal(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity, *input.ServerlessV2ScalingConfiguration.MaxCapacity)
+	assert.Equal(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity, *input.ServerlessV2ScalingConfiguration.MinCapacity)
+}

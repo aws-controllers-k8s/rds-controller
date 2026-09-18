@@ -523,3 +523,63 @@ class TestDBCluster:
         assert latest["DatabaseInsightsMode"] == "advanced"
         assert latest["PerformanceInsightsEnabled"] == True
         assert latest["PerformanceInsightsRetentionPeriod"] == 465
+
+    def test_add_serverless_v2_scaling_configuration(
+        self, aurora_postgres_cluster,
+    ):
+        # Regression test for aws-controllers-k8s/community#3036: adding
+        # serverlessV2ScalingConfiguration to a DBCluster that previously had
+        # none (nil->populated) must actually reach AWS and converge, rather
+        # than sending an empty ServerlessV2ScalingConfiguration{} that AWS
+        # treats as no-change (silent, permanent ACK.ResourceSynced=False loop).
+        ref, _, db_cluster_id, _ = aurora_postgres_cluster
+        db_cluster.wait_until(
+            db_cluster_id,
+            db_cluster.status_matches('available'),
+        )
+
+        # Precondition: the cluster was created with NO SV2SC.
+        current = db_cluster.get(db_cluster_id)
+        assert current is not None
+        assert current.get("ServerlessV2ScalingConfiguration") is None
+
+        # First-time add of the field via a spec patch.
+        expected_min = 0.5
+        expected_max = 2.0
+        k8s.patch_custom_resource(
+            ref,
+            {
+                "spec": {
+                    "serverlessV2ScalingConfiguration": {
+                        "minCapacity": expected_min,
+                        "maxCapacity": expected_max,
+                    }
+                }
+            },
+        )
+
+        # The change must land at AWS (describe returns non-null SV2SC with the
+        # expected min/max). Before the fix this never converges.
+        def sv2sc_applied(record):
+            if record is None:
+                return False
+            cfg = record.get("ServerlessV2ScalingConfiguration")
+            return (
+                cfg is not None
+                and cfg.get("MinCapacity") == expected_min
+                and cfg.get("MaxCapacity") == expected_max
+            )
+
+        db_cluster.wait_until(db_cluster_id, sv2sc_applied)
+
+        # And the resource must settle back to Synced=True (loop closed).
+        assert k8s.wait_on_condition(
+            ref, "ACK.ResourceSynced", "True", wait_periods=30,
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        cfg = latest.get("ServerlessV2ScalingConfiguration")
+        assert cfg is not None
+        assert cfg["MinCapacity"] == expected_min
+        assert cfg["MaxCapacity"] == expected_max
