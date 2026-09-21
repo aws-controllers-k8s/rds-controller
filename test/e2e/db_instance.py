@@ -25,6 +25,13 @@ DEFAULT_WAIT_UNTIL_INTERVAL_SECONDS = 15
 DEFAULT_WAIT_UNTIL_DELETED_TIMEOUT_SECONDS = 60*20
 DEFAULT_WAIT_UNTIL_DELETED_INTERVAL_SECONDS = 15
 
+# RDS emits this message when it applies a master password modification, as
+# RDS-EVENT-0016 in the "configuration change" category. DescribeEvents returns
+# only the message, not the RDS-EVENT-nnnn identifier, so the message is what
+# can be matched on. Compared case-insensitively as a substring.
+# https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.Messages.html
+MASTER_CREDENTIALS_RESET_MESSAGE = "reset master credentials"
+
 InstanceMatchFunc = typing.NewType(
     'InstanceMatchFunc',
     typing.Callable[[dict], bool],
@@ -123,6 +130,59 @@ def get(db_instance_id):
         return resp['DBInstances'][0]
     except c.exceptions.DBInstanceNotFoundFault:
         return None
+
+
+def wait_for_master_credentials_reset(
+        db_instance_id: str,
+        since: datetime.datetime,
+        timeout_seconds: int = 60*5,
+        interval_seconds: int = DEFAULT_WAIT_UNTIL_INTERVAL_SECONDS,
+    ) -> None:
+    """Waits until RDS reports having reset the DB instance's master credentials.
+
+    Verifies on the AWS side that a master password modification was actually
+    applied, rather than inferring it from controller state. RDS emits
+    "Reset master credentials." (RDS-EVENT-0016, category "configuration
+    change") when it applies the change.
+
+    The event is used in preference to DBInstanceStatus or
+    PendingModifiedValues.MasterUserPassword because both of those are
+    transient, whereas events are retained (14 days by default) and so can be
+    polled for without racing the modification window.
+
+    `since` bounds the query so that an earlier reset on the same instance
+    cannot satisfy it; pass a timestamp taken before requesting the change.
+
+    Usage:
+        from e2e import db_instance
+        before = datetime.datetime.now(datetime.timezone.utc)
+        # ... request the password change ...
+        db_instance.wait_for_master_credentials_reset(instance_id, before)
+
+    Raises:
+        pytest.fail upon timeout
+    """
+    c = boto3.client('rds')
+    deadline = time.time() + timeout_seconds
+    seen = []
+    while time.time() < deadline:
+        resp = c.describe_events(
+            SourceIdentifier=db_instance_id,
+            SourceType='db-instance',
+            EventCategories=['configuration change'],
+            StartTime=since,
+        )
+        events = resp.get('Events', [])
+        seen = [e.get('Message') for e in events]
+        if any(MASTER_CREDENTIALS_RESET_MESSAGE in (e.get('Message') or '').lower()
+               for e in events):
+            return
+        time.sleep(interval_seconds)
+    pytest.fail(
+        f"timed out after {timeout_seconds}s waiting for RDS to report "
+        f"{MASTER_CREDENTIALS_RESET_MESSAGE!r} on {db_instance_id}; "
+        f"configuration-change events since {since}: {seen}"
+    )
 
 
 def get_tags(db_instance_arn):

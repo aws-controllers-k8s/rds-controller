@@ -14,6 +14,7 @@
 """Integration tests for the RDS API DBInstance resource
 """
 
+import datetime
 import time
 
 import pytest
@@ -334,11 +335,15 @@ class TestDBInstance:
             },
         }
 
+        # Bound the RDS event query below, so an earlier reset on this instance
+        # cannot satisfy it.
+        before_update = datetime.datetime.now(datetime.timezone.utc)
+
         k8s.patch_custom_resource(ref, updates)
 
-        # Wait for the controller to record the secret it applied, rather than
-        # sleeping a fixed interval and then asserting on the states that
-        # accompany it. ACK.ResourceSynced=False and
+        # CR side: wait for the controller to record the secret it applied,
+        # rather than sleeping a fixed interval and then asserting on the states
+        # that accompany it. ACK.ResourceSynced=False and
         # DBInstanceStatus=resetting-master-credentials are both transient: on
         # one CI run the not-synced window lasted 209ms (16:23:52.075 ->
         # 16:23:52.284) while this test slept 35s before looking, so it found the
@@ -347,6 +352,13 @@ class TestDBInstance:
         # be polled for without racing.
         wait_for_last_applied_secret(
             ref, f"{new_secret.ns}/{new_secret.name}.{new_secret.key}",
+        )
+
+        # AWS side: confirm RDS actually applied the new password. The
+        # annotation above only shows what the controller believes it sent, so
+        # on its own it would not catch the request being rejected or dropped.
+        db_instance.wait_for_master_credentials_reset(
+            db_instance_id, before_update,
         )
 
         # The password change leaves the instance healthy: RDS finishes applying
