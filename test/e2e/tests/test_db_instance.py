@@ -59,6 +59,44 @@ MUP_SEC_NAME_PREFIX = "dbinstancesecrets"
 MUP_SEC_KEY = "master_user_password"
 MUP_SEC_VAL = "secretpass123456"
 
+LAST_APPLIED_SECRET_ANNOTATION = "rds.services.k8s.aws/last-applied-secret-reference"
+
+
+def wait_for_last_applied_secret(
+        ref: k8s.CustomResourceReference,
+        expected: str,
+        timeout_seconds: int = 120,
+        interval_seconds: int = 3,
+):
+    """Waits until the controller records `expected` as the secret it last
+    applied to the DB instance.
+
+    The controller writes this annotation once it has sent the new master
+    password to RDS, so it is durable evidence that the update happened. It is
+    written in the same patch that sets ACK.ResourceSynced=False and
+    DBInstanceStatus=resetting-master-credentials, but unlike those two it is
+    not cleared again, so it can be polled for without racing.
+
+    Raises:
+        pytest.fail upon timeout
+    """
+    deadline = time.time() + timeout_seconds
+    last_seen = None
+    while time.time() < deadline:
+        cr = k8s.get_resource(ref)
+        last_seen = (
+            (cr or {}).get('metadata', {}).get('annotations', {}).get(
+                LAST_APPLIED_SECRET_ANNOTATION)
+        )
+        if last_seen == expected:
+            return
+        time.sleep(interval_seconds)
+    pytest.fail(
+        f"timed out after {timeout_seconds}s waiting for "
+        f"{LAST_APPLIED_SECRET_ANNOTATION} to become {expected!r}; "
+        f"last saw {last_seen!r}"
+    )
+
 @pytest.fixture
 def postgres14_t3_micro_instance(k8s_secret):
     db_instance_id = random_suffix_name("pg14-t3-micro", 20)
@@ -258,8 +296,8 @@ class TestDBInstance:
         # Assert that the last-applied-secret-reference annotation is set
         assert 'metadata' in cr
         assert 'annotations' in cr['metadata']
-        assert 'rds.services.k8s.aws/last-applied-secret-reference' in cr['metadata']['annotations']
-        lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
+        assert LAST_APPLIED_SECRET_ANNOTATION in cr['metadata']['annotations']
+        lastAppliedSecretRef = cr['metadata']['annotations'][LAST_APPLIED_SECRET_ANNOTATION]
         assert lastAppliedSecretRef == f"{MUP_NS}/{secret_name}.{MUP_SEC_KEY}"
 
         # Wait for the resource to get synced
@@ -297,16 +335,29 @@ class TestDBInstance:
         }
 
         k8s.patch_custom_resource(ref, updates)
-        time.sleep(35)
-        condition.assert_not_synced(ref)
-        cr = k8s.get_resource(ref)
-        assert cr is not None
-        assert 'status' in cr
-        assert 'dbInstanceStatus' in cr['status']
-        assert cr['status']['dbInstanceStatus'] == 'resetting-master-credentials'
 
-        lastAppliedSecretRef = cr['metadata']['annotations']['rds.services.k8s.aws/last-applied-secret-reference']
-        assert lastAppliedSecretRef == f"{new_secret.ns}/{new_secret.name}.{new_secret.key}"
+        # Wait for the controller to record the secret it applied, rather than
+        # sleeping a fixed interval and then asserting on the states that
+        # accompany it. ACK.ResourceSynced=False and
+        # DBInstanceStatus=resetting-master-credentials are both transient: on
+        # one CI run the not-synced window lasted 209ms (16:23:52.075 ->
+        # 16:23:52.284) while this test slept 35s before looking, so it found the
+        # instance already back to Synced=True/available and failed. The
+        # annotation is written in the same patch and is never cleared, so it can
+        # be polled for without racing.
+        wait_for_last_applied_secret(
+            ref, f"{new_secret.ns}/{new_secret.name}.{new_secret.key}",
+        )
+
+        # The password change leaves the instance healthy: RDS finishes applying
+        # it and the controller reports the resource synced again.
+        assert k8s.wait_on_condition(
+            ref, "ACK.ResourceSynced", "True",
+            wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
+        )
+        db_instance.wait_until(
+            db_instance_id, db_instance.status_matches("available"),
+        )
 
     def test_enable_pi_postgres14_t3_micro(
             self,
@@ -467,7 +518,7 @@ class TestDBInstance:
         # Assert that the last-applied-secret-reference annotation is set
         assert 'metadata' in cr
         assert 'annotations' in cr['metadata']
-        assert 'rds.services.k8s.aws/last-applied-secret-reference' in cr['metadata']['annotations']
+        assert LAST_APPLIED_SECRET_ANNOTATION in cr['metadata']['annotations']
 
         # Wait for the resource to get synced
         assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
