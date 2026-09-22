@@ -17,6 +17,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"slices"
 	"strings"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
@@ -419,4 +421,40 @@ func setDeleteDBClusterInput(
 	input.FinalDBSnapshotIdentifier = params.FinalDBSnapshotIdentifier
 	input.DeleteAutomatedBackups = params.DeleteAutomatedBackup
 	return nil
+}
+
+// majorEngineVersionRegexp captures the leading numeric (major) portion of an
+// engine version string (e.g. "8" from "8.0.mysql_aurora.3.04.0").
+var majorEngineVersionRegexp = regexp.MustCompile(`^[0-9]+`)
+
+// getCloudwatchLogExportsConfigDifferences returns the log types to enable and
+// to disable, computed as the set difference between the desired and latest
+// EnableCloudwatchLogsExports slices. Used by the sdk_update_post_build_request
+// hook to build the CloudwatchLogsExportConfiguration for ModifyDBCluster.
+func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired []*string, cloudwatchLogExportsConfigLatest []*string) ([]*string, []*string) {
+	logsTypesToEnable := []*string{}
+	logsTypesToDisable := []*string{}
+
+	for _, config := range cloudwatchLogExportsConfigDesired {
+		if !slices.Contains(cloudwatchLogExportsConfigLatest, config) {
+			logsTypesToEnable = append(logsTypesToEnable, config)
+		}
+	}
+	for _, config := range cloudwatchLogExportsConfigLatest {
+		if !slices.Contains(cloudwatchLogExportsConfigDesired, config) {
+			logsTypesToDisable = append(logsTypesToDisable, config)
+		}
+	}
+	return logsTypesToEnable, logsTypesToDisable
+}
+
+// requireEngineVersionUpdate reports whether the desired engine version should
+// be sent to ModifyDBCluster. When autoMinorVersionUpgrade is enabled and only
+// the minor version differs (same major version), the update is skipped so the
+// delta does not fire on every reconcile after AWS auto-upgrades the minor
+// version. Used by the delta_pre_compare hook to normalize EngineVersion.
+func requireEngineVersionUpdate(desiredEngineVersion *string, latestEngineVersion *string, autoMinorVersionUpgrade bool) bool {
+	desiredMajorEngineVersion := majorEngineVersionRegexp.FindString(*desiredEngineVersion)
+	latestMajorEngineVersion := majorEngineVersionRegexp.FindString(*latestEngineVersion)
+	return !autoMinorVersionUpgrade || desiredMajorEngineVersion != latestMajorEngineVersion
 }
