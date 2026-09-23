@@ -583,3 +583,46 @@ class TestDBCluster:
         assert cfg is not None
         assert cfg["MinCapacity"] == expected_min
         assert cfg["MaxCapacity"] == expected_max
+
+        
+        expected_min_2 = 0
+        expected_max_2 = 2.0
+        expected_seconds = 3600
+        k8s.patch_custom_resource(
+            ref,
+            {
+                "spec": {
+                    "serverlessV2ScalingConfiguration": {
+                        "minCapacity": expected_min_2,
+                        "maxCapacity": expected_max_2,
+                        "secondsUntilAutoPause": expected_seconds,
+                    }
+                }
+            },
+        )
+
+        def autopause_applied(record):
+            if record is None:
+                return False
+            cfg = record.get("ServerlessV2ScalingConfiguration")
+            return (
+                cfg is not None
+                and cfg.get("MinCapacity") == expected_min_2
+                and cfg.get("MaxCapacity") == expected_max_2
+                and cfg.get("SecondsUntilAutoPause") == expected_seconds
+            )
+
+        db_cluster.wait_until(db_cluster_id, autopause_applied)
+
+        # The resource must settle back to Synced=True (loop closed).
+        assert k8s.wait_on_condition(
+            ref, "ACK.ResourceSynced", "True", wait_periods=30,
+        )
+
+        latest = db_cluster.get(db_cluster_id)
+        assert latest is not None
+        cfg = latest.get("ServerlessV2ScalingConfiguration")
+        assert cfg is not None
+        assert cfg["MinCapacity"] == expected_min_2
+        assert cfg["MaxCapacity"] == expected_max_2
+        assert cfg["SecondsUntilAutoPause"] == expected_seconds
