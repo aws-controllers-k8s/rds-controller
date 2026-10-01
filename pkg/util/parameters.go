@@ -50,9 +50,18 @@ func NewErrUnmodifiableParameter(name string) error {
 	)
 }
 
+// EqualStringPtr returns true if both string pointers are nil or both point to
+// an equal value.
+func EqualStringPtr(a, b *string) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	return *a == *b
+}
+
 // GetParametersDifference compares two Parameters maps and returns the
 // parameters to add & update, the unchanged parameters, and
-// the parameters to remove
+// the parameters to remove. Values in either map may be nil.
 func GetParametersDifference(
 	to, from Parameters,
 ) (added, unchanged, removed Parameters) {
@@ -65,7 +74,7 @@ func GetParametersDifference(
 		toVal, existsInTo := to[key]
 		if !existsInTo {
 			removed[key] = fromVal
-		} else if *fromVal == *toVal {
+		} else if EqualStringPtr(fromVal, toVal) {
 			unchanged[key] = fromVal
 		}
 	}
@@ -73,7 +82,7 @@ func GetParametersDifference(
 	// Check desired parameters
 	for key, toVal := range to {
 		fromVal, existsInFrom := from[key]
-		if !existsInFrom || *fromVal != *toVal {
+		if !existsInFrom || !EqualStringPtr(fromVal, toVal) {
 			added[key] = toVal
 		}
 	}
