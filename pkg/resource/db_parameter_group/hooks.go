@@ -291,6 +291,9 @@ func (rm *resourceManager) getParameters(
 			return nil, nil, err
 		}
 		for _, param := range resp.Parameters {
+			if param.ParameterName == nil {
+				continue
+			}
 			pName := *param.ParameterName
 
 			_, inDesired := desiredParams[pName]
@@ -338,17 +341,7 @@ func (rm *resourceManager) paramDiffersFromDefault(
 	if err != nil || pMeta.DefaultValue == nil {
 		return false
 	}
-	return !stringPtrEqual(currentValue, pMeta.DefaultValue)
-}
-
-func stringPtrEqual(a, b *string) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-	return *a == *b
+	return !util.EqualStringPtr(currentValue, pMeta.DefaultValue)
 }
 
 // resetParameters calls the RDS ResetDBParameterGroup API call with a set of
@@ -484,12 +477,10 @@ func (rm *resourceManager) getFamilyParameters(
 			return nil, err
 		}
 		for _, param := range resp.EngineDefaults.Parameters {
-			pName := *param.ParameterName
-			familyMeta[pName] = util.ParamMeta{
-				IsModifiable: *param.IsModifiable,
-				IsDynamic:    *param.ApplyType != applyTypeStatic,
-				DefaultValue: param.ParameterValue,
+			if param.ParameterName == nil {
+				continue
 			}
+			familyMeta[*param.ParameterName] = newParamMeta(param)
 		}
 		marker = resp.EngineDefaults.Marker
 		if marker == nil {
@@ -497,4 +488,15 @@ func (rm *resourceManager) getFamilyParameters(
 		}
 	}
 	return familyMeta, nil
+}
+
+// newParamMeta builds parameter metadata; an absent flag means unknown, not false.
+func newParamMeta(param svcsdktypes.Parameter) util.ParamMeta {
+	return util.ParamMeta{
+		// Unknown modifiability: let RDS reject the change rather than raise a terminal error.
+		IsModifiable: param.IsModifiable == nil || *param.IsModifiable,
+		// Unknown apply type: pending-reboot is accepted for static and dynamic alike.
+		IsDynamic:    param.ApplyType != nil && *param.ApplyType != applyTypeStatic,
+		DefaultValue: param.ParameterValue,
+	}
 }
