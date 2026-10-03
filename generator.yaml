@@ -140,10 +140,12 @@ operations:
 resources:
   DBCluster:
     update_operation:
-      # We need a custom update implementation until the issue behind
-      # https://github.com/aws-controllers-k8s/community/issues/917 is
-      # resolved.
-      custom_method_name: customUpdate
+      # The Input shape sent to ModifyDBCluster must have fields that are
+      # unchanged between desired and observed set to nil. omit_unchanged_fields
+      # generates an sdkUpdate whose newUpdateRequestPayload delta-gates every
+      # Spec field, which is what the hand-written customUpdate used to do by
+      # hand (community#917).
+      omit_unchanged_fields: true
     hooks:
       sdk_create_pre_build_request:
         template_path: hooks/db_cluster/sdk_create_pre_build_request.go.tpl
@@ -153,6 +155,12 @@ resources:
         template_path: hooks/db_cluster/sdk_create_post_set_output.go.tpl
       sdk_read_many_post_set_output:
         template_path: hooks/db_cluster/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/db_cluster/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/db_cluster/sdk_update_post_build_request.go.tpl
+      sdk_update_pre_set_output:
+        template_path: hooks/db_cluster/sdk_update_pre_set_output.go.tpl
       sdk_delete_pre_build_request:
         template_path: hooks/db_cluster/sdk_delete_pre_build_request.go.tpl
       sdk_delete_post_build_request:
@@ -198,6 +206,36 @@ resources:
           resource: Key
           service_name: kms
           path: Status.ACKResourceMetadata.ARN
+        # The PerformanceInsights/DatabaseInsightsMode group is written as an
+        # all-or-nothing set by the sdk_update_post_build_request hook (this API
+        # ignores current values, so any change in the group must resend all of
+        # them). Suppress the generated per-field Update input setter so the
+        # hook is the sole writer and we avoid a redundant double-write. `to`
+        # only drops the SDK input setter; the output/read-back setter stays so
+        # latest.Spec.PerformanceInsightsKMSKeyID still populates from
+        # DescribeDBClusters, and the Create-path setter and KMS reference
+        # resolution are untouched.
+        set:
+          - method: Update
+            ignore: to
+      DatabaseInsightsMode:
+        # See PerformanceInsightsKMSKeyID: this field is part of the
+        # send-all-if-any group written by sdk_update_post_build_request.
+        set:
+          - method: Update
+            ignore: to
+      PerformanceInsightsRetentionPeriod:
+        # See PerformanceInsightsKMSKeyID: this field is part of the
+        # send-all-if-any group written by sdk_update_post_build_request.
+        set:
+          - method: Update
+            ignore: to
+      EnablePerformanceInsights:
+        # See PerformanceInsightsKMSKeyID: this field is part of the
+        # send-all-if-any group written by sdk_update_post_build_request.
+        set:
+          - method: Update
+            ignore: to
       DBClusterParameterGroupName:
         references:
           resource: DBClusterParameterGroup
