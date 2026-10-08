@@ -278,7 +278,7 @@
     "enableCrossNamespace": {
       "description": "Enable cross-namespace behavior (resource references, secret references, field exports). When false, the controller rejects any operation that crosses namespace boundaries.",
       "type": "boolean",
-      "default": true
+      "default": false
    },
     "serviceAccount": {
       "description": "ServiceAccount settings",
