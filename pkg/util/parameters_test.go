@@ -16,7 +16,7 @@ package util
 import (
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 func TestGetParametersDifference_PointerComparison(t *testing.T) {
