@@ -57,6 +57,14 @@ func newResourceDelta(
 	// resolve, leaving the cluster perpetually out of sync.
 	clearAuroraAllocatedStorage(a.ko)
 
+	// RDS keeps reporting the last ServerlessV2ScalingConfiguration and
+	// ModifyDBCluster has no way to unset it, so an unset spec field would
+	// produce a delta on every reconcile that can never be resolved. Treat
+	// it as unmanaged instead of comparing it.
+	if a.ko.Spec.ServerlessV2ScalingConfiguration == nil {
+		b.ko.Spec.ServerlessV2ScalingConfiguration = nil
+	}
+
 	// When autoMinorVersionUpgrade is enabled and the engine version
 	// difference is only a minor version change (same major version),
 	// normalize the desired engine version to match the latest. This
