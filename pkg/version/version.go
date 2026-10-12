@@ -28,5 +28,5 @@ var (
 // time and are immutable for the life of the generated code.
 const (
 	ACKGenerateVersion   = "v0.65.0"
-	ACKGenerateBuildDate = "2026-10-08T22:29:57Z"
+	ACKGenerateBuildDate = "2026-10-09T20:48:38Z"
 )

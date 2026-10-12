@@ -16,8 +16,8 @@ package db_parameter_group
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func TestNewParamMeta(t *testing.T) {

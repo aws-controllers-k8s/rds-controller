@@ -24,7 +24,6 @@ License version 2.0, we include the full text of the package's License below.
 * `github.com/aws-controllers-k8s/iam-controller`
 * `github.com/aws-controllers-k8s/kms-controller`
 * `github.com/aws-controllers-k8s/runtime`
-* `github.com/aws/aws-sdk-go`
 * `github.com/aws/aws-sdk-go-v2`
 * `github.com/aws/aws-sdk-go-v2/service/rds`
 * `github.com/aws/smithy-go`
@@ -41,15 +40,32 @@ License version 2.0, we include the full text of the package's License below.
 License Identifier: Apache-2.0
 
 Subdependencies:
+* `github.com/aws-controllers-k8s/cloudwatchlogs-controller`
+* `github.com/aws-controllers-k8s/elbv2-controller`
+* `github.com/aws-controllers-k8s/iam-controller`
 * `github.com/aws-controllers-k8s/runtime`
-* `github.com/aws/aws-sdk-go`
+* `github.com/aws/aws-sdk-go-v2`
+* `github.com/aws/aws-sdk-go-v2/service/ec2`
+* `github.com/aws/smithy-go`
 * `github.com/go-logr/logr`
 * `github.com/samber/lo`
 * `github.com/spf13/pflag`
+* `github.com/stretchr/testify`
 * `k8s.io/api`
 * `k8s.io/apimachinery`
 * `k8s.io/client-go`
 * `sigs.k8s.io/controller-runtime`
+* `github.com/aws/aws-sdk-go-v2/config`
+* `github.com/aws/aws-sdk-go-v2/credentials`
+* `github.com/aws/aws-sdk-go-v2/feature/ec2/imds`
+* `github.com/aws/aws-sdk-go-v2/internal/configsources`
+* `github.com/aws/aws-sdk-go-v2/internal/endpoints/v2`
+* `github.com/aws/aws-sdk-go-v2/internal/ini`
+* `github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding`
+* `github.com/aws/aws-sdk-go-v2/service/internal/presigned-url`
+* `github.com/aws/aws-sdk-go-v2/service/sso`
+* `github.com/aws/aws-sdk-go-v2/service/ssooidc`
+* `github.com/aws/aws-sdk-go-v2/service/sts`
 * `github.com/beorn7/perks`
 * `github.com/cenkalti/backoff/v4`
 * `github.com/cespare/xxhash/v2`
@@ -57,64 +73,83 @@ Subdependencies:
 * `github.com/emicklei/go-restful/v3`
 * `github.com/evanphx/json-patch/v5`
 * `github.com/fsnotify/fsnotify`
+* `github.com/fxamacker/cbor/v2`
 * `github.com/go-logr/zapr`
 * `github.com/go-openapi/jsonpointer`
 * `github.com/go-openapi/jsonreference`
 * `github.com/go-openapi/swag`
-* `github.com/gogo/protobuf`
-* `github.com/golang/groupcache`
-* `github.com/golang/protobuf`
-* `github.com/google/gnostic`
+* `github.com/google/btree`
+* `github.com/google/gnostic-models`
 * `github.com/google/go-cmp`
-* `github.com/google/gofuzz`
 * `github.com/google/uuid`
-* `github.com/imdario/mergo`
 * `github.com/itchyny/gojq`
 * `github.com/itchyny/timefmt-go`
 * `github.com/jaypipes/envutil`
-* `github.com/jmespath/go-jmespath`
 * `github.com/josharian/intern`
 * `github.com/json-iterator/go`
 * `github.com/mailru/easyjson`
-* `github.com/matttproud/golang_protobuf_extensions`
+* `github.com/micahhausler/aws-iam-policy`
 * `github.com/modern-go/concurrent`
 * `github.com/modern-go/reflect2`
 * `github.com/munnerz/goautoneg`
 * `github.com/pkg/errors`
+* `github.com/pmezard/go-difflib`
 * `github.com/prometheus/client_golang`
 * `github.com/prometheus/client_model`
 * `github.com/prometheus/common`
 * `github.com/prometheus/procfs`
-* `go.uber.org/atomic`
+* `github.com/x448/float16`
 * `go.uber.org/multierr`
 * `go.uber.org/zap`
+* `go.yaml.in/yaml/v2`
+* `go.yaml.in/yaml/v3`
 * `golang.org/x/exp`
 * `golang.org/x/net`
 * `golang.org/x/oauth2`
+* `golang.org/x/sync`
 * `golang.org/x/sys`
 * `golang.org/x/term`
 * `golang.org/x/text`
 * `golang.org/x/time`
 * `gomodules.xyz/jsonpatch/v2`
-* `google.golang.org/appengine`
 * `google.golang.org/protobuf`
+* `gopkg.in/evanphx/json-patch.v4`
 * `gopkg.in/inf.v0`
-* `gopkg.in/yaml.v2`
 * `gopkg.in/yaml.v3`
 * `k8s.io/apiextensions-apiserver`
-* `k8s.io/component-base`
 * `k8s.io/klog/v2`
 * `k8s.io/kube-openapi`
 * `k8s.io/utils`
 * `sigs.k8s.io/json`
-* `sigs.k8s.io/structured-merge-diff/v4`
+* `sigs.k8s.io/randfill`
+* `sigs.k8s.io/structured-merge-diff/v6`
 * `sigs.k8s.io/yaml`
+
+#### github.com/aws-controllers-k8s/cloudwatchlogs-controller
+
+License Identifier: Apache-2.0
+
+#### github.com/aws-controllers-k8s/elbv2-controller
+
+License Identifier: Apache-2.0
+
+#### github.com/aws-controllers-k8s/iam-controller
+
+License Identifier: Apache-2.0
 
 #### github.com/aws-controllers-k8s/runtime
 
 License Identifier: Apache-2.0
 
-#### github.com/aws/aws-sdk-go
+#### github.com/aws/aws-sdk-go-v2
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/ec2
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/smithy-go
 
 License Identifier: Apache-2.0
 
@@ -181,6 +216,32 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#### github.com/stretchr/testify
+
+License Identifier: MIT
+
+MIT License
+
+Copyright (c) 2012-2020 Mat Ryer, Tyler Bunnell and contributors.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 #### k8s.io/api
 
 License Identifier: Apache-2.0
@@ -194,6 +255,50 @@ License Identifier: Apache-2.0
 License Identifier: Apache-2.0
 
 #### sigs.k8s.io/controller-runtime
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/config
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/credentials
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/feature/ec2/imds
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/internal/configsources
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/internal/ini
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/sso
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/ssooidc
+
+License Identifier: Apache-2.0
+
+#### github.com/aws/aws-sdk-go-v2/service/sts
 
 License Identifier: Apache-2.0
 
@@ -379,6 +484,32 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#### github.com/fxamacker/cbor/v2
+
+License Identifier: MIT
+
+MIT License
+
+Copyright (c) 2019-present Faye Amacker
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 #### github.com/go-logr/zapr
 
 License Identifier: Apache-2.0
@@ -395,82 +526,11 @@ License Identifier: Apache-2.0
 
 License Identifier: Apache-2.0
 
-#### github.com/gogo/protobuf
-
-License Identifier: BSD-3-Clause
-
-Copyright (c) 2013, The GoGo Authors. All rights reserved.
-
-Protocol Buffers for Go with Gadgets
-
-Go support for Protocol Buffers - Google's data interchange format
-
-Copyright 2010 The Go Authors.  All rights reserved.
-https://github.com/golang/protobuf
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-    * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-    * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#### github.com/golang/groupcache
+#### github.com/google/btree
 
 License Identifier: Apache-2.0
 
-#### github.com/golang/protobuf
-
-License Identifier: BSD-3-Clause
-
-Copyright 2010 The Go Authors.  All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-    * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-    * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#### github.com/google/gnostic
+#### github.com/google/gnostic-models
 
 License Identifier: Apache-2.0
 
@@ -506,48 +566,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#### github.com/google/gofuzz
-
-License Identifier: Apache-2.0
-
 #### github.com/google/uuid
 
 License Identifier: BSD-3-Clause
 
 Copyright (c) 2009,2014 Google Inc. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#### github.com/imdario/mergo
-
-License Identifier: BSD-3-Clause
-
-Copyright (c) 2013 Dario Castañé. All rights reserved.
-Copyright (c) 2012 The Go Authors. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -631,10 +654,6 @@ SOFTWARE.
 
 License Identifier: Apache-2.0
 
-#### github.com/jmespath/go-jmespath
-
-License Identifier: Apache-2.0
-
 #### github.com/josharian/intern
 
 License Identifier: MIT
@@ -697,9 +716,19 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#### github.com/matttproud/golang_protobuf_extensions
+#### github.com/micahhausler/aws-iam-policy
 
-License Identifier: Apache-2.0
+License Identifier: MIT
+
+The MIT License (MIT)
+
+Copyright (c) 2023, Micah Hausler
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #### github.com/modern-go/concurrent
 
@@ -773,6 +802,38 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#### github.com/pmezard/go-difflib
+
+License Identifier: BSD-3-Clause
+
+Copyright (c) 2013, Patrick Mezard
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+    The names of its contributors may not be used to endorse or promote
+products derived from this software without specific prior written
+permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #### github.com/prometheus/client_golang
 
 License Identifier: Apache-2.0
@@ -789,9 +850,13 @@ License Identifier: Apache-2.0
 
 License Identifier: Apache-2.0
 
-#### go.uber.org/atomic
+#### github.com/x448/float16
 
-Copyright (c) 2016 Uber Technologies, Inc.
+License Identifier: MIT
+
+MIT License
+
+Copyright (c) 2019 Montgomery Edwards⁴⁴⁸ and Faye Amacker
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -800,16 +865,16 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 #### go.uber.org/multierr
 
@@ -855,11 +920,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+#### go.yaml.in/yaml/v2
+
+License Identifier: Apache-2.0
+
+#### go.yaml.in/yaml/v3
+
+License Identifier: Apache-2.0
+
 #### golang.org/x/exp
 
 License Identifier: BSD-3-Clause
 
-Copyright (c) 2009 The Go Authors. All rights reserved.
+Copyright 2009 The Go Authors.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -871,7 +944,7 @@ notice, this list of conditions and the following disclaimer.
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-   * Neither the name of Google Inc. nor the names of its
+   * Neither the name of Google LLC nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
@@ -920,6 +993,38 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #### golang.org/x/oauth2
+
+License Identifier: BSD-3-Clause
+
+Copyright 2009 The Go Authors.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the name of Google LLC nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#### golang.org/x/sync
 
 License Identifier: BSD-3-Clause
 
@@ -1083,10 +1188,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 License Identifier: Apache-2.0
 
-#### google.golang.org/appengine
-
-License Identifier: Apache-2.0
-
 #### google.golang.org/protobuf
 
 License Identifier: BSD-3-Clause
@@ -1117,6 +1218,36 @@ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#### gopkg.in/evanphx/json-patch.v4
+
+License Identifier: BSD-3-Clause
+
+Copyright (c) 2014, Evan Phoenix
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* Neither the name of the Evan Phoenix nor the names of its contributors 
+  may be used to endorse or promote products derived from this software 
+  without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE 
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #### gopkg.in/inf.v0
@@ -1152,19 +1283,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#### gopkg.in/yaml.v2
-
-License Identifier: Apache-2.0
-
 #### gopkg.in/yaml.v3
 
 License Identifier: Apache-2.0
 
 #### k8s.io/apiextensions-apiserver
-
-License Identifier: Apache-2.0
-
-#### k8s.io/component-base
 
 License Identifier: Apache-2.0
 
@@ -1423,7 +1546,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#### sigs.k8s.io/structured-merge-diff/v4
+#### sigs.k8s.io/randfill
+
+License Identifier: Apache-2.0
+
+#### sigs.k8s.io/structured-merge-diff/v6
 
 License Identifier: Apache-2.0
 
@@ -1437,7 +1564,6 @@ License Identifier: Apache-2.0
 
 Subdependencies:
 * `github.com/aws-controllers-k8s/runtime`
-* `github.com/aws/aws-sdk-go`
 * `github.com/aws/aws-sdk-go-v2`
 * `github.com/aws/aws-sdk-go-v2/service/iam`
 * `github.com/aws/smithy-go`
@@ -1479,7 +1605,6 @@ Subdependencies:
 * `github.com/itchyny/gojq`
 * `github.com/itchyny/timefmt-go`
 * `github.com/jaypipes/envutil`
-* `github.com/jmespath/go-jmespath`
 * `github.com/josharian/intern`
 * `github.com/json-iterator/go`
 * `github.com/mailru/easyjson`
@@ -1520,10 +1645,6 @@ Subdependencies:
 * `sigs.k8s.io/structured-merge-diff/v6`
 * `sigs.k8s.io/yaml`
 
-#### github.com/aws-controllers-k8s/runtime
-
-License Identifier: Apache-2.0
-
 
 
 #### github.com/aws/aws-sdk-go-v2
@@ -1538,444 +1659,15 @@ License Identifier: Apache-2.0
 
 License Identifier: Apache-2.0
 
-#### github.com/go-logr/logr
-
-License Identifier: Apache-2.0
-
-
-
-#### github.com/spf13/pflag
-
-License Identifier: BSD-3-Clause
-
-Copyright (c) 2012 Alex Ogier. All rights reserved.
-Copyright (c) 2012 The Go Authors. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#### github.com/stretchr/testify
-
-License Identifier: MIT
-
-MIT License
-
-Copyright (c) 2012-2020 Mat Ryer, Tyler Bunnell and contributors.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-#### k8s.io/api
-
-License Identifier: Apache-2.0
-
-#### k8s.io/apimachinery
-
-License Identifier: Apache-2.0
-
-#### k8s.io/client-go
-
-License Identifier: Apache-2.0
-
-#### sigs.k8s.io/controller-runtime
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/config
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/credentials
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/feature/ec2/imds
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/internal/configsources
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/internal/ini
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/service/sso
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/service/ssooidc
-
-License Identifier: Apache-2.0
-
-#### github.com/aws/aws-sdk-go-v2/service/sts
-
-License Identifier: Apache-2.0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### github.com/fxamacker/cbor/v2
-
-License Identifier: MIT
-
-MIT License
-
-Copyright (c) 2019-present Faye Amacker
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-
-
-
-
-
-
-
-#### github.com/google/btree
-
-License Identifier: Apache-2.0
-
-#### github.com/google/gnostic-models
-
-License Identifier: Apache-2.0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### github.com/micahhausler/aws-iam-policy
-
-License Identifier: MIT
-
-The MIT License (MIT)
-
-Copyright (c) 2023, Micah Hausler
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-
-
-
-
-
-
-#### github.com/pmezard/go-difflib
-
-License Identifier: BSD-3-Clause
-
-Copyright (c) 2013, Patrick Mezard
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-    Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-    The names of its contributors may not be used to endorse or promote
-products derived from this software without specific prior written
-permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
-
-
-
-
-
-#### github.com/x448/float16
-
-License Identifier: MIT
-
-MIT License
-
-Copyright (c) 2019 Montgomery Edwards⁴⁴⁸ and Faye Amacker
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-
-
-
-#### go.yaml.in/yaml/v2
-
-License Identifier: Apache-2.0
-
-#### go.yaml.in/yaml/v3
-
-License Identifier: Apache-2.0
-
-#### golang.org/x/exp
-
-License Identifier: BSD-3-Clause
-
-Copyright 2009 The Go Authors.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google LLC nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
-
-#### golang.org/x/sync
-
-License Identifier: BSD-3-Clause
-
-Copyright 2009 The Go Authors.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google LLC nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### gopkg.in/evanphx/json-patch.v4
-
-License Identifier: BSD-3-Clause
-
-Copyright (c) 2014, Evan Phoenix
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-* Neither the name of the Evan Phoenix nor the names of its contributors 
-  may be used to endorse or promote products derived from this software 
-  without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE 
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### sigs.k8s.io/randfill
-
-License Identifier: Apache-2.0
-
-#### sigs.k8s.io/structured-merge-diff/v6
-
-License Identifier: Apache-2.0
-
 ### github.com/aws-controllers-k8s/kms-controller
 
 License Identifier: Apache-2.0
 
 Subdependencies:
 * `github.com/aws-controllers-k8s/runtime`
-* `github.com/aws/aws-sdk-go`
+* `github.com/aws/aws-sdk-go-v2`
+* `github.com/aws/aws-sdk-go-v2/service/kms`
+* `github.com/aws/smithy-go`
 * `github.com/go-logr/logr`
 * `github.com/spf13/pflag`
 * `github.com/stretchr/testify`
@@ -1983,6 +1675,17 @@ Subdependencies:
 * `k8s.io/apimachinery`
 * `k8s.io/client-go`
 * `sigs.k8s.io/controller-runtime`
+* `github.com/aws/aws-sdk-go-v2/config`
+* `github.com/aws/aws-sdk-go-v2/credentials`
+* `github.com/aws/aws-sdk-go-v2/feature/ec2/imds`
+* `github.com/aws/aws-sdk-go-v2/internal/configsources`
+* `github.com/aws/aws-sdk-go-v2/internal/endpoints/v2`
+* `github.com/aws/aws-sdk-go-v2/internal/ini`
+* `github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding`
+* `github.com/aws/aws-sdk-go-v2/service/internal/presigned-url`
+* `github.com/aws/aws-sdk-go-v2/service/sso`
+* `github.com/aws/aws-sdk-go-v2/service/ssooidc`
+* `github.com/aws/aws-sdk-go-v2/service/sts`
 * `github.com/beorn7/perks`
 * `github.com/cenkalti/backoff/v4`
 * `github.com/cespare/xxhash/v2`
@@ -1990,26 +1693,22 @@ Subdependencies:
 * `github.com/emicklei/go-restful/v3`
 * `github.com/evanphx/json-patch/v5`
 * `github.com/fsnotify/fsnotify`
+* `github.com/fxamacker/cbor/v2`
 * `github.com/go-logr/zapr`
 * `github.com/go-openapi/jsonpointer`
 * `github.com/go-openapi/jsonreference`
 * `github.com/go-openapi/swag`
-* `github.com/gogo/protobuf`
-* `github.com/golang/groupcache`
-* `github.com/golang/protobuf`
-* `github.com/google/gnostic`
+* `github.com/google/btree`
+* `github.com/google/gnostic-models`
 * `github.com/google/go-cmp`
-* `github.com/google/gofuzz`
 * `github.com/google/uuid`
-* `github.com/imdario/mergo`
 * `github.com/itchyny/gojq`
 * `github.com/itchyny/timefmt-go`
 * `github.com/jaypipes/envutil`
-* `github.com/jmespath/go-jmespath`
 * `github.com/josharian/intern`
 * `github.com/json-iterator/go`
 * `github.com/mailru/easyjson`
-* `github.com/matttproud/golang_protobuf_extensions`
+* `github.com/micahhausler/aws-iam-policy`
 * `github.com/modern-go/concurrent`
 * `github.com/modern-go/reflect2`
 * `github.com/munnerz/goautoneg`
@@ -2019,65 +1718,39 @@ Subdependencies:
 * `github.com/prometheus/client_model`
 * `github.com/prometheus/common`
 * `github.com/prometheus/procfs`
-* `github.com/samber/lo`
-* `go.uber.org/atomic`
+* `github.com/x448/float16`
 * `go.uber.org/multierr`
 * `go.uber.org/zap`
-* `golang.org/x/exp`
+* `go.yaml.in/yaml/v2`
+* `go.yaml.in/yaml/v3`
 * `golang.org/x/net`
 * `golang.org/x/oauth2`
+* `golang.org/x/sync`
 * `golang.org/x/sys`
 * `golang.org/x/term`
 * `golang.org/x/text`
 * `golang.org/x/time`
 * `gomodules.xyz/jsonpatch/v2`
-* `google.golang.org/appengine`
 * `google.golang.org/protobuf`
+* `gopkg.in/evanphx/json-patch.v4`
 * `gopkg.in/inf.v0`
-* `gopkg.in/yaml.v2`
 * `gopkg.in/yaml.v3`
 * `k8s.io/apiextensions-apiserver`
-* `k8s.io/component-base`
 * `k8s.io/klog/v2`
 * `k8s.io/kube-openapi`
 * `k8s.io/utils`
 * `sigs.k8s.io/json`
-* `sigs.k8s.io/structured-merge-diff/v4`
+* `sigs.k8s.io/randfill`
+* `sigs.k8s.io/structured-merge-diff/v6`
 * `sigs.k8s.io/yaml`
 
 
 
 
 
+#### github.com/aws/aws-sdk-go-v2/service/kms
 
-
-
-
-#### github.com/stretchr/testify
-
-License Identifier: MIT
-
-MIT License
-
-Copyright (c) 2012-2020 Mat Ryer, Tyler Bunnell and contributors.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+License Identifier: Apache-2.0
 
 ### github.com/aws-controllers-k8s/runtime
 
@@ -2337,8 +2010,6 @@ SOFTWARE.
 
 
 
-
-
 ### github.com/aws/aws-sdk-go-v2/service/rds
 
 License Identifier: Apache-2.0
@@ -2351,6 +2022,22 @@ Subdependencies:
 * `github.com/aws/aws-sdk-go-v2/service/internal/presigned-url`
 * `github.com/aws/smithy-go`
 * `github.com/jmespath/go-jmespath`
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### github.com/jmespath/go-jmespath
+
+License Identifier: Apache-2.0
 
 
 
