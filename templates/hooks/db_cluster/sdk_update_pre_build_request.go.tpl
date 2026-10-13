@@ -1,19 +1,3 @@
-	if clusterDeleting(latest) {
-		msg := "DB cluster is currently being deleted"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitWhileDeleting
-	}
-	if clusterCreating(latest) {
-		msg := "DB cluster is currently being created"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
-	}
-	if !clusterAvailable(latest) {
-		msg := "DB cluster is not available for modification in '" +
-			*latest.ko.Status.Status + "' status"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
-	}
 	if clusterHasTerminalStatus(latest) {
 		msg := "DB cluster is in '" + *latest.ko.Status.Status + "' status"
 		ackcondition.SetTerminal(desired, corev1.ConditionTrue, &msg, nil)

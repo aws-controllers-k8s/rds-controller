@@ -146,6 +146,20 @@ resources:
       # Spec field, which is what the hand-written customUpdate used to do by
       # hand (community#917).
       omit_unchanged_fields: true
+    # clusterCreating/clusterDeleting/clusterAvailable (hooks.go) still exist
+    # for the other call sites that need distinct messages (e.g. delete,
+    # restore). Here they're superseded by the generated guard below so
+    # sdk_update_pre_build_request.go.tpl no longer special-cases them.
+    synced:
+      when:
+        - path: Status.Status
+          in:
+            - available
+    updateable:
+      when:
+        - path: Status.Status
+          in:
+            - available
     hooks:
       sdk_create_pre_build_request:
         template_path: hooks/db_cluster/sdk_create_pre_build_request.go.tpl

@@ -22,6 +22,7 @@ import (
 	"math"
 	"reflect"
 	"strings"
+	"time"
 
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
@@ -29,6 +30,7 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
 	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
@@ -1552,22 +1554,6 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
-	if clusterDeleting(latest) {
-		msg := "DB cluster is currently being deleted"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitWhileDeleting
-	}
-	if clusterCreating(latest) {
-		msg := "DB cluster is currently being created"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
-	}
-	if !clusterAvailable(latest) {
-		msg := "DB cluster is not available for modification in '" +
-			*latest.ko.Status.Status + "' status"
-		ackcondition.SetSynced(desired, corev1.ConditionFalse, &msg, nil)
-		return desired, requeueWaitUntilCanModify(latest)
-	}
 	if clusterHasTerminalStatus(latest) {
 		msg := "DB cluster is in '" + *latest.ko.Status.Status + "' status"
 		ackcondition.SetTerminal(desired, corev1.ConditionTrue, &msg, nil)
@@ -1582,6 +1568,16 @@ func (rm *resourceManager) sdkUpdate(
 		// If the only difference between the desired and latest is in the
 		// Spec.Tags field, we can skip the ModifyDBCluster call.
 		return desired, nil
+	}
+
+	if latest.ko.Status.Status != nil {
+		if !ackutil.InStrings(*latest.ko.Status.Status, []string{"available"}) {
+			return nil, ackrequeue.NeededAfter(
+				fmt.Errorf("resource is in %s state, cannot be updated",
+					*latest.ko.Status.Status),
+				time.Duration(30)*time.Second,
+			)
+		}
 	}
 
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)

@@ -93,24 +93,6 @@ var requeueWaitWhileDeleting = ackrequeue.NeededAfter(
 	ackrequeue.DefaultRequeueAfterDuration,
 )
 
-// requeueWaitUntilCanModify returns a `ackrequeue.RequeueNeededAfter` struct
-// explaining the DB instance cannot be modified until it reaches an available
-// status.
-func requeueWaitUntilCanModify(r *resource) *ackrequeue.RequeueNeededAfter {
-	if r.ko.Status.Status == nil {
-		return nil
-	}
-	status := *r.ko.Status.Status
-	msg := fmt.Sprintf(
-		"DB cluster in '%s' state, cannot be modified until '%s'.",
-		status, StatusAvailable,
-	)
-	return ackrequeue.NeededAfter(
-		errors.New(msg),
-		ackrequeue.DefaultRequeueAfterDuration,
-	)
-}
-
 // clusterHasTerminalStatus returns whether the supplied DB Cluster is in a
 // terminal state
 func clusterHasTerminalStatus(r *resource) bool {
