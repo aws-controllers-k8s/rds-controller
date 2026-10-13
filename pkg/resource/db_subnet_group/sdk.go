@@ -298,6 +298,19 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	rm.setStatusDefaults(ko)
+	// The resource now exists in AWS and ko carries its identifiers. Mark any
+	// error from here on as a post-create failure so the reconciler retains the
+	// ACK finalizer, and return ko so those identifiers reach the CR status and
+	// the next reconciliation finds the resource instead of creating a second
+	// one. See https://github.com/aws-controllers-k8s/community/issues/2849.
+	defer func() {
+		if err != nil {
+			err = ackerr.WrapPostCreateError(err)
+			if created == nil {
+				created = &resource{ko}
+			}
+		}
+	}()
 	return &resource{ko}, nil
 }
 
