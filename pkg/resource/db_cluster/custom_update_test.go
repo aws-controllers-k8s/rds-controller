@@ -24,15 +24,12 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
-func TestNewCustomUpdateRequestPayload_PreferredBackupWindow(t *testing.T) {
-	// Test case to verify that PreferredBackupWindow is included in the ModifyDBCluster API call
-	// when Spec.PreferredBackupWindow is in the delta
-
-	// Setup
+func TestNewUpdateRequestPayload_PreferredBackupWindow(t *testing.T) {
+	// PreferredBackupWindow is included in the ModifyDBCluster API call when
+	// Spec.PreferredBackupWindow is in the delta.
 	rm := &resourceManager{}
 	ctx := context.Background()
 
-	// Create desired resource with PreferredBackupWindow set
 	desired := &resource{
 		ko: &svcapitypes.DBCluster{
 			Spec: svcapitypes.DBClusterSpec{
@@ -42,38 +39,22 @@ func TestNewCustomUpdateRequestPayload_PreferredBackupWindow(t *testing.T) {
 		},
 	}
 
-	// Create latest resource with different PreferredBackupWindow
-	latest := &resource{
-		ko: &svcapitypes.DBCluster{
-			Spec: svcapitypes.DBClusterSpec{
-				DBClusterIdentifier:   aws.String("test-cluster"),
-				PreferredBackupWindow: aws.String("05:00-07:00"),
-			},
-		},
-	}
-
-	// Create delta with PreferredBackupWindow difference
 	delta := ackcompare.NewDelta()
-	delta.Add("Spec.PreferredBackupWindow", latest.ko.Spec.PreferredBackupWindow, desired.ko.Spec.PreferredBackupWindow)
+	delta.Add("Spec.PreferredBackupWindow", aws.String("05:00-07:00"), desired.ko.Spec.PreferredBackupWindow)
 
-	// Call the function under test
-	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 
-	// Assertions
 	assert.NoError(t, err)
 	assert.NotNil(t, input)
 	assert.Equal(t, *desired.ko.Spec.PreferredBackupWindow, *input.PreferredBackupWindow)
 }
 
-func TestNewCustomUpdateRequestPayload_PreferredBackupWindowNotInDelta(t *testing.T) {
-	// Test case to verify that PreferredBackupWindow is NOT included in the ModifyDBCluster API call
-	// when Spec.PreferredBackupWindow is NOT in the delta
-
-	// Setup
+func TestNewUpdateRequestPayload_PreferredBackupWindowNotInDelta(t *testing.T) {
+	// PreferredBackupWindow is NOT included in the ModifyDBCluster API call when
+	// Spec.PreferredBackupWindow is NOT in the delta.
 	rm := &resourceManager{}
 	ctx := context.Background()
 
-	// Create desired resource with PreferredBackupWindow set
 	desired := &resource{
 		ko: &svcapitypes.DBCluster{
 			Spec: svcapitypes.DBClusterSpec{
@@ -83,24 +64,130 @@ func TestNewCustomUpdateRequestPayload_PreferredBackupWindowNotInDelta(t *testin
 		},
 	}
 
-	// Create latest resource with same PreferredBackupWindow
-	latest := &resource{
+	delta := ackcompare.NewDelta()
+
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, input)
+	assert.Nil(t, input.PreferredBackupWindow)
+}
+
+// TestNewUpdateRequestPayload_ServerlessV2ScalingConfiguration_FirstTimeAdd is
+// the regression test for aws-controllers-k8s/community#3036. Adding
+// ServerlessV2ScalingConfiguration to a DBCluster that previously had none
+// (nil->populated) must produce a ModifyDBClusterInput whose
+// ServerlessV2ScalingConfiguration carries MinCapacity/MaxCapacity, so the
+// change actually reaches AWS.
+func TestNewUpdateRequestPayload_ServerlessV2ScalingConfiguration_FirstTimeAdd(t *testing.T) {
+	assert := assert.New(t)
+
+	rm := &resourceManager{}
+	ctx := context.Background()
+
+	// desired: cluster spec now includes SV2SC {MinCapacity:0.5, MaxCapacity:2}
+	desired := &resource{
 		ko: &svcapitypes.DBCluster{
 			Spec: svcapitypes.DBClusterSpec{
-				DBClusterIdentifier:   aws.String("test-cluster"),
-				PreferredBackupWindow: aws.String("07:00-09:00"),
+				DBClusterIdentifier: aws.String("test-cluster"),
+				ServerlessV2ScalingConfiguration: &svcapitypes.ServerlessV2ScalingConfiguration{
+					MinCapacity: aws.Float64(0.5),
+					MaxCapacity: aws.Float64(2),
+				},
 			},
 		},
 	}
 
-	// Create delta without PreferredBackupWindow difference
-	delta := ackcompare.NewDelta()
+	// latest: observed cluster has NO SV2SC (nil).
+	latest := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier: aws.String("test-cluster"),
+			},
+		},
+	}
 
-	// Call the function under test
-	input, err := rm.newCustomUpdateRequestPayload(ctx, desired, latest, delta)
+	// Use the REAL delta computation, not a hand-built delta.
+	delta := newResourceDelta(desired, latest)
 
-	// Assertions
-	assert.NoError(t, err)
-	assert.NotNil(t, input)
-	assert.Nil(t, input.PreferredBackupWindow)
+	// The parent path must be flagged different (nil->populated).
+	assert.True(
+		delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration"),
+		"expected parent Spec.ServerlessV2ScalingConfiguration to differ on nil->populated",
+	)
+
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
+	assert.NoError(err)
+	assert.NotNil(input)
+
+	// min/max must be carried into the modify input so the change converges.
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration,
+		"ServerlessV2ScalingConfiguration must be attached to ModifyDBClusterInput",
+	)
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration.MaxCapacity,
+		"MaxCapacity must be set on first-time add (community#3036)",
+	)
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration.MinCapacity,
+		"MinCapacity must be set on first-time add (community#3036)",
+	)
+	assert.Equal(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MaxCapacity, *input.ServerlessV2ScalingConfiguration.MaxCapacity)
+	assert.Equal(*desired.ko.Spec.ServerlessV2ScalingConfiguration.MinCapacity, *input.ServerlessV2ScalingConfiguration.MinCapacity)
+}
+
+// TestNewUpdateRequestPayload_ServerlessV2ScalingConfiguration_SecondsUntilAutoPause
+// asserts that SecondsUntilAutoPause flows through the generated payload when
+// the SV2SC parent differs.
+func TestNewUpdateRequestPayload_ServerlessV2ScalingConfiguration_SecondsUntilAutoPause(t *testing.T) {
+	assert := assert.New(t)
+
+	rm := &resourceManager{}
+	ctx := context.Background()
+
+	desired := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier: aws.String("test-cluster"),
+				ServerlessV2ScalingConfiguration: &svcapitypes.ServerlessV2ScalingConfiguration{
+					MinCapacity:           aws.Float64(0.5),
+					MaxCapacity:           aws.Float64(4),
+					SecondsUntilAutoPause: aws.Int64(3600),
+				},
+			},
+		},
+	}
+
+	latest := &resource{
+		ko: &svcapitypes.DBCluster{
+			Spec: svcapitypes.DBClusterSpec{
+				DBClusterIdentifier: aws.String("test-cluster"),
+				ServerlessV2ScalingConfiguration: &svcapitypes.ServerlessV2ScalingConfiguration{
+					MinCapacity:           aws.Float64(0.5),
+					MaxCapacity:           aws.Float64(2),
+					SecondsUntilAutoPause: aws.Int64(300),
+				},
+			},
+		},
+	}
+
+	delta := newResourceDelta(desired, latest)
+	assert.True(
+		delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration"),
+		"expected Spec.ServerlessV2ScalingConfiguration to differ",
+	)
+
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
+	assert.NoError(err)
+	assert.NotNil(input)
+	assert.NotNil(input.ServerlessV2ScalingConfiguration)
+	assert.NotNil(
+		input.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause,
+		"SecondsUntilAutoPause must flow through the generated payload when SV2SC differs",
+	)
+	assert.Equal(
+		int32(*desired.ko.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause),
+		*input.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause,
+	)
 }
