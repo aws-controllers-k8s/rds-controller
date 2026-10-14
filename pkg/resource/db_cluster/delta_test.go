@@ -232,3 +232,86 @@ func TestNewResourceDelta_AllocatedStorage(t *testing.T) {
 		})
 	}
 }
+
+func TestNewResourceDelta_ServerlessV2ScalingConfiguration(t *testing.T) {
+	tests := []struct {
+		name              string
+		desired           *svcapitypes.ServerlessV2ScalingConfiguration
+		latest            *svcapitypes.ServerlessV2ScalingConfiguration
+		expectDifferentAt bool
+	}{
+		{
+			name:    "removed from spec, still reported by RDS",
+			desired: nil,
+			latest: &svcapitypes.ServerlessV2ScalingConfiguration{
+				MinCapacity: aws.Float64(0.5),
+				MaxCapacity: aws.Float64(4),
+			},
+			expectDifferentAt: false,
+		},
+		{
+			name:              "never set",
+			desired:           nil,
+			latest:            nil,
+			expectDifferentAt: false,
+		},
+		{
+			name: "set in spec, not yet on cluster",
+			desired: &svcapitypes.ServerlessV2ScalingConfiguration{
+				MinCapacity: aws.Float64(0.5),
+				MaxCapacity: aws.Float64(4),
+			},
+			latest:            nil,
+			expectDifferentAt: true,
+		},
+		{
+			name: "capacity changed",
+			desired: &svcapitypes.ServerlessV2ScalingConfiguration{
+				MinCapacity: aws.Float64(0.5),
+				MaxCapacity: aws.Float64(8),
+			},
+			latest: &svcapitypes.ServerlessV2ScalingConfiguration{
+				MinCapacity: aws.Float64(0.5),
+				MaxCapacity: aws.Float64(4),
+			},
+			expectDifferentAt: true,
+		},
+		{
+			name: "unchanged",
+			desired: &svcapitypes.ServerlessV2ScalingConfiguration{
+				MinCapacity: aws.Float64(0.5),
+				MaxCapacity: aws.Float64(4),
+			},
+			latest: &svcapitypes.ServerlessV2ScalingConfiguration{
+				MinCapacity: aws.Float64(0.5),
+				MaxCapacity: aws.Float64(4),
+			},
+			expectDifferentAt: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			desired := &resource{
+				ko: &svcapitypes.DBCluster{
+					Spec: svcapitypes.DBClusterSpec{
+						Engine:                           aws.String("aurora-postgresql"),
+						ServerlessV2ScalingConfiguration: tc.desired,
+					},
+				},
+			}
+			latest := &resource{
+				ko: &svcapitypes.DBCluster{
+					Spec: svcapitypes.DBClusterSpec{
+						Engine:                           aws.String("aurora-postgresql"),
+						ServerlessV2ScalingConfiguration: tc.latest,
+					},
+				},
+			}
+
+			delta := newResourceDelta(desired, latest)
+			assert.Equal(t, tc.expectDifferentAt, delta.DifferentAt("Spec.ServerlessV2ScalingConfiguration"),
+				"Spec.ServerlessV2ScalingConfiguration delta mismatch")
+		})
+	}
+}
