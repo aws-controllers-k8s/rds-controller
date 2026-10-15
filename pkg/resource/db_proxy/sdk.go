@@ -521,6 +521,12 @@ func (rm *resourceManager) sdkUpdate(
 	// the original Kubernetes object we passed to the function
 	ko := desired.ko.DeepCopy()
 
+	if delta.DifferentAt("Spec.Tags") {
+		if err = rm.syncTags(ctx, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+
 	if resp.DBProxy.Auth != nil {
 		f0 := []*svcapitypes.UserAuthConfig{}
 		for _, f0iter := range resp.DBProxy.Auth {
