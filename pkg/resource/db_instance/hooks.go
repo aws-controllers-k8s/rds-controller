@@ -789,3 +789,13 @@ func getCloudwatchLogExportsConfigDifferences(cloudwatchLogExportsConfigDesired 
 	}
 	return logsTypesToEnable, logsTypesToDisable
 }
+
+// setIAMDatabaseAuthenticationFromStatus copies the observed IAM database
+// authentication state into the latest spec, since DescribeDBInstances only
+// reports it under another name. Cluster members inherit it from the DB cluster.
+func setIAMDatabaseAuthenticationFromStatus(desired *resource, latest *resource) {
+	if desired.ko.Spec.EnableIAMDatabaseAuthentication == nil || desired.ko.Spec.DBClusterIdentifier != nil {
+		return
+	}
+	latest.ko.Spec.EnableIAMDatabaseAuthentication = latest.ko.Status.IAMDatabaseAuthenticationEnabled
+}
