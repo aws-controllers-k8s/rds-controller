@@ -609,9 +609,14 @@ func (rm *resourceManager) syncTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	toAdd, toDelete := util.ComputeTagsDelta(
-		desired.ko.Spec.Tags, latest.ko.Spec.Tags,
-	)
+	from, fromOrder := convertToOrderedACKTags(latest.ko.Spec.Tags)
+	to, toOrder := convertToOrderedACKTags(desired.ko.Spec.Tags)
+	added, _, removed := ackcompare.GetTagsDifference(from, to)
+	toAdd := fromACKTags(added, toOrder)
+	toDelete := make([]string, 0, len(removed))
+	for _, t := range fromACKTags(removed, fromOrder) {
+		toDelete = append(toDelete, *t.Key)
+	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from instance", "tags", toDelete)
@@ -681,12 +686,11 @@ func compareTags(
 	a *resource,
 	b *resource,
 ) {
-	if len(a.ko.Spec.Tags) != len(b.ko.Spec.Tags) {
+	aTags, _ := convertToOrderedACKTags(a.ko.Spec.Tags)
+	bTags, _ := convertToOrderedACKTags(b.ko.Spec.Tags)
+	added, _, removed := ackcompare.GetTagsDifference(bTags, aTags)
+	if len(added) > 0 || len(removed) > 0 {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-	} else if len(a.ko.Spec.Tags) > 0 {
-		if !util.EqualTags(a.ko.Spec.Tags, b.ko.Spec.Tags) {
-			delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-		}
 	}
 }
 
