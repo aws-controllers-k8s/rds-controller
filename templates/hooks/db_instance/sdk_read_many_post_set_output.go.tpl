@@ -114,6 +114,7 @@
 			ko.Spec.DBParameterGroupName = ko.Status.DBParameterGroups[0].DBParameterGroupName
 		}
 	}
+	setIAMDatabaseAuthenticationFromStatus(r, &resource{ko})
   
   // We currently do not set spec value for EnableCloudwatchLogsExports
   // and instead only set the status field.

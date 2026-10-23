@@ -37,6 +37,16 @@ InstanceMatchFunc = typing.NewType(
     typing.Callable[[dict], bool],
 )
 
+class AttributeMatcher:
+    def __init__(self, match_on: str, expected_value: typing.Any):
+        self.match_on = match_on
+        self.expected_value = expected_value
+
+    def __call__(self, record: dict) -> bool:
+        return (record is not None and self.match_on in record
+                and record[self.match_on] == self.expected_value)
+
+
 class StatusMatcher:
     def __init__(self, status):
         self.match_on = status
