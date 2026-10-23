@@ -213,6 +213,36 @@ class TestDBInstance:
         assert latest is not None
         assert latest['CopyTagsToSnapshot'] is False
 
+        # Toggle IAM database authentication both ways. The setting comes back
+        # from DescribeDBInstances under a different name, so this exercises
+        # the read hook that copies it into the spec of the latest resource.
+        assert latest['IAMDatabaseAuthenticationEnabled'] is False
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableIAMDatabaseAuthentication": True}},
+        )
+        db_instance.wait_until(
+            db_instance_id,
+            db_instance.AttributeMatcher("IAMDatabaseAuthenticationEnabled", True),
+        )
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['IAMDatabaseAuthenticationEnabled'] is True
+
+        k8s.patch_custom_resource(
+            ref,
+            {"spec": {"enableIAMDatabaseAuthentication": False}},
+        )
+        db_instance.wait_until(
+            db_instance_id,
+            db_instance.AttributeMatcher("IAMDatabaseAuthenticationEnabled", False),
+        )
+        assert k8s.wait_on_condition(ref, "ACK.ResourceSynced", "True", wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES)
+        latest = db_instance.get(db_instance_id)
+        assert latest is not None
+        assert latest['IAMDatabaseAuthenticationEnabled'] is False
+
         arn = latest['DBInstanceArn']
         expect_tags = [
             {"Key": "environment", "Value": "dev"}
