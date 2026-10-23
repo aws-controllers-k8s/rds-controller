@@ -25,8 +25,6 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/rds"
 	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
-
-	"github.com/aws-controllers-k8s/rds-controller/pkg/util"
 )
 
 var (
@@ -138,9 +136,14 @@ func (rm *resourceManager) syncTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	toAdd, toDelete := util.ComputeTagsDelta(
-		desired.ko.Spec.Tags, latest.ko.Spec.Tags,
-	)
+	from, fromOrder := convertToOrderedACKTags(latest.ko.Spec.Tags)
+	to, toOrder := convertToOrderedACKTags(desired.ko.Spec.Tags)
+	added, _, removed := ackcompare.GetTagsDifference(from, to)
+	toAdd := fromACKTags(added, toOrder)
+	toDelete := make([]string, 0, len(removed))
+	for _, t := range fromACKTags(removed, fromOrder) {
+		toDelete = append(toDelete, *t.Key)
+	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from proxy", "tags", toDelete)
@@ -201,22 +204,6 @@ func (rm *resourceManager) getTags(
 		})
 	}
 	return tags, nil
-}
-
-// compareTags adds a difference to the delta if the supplied resources have
-// different tag collections
-func compareTags(
-	delta *ackcompare.Delta,
-	a *resource,
-	b *resource,
-) {
-	if len(a.ko.Spec.Tags) != len(b.ko.Spec.Tags) {
-		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-	} else if len(a.ko.Spec.Tags) > 0 {
-		if !util.EqualTags(a.ko.Spec.Tags, b.ko.Spec.Tags) {
-			delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-		}
-	}
 }
 
 // sdkTagsFromResourceTags transforms a *svcapitypes.Tag array to a *svcsdk.Tag
