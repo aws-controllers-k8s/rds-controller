@@ -201,6 +201,8 @@ resources:
       MasterUserPassword:
         is_secret: true
       KmsKeyId:
+        late_initialize:
+          skip_incomplete_check: {}
         references:
           resource: Key
           service_name: kms
@@ -216,6 +218,8 @@ resources:
           service_name: iam
           path: Status.ACKResourceMetadata.ARN
       PerformanceInsightsKMSKeyID:
+        late_initialize:
+          skip_incomplete_check: {}
         references:
           resource: Key
           service_name: kms
@@ -233,12 +237,16 @@ resources:
           - method: Update
             ignore: to
       DatabaseInsightsMode:
+        late_initialize:
+          skip_incomplete_check: {}
         # See PerformanceInsightsKMSKeyID: this field is part of the
         # send-all-if-any group written by sdk_update_post_build_request.
         set:
           - method: Update
             ignore: to
       PerformanceInsightsRetentionPeriod:
+        late_initialize:
+          skip_incomplete_check: {}
         # See PerformanceInsightsKMSKeyID: this field is part of the
         # send-all-if-any group written by sdk_update_post_build_request.
         set:
@@ -287,6 +295,58 @@ resources:
           operation: RestoreDBClusterToPointInTime
           path: UseLatestRestorableTime
       NetworkType:
+        late_initialize:
+          skip_incomplete_check: {}
+      # RDS assigns a value to each of these when they are omitted. Without
+      # late initialization, a cluster adopted with a spec that omits them
+      # reports a nil-vs-default delta on every reconcile that ModifyDBCluster
+      # cannot resolve. On create, the CreateDBCluster response already
+      # populates them.
+      AutoMinorVersionUpgrade:
+        late_initialize:
+          skip_incomplete_check: {}
+      AvailabilityZones:
+        late_initialize:
+          skip_incomplete_check: {}
+      BackupRetentionPeriod:
+        late_initialize:
+          skip_incomplete_check: {}
+      CopyTagsToSnapshot:
+        late_initialize:
+          skip_incomplete_check: {}
+      DatabaseName:
+        late_initialize:
+          skip_incomplete_check: {}
+      DeletionProtection:
+        late_initialize:
+          skip_incomplete_check: {}
+      EngineMode:
+        late_initialize:
+          skip_incomplete_check: {}
+      EngineVersion:
+        late_initialize:
+          skip_incomplete_check: {}
+      MasterUsername:
+        late_initialize:
+          skip_incomplete_check: {}
+      Port:
+        late_initialize:
+          skip_incomplete_check: {}
+      PreferredBackupWindow:
+        late_initialize:
+          skip_incomplete_check: {}
+      PreferredMaintenanceWindow:
+        late_initialize:
+          skip_incomplete_check: {}
+      ServerlessV2ScalingConfiguration.SecondsUntilAutoPause:
+        late_initialize:
+          skip_incomplete_check: {}
+      StorageEncrypted:
+        late_initialize:
+          skip_incomplete_check: {}
+      # Omitted by DescribeDBClusters for the default "aurora" storage type;
+      # see the StorageType special case in delta_pre_compare.
+      StorageType:
         late_initialize:
           skip_incomplete_check: {}
       Tags:
