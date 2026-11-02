@@ -1969,6 +1969,10 @@ func (rm *resourceManager) sdkUpdate(
 			return nil, err
 		}
 	}
+	if !delta.DifferentExcept("Spec.Tags") {
+		// Tags are synced above; ModifyDBInstance has nothing to send.
+		return &resource{res}, nil
+	}
 
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
