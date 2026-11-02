@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbclusters/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"NetworkType"}
+var lateInitializeFieldNames = []string{"AutoMinorVersionUpgrade", "AvailabilityZones", "BackupRetentionPeriod", "CopyTagsToSnapshot", "DatabaseInsightsMode", "DeletionProtection", "EngineMode", "EngineVersion", "KMSKeyID", "MasterUsername", "NetworkType", "Port", "PreferredBackupWindow", "PreferredMaintenanceWindow", "SecondsUntilAutoPause", "StorageEncrypted"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -262,8 +262,55 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 ) acktypes.AWSResource {
 	observedKo := rm.concreteResource(observed).ko.DeepCopy()
 	latestKo := rm.concreteResource(latest).ko.DeepCopy()
+	if observedKo.Spec.AutoMinorVersionUpgrade != nil && latestKo.Spec.AutoMinorVersionUpgrade == nil {
+		latestKo.Spec.AutoMinorVersionUpgrade = observedKo.Spec.AutoMinorVersionUpgrade
+	}
+	if observedKo.Spec.AvailabilityZones != nil && latestKo.Spec.AvailabilityZones == nil {
+		latestKo.Spec.AvailabilityZones = observedKo.Spec.AvailabilityZones
+	}
+	if observedKo.Spec.BackupRetentionPeriod != nil && latestKo.Spec.BackupRetentionPeriod == nil {
+		latestKo.Spec.BackupRetentionPeriod = observedKo.Spec.BackupRetentionPeriod
+	}
+	if observedKo.Spec.CopyTagsToSnapshot != nil && latestKo.Spec.CopyTagsToSnapshot == nil {
+		latestKo.Spec.CopyTagsToSnapshot = observedKo.Spec.CopyTagsToSnapshot
+	}
+	if observedKo.Spec.DatabaseInsightsMode != nil && latestKo.Spec.DatabaseInsightsMode == nil {
+		latestKo.Spec.DatabaseInsightsMode = observedKo.Spec.DatabaseInsightsMode
+	}
+	if observedKo.Spec.DeletionProtection != nil && latestKo.Spec.DeletionProtection == nil {
+		latestKo.Spec.DeletionProtection = observedKo.Spec.DeletionProtection
+	}
+	if observedKo.Spec.EngineMode != nil && latestKo.Spec.EngineMode == nil {
+		latestKo.Spec.EngineMode = observedKo.Spec.EngineMode
+	}
+	if observedKo.Spec.EngineVersion != nil && latestKo.Spec.EngineVersion == nil {
+		latestKo.Spec.EngineVersion = observedKo.Spec.EngineVersion
+	}
+	if observedKo.Spec.KMSKeyID != nil && latestKo.Spec.KMSKeyID == nil {
+		latestKo.Spec.KMSKeyID = observedKo.Spec.KMSKeyID
+	}
+	if observedKo.Spec.MasterUsername != nil && latestKo.Spec.MasterUsername == nil {
+		latestKo.Spec.MasterUsername = observedKo.Spec.MasterUsername
+	}
 	if observedKo.Spec.NetworkType != nil && latestKo.Spec.NetworkType == nil {
 		latestKo.Spec.NetworkType = observedKo.Spec.NetworkType
+	}
+	if observedKo.Spec.Port != nil && latestKo.Spec.Port == nil {
+		latestKo.Spec.Port = observedKo.Spec.Port
+	}
+	if observedKo.Spec.PreferredBackupWindow != nil && latestKo.Spec.PreferredBackupWindow == nil {
+		latestKo.Spec.PreferredBackupWindow = observedKo.Spec.PreferredBackupWindow
+	}
+	if observedKo.Spec.PreferredMaintenanceWindow != nil && latestKo.Spec.PreferredMaintenanceWindow == nil {
+		latestKo.Spec.PreferredMaintenanceWindow = observedKo.Spec.PreferredMaintenanceWindow
+	}
+	if observedKo.Spec.ServerlessV2ScalingConfiguration != nil && latestKo.Spec.ServerlessV2ScalingConfiguration != nil {
+		if observedKo.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause != nil && latestKo.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause == nil {
+			latestKo.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause = observedKo.Spec.ServerlessV2ScalingConfiguration.SecondsUntilAutoPause
+		}
+	}
+	if observedKo.Spec.StorageEncrypted != nil && latestKo.Spec.StorageEncrypted == nil {
+		latestKo.Spec.StorageEncrypted = observedKo.Spec.StorageEncrypted
 	}
 	return &resource{latestKo}
 }

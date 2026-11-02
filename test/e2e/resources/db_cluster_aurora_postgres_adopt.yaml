@@ -1,0 +1,13 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBCluster
+metadata:
+  annotations:
+    services.k8s.aws/adoption-policy: adopt-or-create
+    services.k8s.aws/deletion-policy: retain
+  name: $DB_CLUSTER_ID
+spec:
+  dbClusterIdentifier: $DB_CLUSTER_ID
+  engine: aurora-postgresql
+  serverlessV2ScalingConfiguration:
+    minCapacity: 0
+    maxCapacity: 4
