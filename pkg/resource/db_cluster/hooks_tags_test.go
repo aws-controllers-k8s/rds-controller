@@ -35,10 +35,11 @@ import (
 const testClusterARN = "arn:aws:rds:us-east-1:123456789012:cluster:test-cluster"
 
 // recordingHTTPClient captures the form-encoded body of every RDS Query
-// protocol request and replies with a minimal valid XML response for the
-// requested action.
+// protocol request and replies with the XML body registered for the requested
+// action in responses, or a minimal valid XML response otherwise.
 type recordingHTTPClient struct {
-	requests []url.Values
+	requests  []url.Values
+	responses map[string]string
 }
 
 func (c *recordingHTTPClient) Do(req *http.Request) (*http.Response, error) {
@@ -51,10 +52,13 @@ func (c *recordingHTTPClient) Do(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 	c.requests = append(c.requests, form)
-	respBody := fmt.Sprintf(
-		`<%[1]sResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/"><ResponseMetadata><RequestId>test-request-id</RequestId></ResponseMetadata></%[1]sResponse>`,
-		form.Get("Action"),
-	)
+	respBody, ok := c.responses[form.Get("Action")]
+	if !ok {
+		respBody = fmt.Sprintf(
+			`<%[1]sResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/"><ResponseMetadata><RequestId>test-request-id</RequestId></ResponseMetadata></%[1]sResponse>`,
+			form.Get("Action"),
+		)
+	}
 	return &http.Response{
 		StatusCode: http.StatusOK,
 		Header:     http.Header{},
@@ -242,4 +246,42 @@ func TestCompareTags(t *testing.T) {
 			assert.Equal(t, tt.wantDelta, delta.DifferentAt("Spec.Tags"))
 		})
 	}
+}
+
+func TestSdkUpdateTagsOnlySkipsModify(t *testing.T) {
+	ctx := context.Background()
+	client := &recordingHTTPClient{}
+	rm := newTestResourceManager(client)
+	desired := newTestCluster([]*svcapitypes.Tag{newTestTag("env", "prod")})
+	latest := newTestCluster([]*svcapitypes.Tag{newTestTag("env", "dev")})
+	latest.ko.Status.Status = aws.String("available")
+	delta := ackcompare.NewDelta()
+	delta.Add("Spec.Tags", desired.ko.Spec.Tags, latest.ko.Spec.Tags)
+
+	_, err := rm.sdkUpdate(ctx, desired, latest, delta)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"AddTagsToResource"}, actionsOf(client))
+}
+
+func TestSdkUpdateTagsAndFieldCallsModify(t *testing.T) {
+	ctx := context.Background()
+	client := &recordingHTTPClient{
+		responses: map[string]string{
+			"ModifyDBCluster": `<ModifyDBClusterResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/"><ModifyDBClusterResult><DBCluster><DBClusterIdentifier>test-cluster</DBClusterIdentifier><Status>available</Status></DBCluster></ModifyDBClusterResult><ResponseMetadata><RequestId>test-request-id</RequestId></ResponseMetadata></ModifyDBClusterResponse>`,
+		},
+	}
+	rm := newTestResourceManager(client)
+	desired := newTestCluster([]*svcapitypes.Tag{newTestTag("env", "prod")})
+	desired.ko.Spec.BackupRetentionPeriod = aws.Int64(7)
+	latest := newTestCluster([]*svcapitypes.Tag{newTestTag("env", "dev")})
+	latest.ko.Spec.BackupRetentionPeriod = aws.Int64(1)
+	latest.ko.Status.Status = aws.String("available")
+	delta := ackcompare.NewDelta()
+	delta.Add("Spec.Tags", desired.ko.Spec.Tags, latest.ko.Spec.Tags)
+	delta.Add("Spec.BackupRetentionPeriod", desired.ko.Spec.BackupRetentionPeriod, latest.ko.Spec.BackupRetentionPeriod)
+
+	_, err := rm.sdkUpdate(ctx, desired, latest, delta)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"AddTagsToResource", "ModifyDBCluster"}, actionsOf(client))
+	assert.Equal(t, "7", client.requests[1].Get("BackupRetentionPeriod"))
 }
