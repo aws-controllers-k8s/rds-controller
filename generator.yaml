@@ -218,6 +218,8 @@ resources:
           service_name: iam
           path: Status.ACKResourceMetadata.ARN
       PerformanceInsightsKMSKeyID:
+        late_initialize:
+          skip_incomplete_check: {}
         references:
           resource: Key
           service_name: kms
@@ -243,6 +245,8 @@ resources:
           - method: Update
             ignore: to
       PerformanceInsightsRetentionPeriod:
+        late_initialize:
+          skip_incomplete_check: {}
         # See PerformanceInsightsKMSKeyID: this field is part of the
         # send-all-if-any group written by sdk_update_post_build_request.
         set:
@@ -310,6 +314,9 @@ resources:
       CopyTagsToSnapshot:
         late_initialize:
           skip_incomplete_check: {}
+      DatabaseName:
+        late_initialize:
+          skip_incomplete_check: {}
       DeletionProtection:
         late_initialize:
           skip_incomplete_check: {}
@@ -335,6 +342,11 @@ resources:
         late_initialize:
           skip_incomplete_check: {}
       StorageEncrypted:
+        late_initialize:
+          skip_incomplete_check: {}
+      # Omitted by DescribeDBClusters for the default "aurora" storage type;
+      # see the StorageType special case in delta_pre_compare.
+      StorageType:
         late_initialize:
           skip_incomplete_check: {}
       Tags:

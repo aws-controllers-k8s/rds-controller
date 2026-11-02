@@ -58,33 +58,58 @@ func observedAuroraServerlessV2() *resource {
 	}
 }
 
+// observedAuroraServerlessV2WithFeatures returns the spec DescribeDBClusters
+// reports for the same cluster created with a database name, I/O-Optimized
+// storage and Database Insights advanced mode, which only appear in the
+// response when enabled.
+func observedAuroraServerlessV2WithFeatures() *resource {
+	r := observedAuroraServerlessV2()
+	r.ko.Spec.DatabaseName = aws.String("appdb")
+	r.ko.Spec.StorageType = aws.String("aurora-iopt1")
+	r.ko.Spec.DatabaseInsightsMode = aws.String("advanced")
+	r.ko.Spec.PerformanceInsightsKMSKeyID = aws.String("arn:aws:kms:us-west-2:111122223333:key/example-pi")
+	r.ko.Spec.PerformanceInsightsRetentionPeriod = aws.Int64(465)
+	return r
+}
+
 func TestLateInitializeFromReadOneOutput_AdoptedClusterConverges(t *testing.T) {
 	// A cluster adopted with adopt-or-create keeps the user's sparse spec, so
 	// every server-side default shows up as a nil-vs-value delta that
 	// ModifyDBCluster cannot resolve. Late initialization must copy those
 	// defaults into spec so that the next reconcile sees no delta.
-	rm := &resourceManager{}
-	observed := observedAuroraServerlessV2()
-	desired := &resource{
-		ko: &svcapitypes.DBCluster{
-			Spec: svcapitypes.DBClusterSpec{
-				DBClusterIdentifier: aws.String("adopted-cluster"),
-				Engine:              aws.String("aurora-postgresql"),
-				ServerlessV2ScalingConfiguration: &svcapitypes.ServerlessV2ScalingConfiguration{
-					MinCapacity: aws.Float64(0),
-					MaxCapacity: aws.Float64(4),
-				},
-			},
-		},
+	tests := []struct {
+		name     string
+		observed func() *resource
+	}{
+		{name: "defaults only", observed: observedAuroraServerlessV2},
+		{name: "with optional features enabled", observed: observedAuroraServerlessV2WithFeatures},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rm := &resourceManager{}
+			observed := tt.observed()
+			desired := &resource{
+				ko: &svcapitypes.DBCluster{
+					Spec: svcapitypes.DBClusterSpec{
+						DBClusterIdentifier: aws.String("adopted-cluster"),
+						Engine:              aws.String("aurora-postgresql"),
+						ServerlessV2ScalingConfiguration: &svcapitypes.ServerlessV2ScalingConfiguration{
+							MinCapacity: aws.Float64(0),
+							MaxCapacity: aws.Float64(4),
+						},
+					},
+				},
+			}
 
-	assert.True(t, newResourceDelta(desired, observedAuroraServerlessV2()).DifferentAt("Spec"))
+			assert.True(t, newResourceDelta(desired, tt.observed()).DifferentAt("Spec"))
 
-	lateInitialized := rm.concreteResource(rm.lateInitializeFromReadOneOutput(observed, desired))
+			lateInitialized := rm.concreteResource(rm.lateInitializeFromReadOneOutput(observed, desired))
 
-	assert.Equal(t, observed.ko.Spec, lateInitialized.ko.Spec)
-	delta := newResourceDelta(lateInitialized, observedAuroraServerlessV2())
-	assert.Empty(t, delta.Differences)
+			assert.Equal(t, observed.ko.Spec, lateInitialized.ko.Spec)
+			delta := newResourceDelta(lateInitialized, tt.observed())
+			assert.Empty(t, delta.Differences)
+		})
+	}
 }
 
 func TestLateInitializeFromReadOneOutput_PreservesUserValues(t *testing.T) {

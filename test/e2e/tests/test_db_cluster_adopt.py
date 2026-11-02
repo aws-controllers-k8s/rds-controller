@@ -15,10 +15,12 @@
 adopt-or-create policy.
 
 1. Create an Aurora PostgreSQL Serverless v2 cluster directly with the RDS
-   API, leaving every optional field to its server-side default.
-2. Adopt it with an adopt-or-create manifest that omits those fields.
-3. Validate the adopted resource reaches a synced state, the server-side
-   defaults are late-initialized into spec, and it stays synced.
+   API, with a database name, I/O-Optimized storage and Database Insights
+   advanced mode, leaving every other optional field to its server-side
+   default.
+2. Adopt it with an adopt-or-create manifest that omits all of those fields.
+3. Validate the adopted resource reaches a synced state, the observed values
+   are late-initialized into spec, and it stays synced across a reconcile.
 """
 
 import time
@@ -32,11 +34,13 @@ from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_rds_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from e2e import condition
 from e2e import db_cluster
+from e2e import tag
 
 RESOURCE_PLURAL = 'dbclusters'
 
 MAX_WAIT_FOR_SYNCED_MINUTES = 5
-STABLE_SYNCED_WAIT_SECONDS = 90
+MAX_WAIT_FOR_TAG_SECONDS = 120
+TAG_CHECK_INTERVAL_SECONDS = 10
 DELETE_WAIT_AFTER_SECONDS = 30
 
 
@@ -75,6 +79,12 @@ class TestDBClusterAdoption:
                     'MinCapacity': 0,
                     'MaxCapacity': 4,
                 },
+                # Only reported by DescribeDBClusters when enabled.
+                DatabaseName='appdb',
+                StorageType='aurora-iopt1',
+                DatabaseInsightsMode='advanced',
+                EnablePerformanceInsights=True,
+                PerformanceInsightsRetentionPeriod=465,
             )
             db_cluster.wait_until(
                 db_cluster_id,
@@ -100,7 +110,7 @@ class TestDBClusterAdoption:
                 'services.k8s.aws/adopted'
             ) == 'true'
 
-            # Every server-side default omitted from the manifest must be
+            # Every observed value omitted from the manifest must be
             # late-initialized into spec, otherwise it shows up as a delta
             # that ModifyDBCluster cannot resolve.
             latest = db_cluster.get(db_cluster_id)
@@ -110,7 +120,8 @@ class TestDBClusterAdoption:
             assert sorted(spec['availabilityZones']) == sorted(latest['AvailabilityZones'])
             assert spec['backupRetentionPeriod'] == latest['BackupRetentionPeriod']
             assert spec['copyTagsToSnapshot'] == latest['CopyTagsToSnapshot']
-            assert spec['databaseInsightsMode'] == latest['DatabaseInsightsMode']
+            assert spec['databaseInsightsMode'] == latest['DatabaseInsightsMode'] == 'advanced'
+            assert spec['databaseName'] == latest['DatabaseName'] == 'appdb'
             assert spec['deletionProtection'] == latest['DeletionProtection']
             assert spec['engineMode'] == latest['EngineMode']
             assert spec['engineVersion'] == latest['EngineVersion']
@@ -120,14 +131,32 @@ class TestDBClusterAdoption:
             assert spec['preferredBackupWindow'] == latest['PreferredBackupWindow']
             assert spec['preferredMaintenanceWindow'] == latest['PreferredMaintenanceWindow']
             assert spec['storageEncrypted'] == latest['StorageEncrypted']
+            assert spec['storageType'] == latest['StorageType'] == 'aurora-iopt1'
+            assert spec['performanceInsightsRetentionPeriod'] == \
+                latest['PerformanceInsightsRetentionPeriod'] == 465
+            assert spec['performanceInsightsKMSKeyID'] == latest['PerformanceInsightsKMSKeyId']
             if 'KmsKeyId' in latest:
                 assert spec['kmsKeyID'] == latest['KmsKeyId']
             assert spec['serverlessV2ScalingConfiguration']['secondsUntilAutoPause'] == \
                 latest['ServerlessV2ScalingConfiguration']['SecondsUntilAutoPause']
 
-            # The adopted resource must stay synced rather than flapping back
-            # into a no-op ModifyDBCluster loop.
-            time.sleep(STABLE_SYNCED_WAIT_SECONDS)
+            # A synced resource is not reconciled again until the resync
+            # period, so change a tag to force a reconcile and check that it
+            # finds no other delta and the resource stays synced.
+            k8s.patch_custom_resource(ref, {
+                "spec": {"tags": [{"key": "adopt-test", "value": "reconcile"}]},
+            })
+            expect_tag = {"Key": "adopt-test", "Value": "reconcile"}
+            deadline = time.time() + MAX_WAIT_FOR_TAG_SECONDS
+            while expect_tag not in tag.clean(db_cluster.get_tags(latest['DBClusterArn'])):
+                if time.time() >= deadline:
+                    pytest.fail("tag update was not reconciled before timeout")
+                time.sleep(TAG_CHECK_INTERVAL_SECONDS)
+
+            assert k8s.wait_on_condition(
+                ref, "ACK.ResourceSynced", "True",
+                wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
+            )
             condition.assert_synced(ref)
             latest = db_cluster.get(db_cluster_id)
             assert latest is not None

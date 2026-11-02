@@ -50,7 +50,7 @@ var (
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbclusters/status,verbs=get;update;patch
 
-var lateInitializeFieldNames = []string{"AutoMinorVersionUpgrade", "AvailabilityZones", "BackupRetentionPeriod", "CopyTagsToSnapshot", "DatabaseInsightsMode", "DeletionProtection", "EngineMode", "EngineVersion", "KMSKeyID", "MasterUsername", "NetworkType", "Port", "PreferredBackupWindow", "PreferredMaintenanceWindow", "SecondsUntilAutoPause", "StorageEncrypted"}
+var lateInitializeFieldNames = []string{"AutoMinorVersionUpgrade", "AvailabilityZones", "BackupRetentionPeriod", "CopyTagsToSnapshot", "DatabaseInsightsMode", "DatabaseName", "DeletionProtection", "EngineMode", "EngineVersion", "KMSKeyID", "MasterUsername", "NetworkType", "PerformanceInsightsKMSKeyID", "PerformanceInsightsRetentionPeriod", "Port", "PreferredBackupWindow", "PreferredMaintenanceWindow", "SecondsUntilAutoPause", "StorageEncrypted", "StorageType"}
 
 // resourceManager is responsible for providing a consistent way to perform
 // CRUD operations in a backend AWS service API for Book custom resources.
@@ -277,6 +277,9 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	if observedKo.Spec.DatabaseInsightsMode != nil && latestKo.Spec.DatabaseInsightsMode == nil {
 		latestKo.Spec.DatabaseInsightsMode = observedKo.Spec.DatabaseInsightsMode
 	}
+	if observedKo.Spec.DatabaseName != nil && latestKo.Spec.DatabaseName == nil {
+		latestKo.Spec.DatabaseName = observedKo.Spec.DatabaseName
+	}
 	if observedKo.Spec.DeletionProtection != nil && latestKo.Spec.DeletionProtection == nil {
 		latestKo.Spec.DeletionProtection = observedKo.Spec.DeletionProtection
 	}
@@ -295,6 +298,12 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	if observedKo.Spec.NetworkType != nil && latestKo.Spec.NetworkType == nil {
 		latestKo.Spec.NetworkType = observedKo.Spec.NetworkType
 	}
+	if observedKo.Spec.PerformanceInsightsKMSKeyID != nil && latestKo.Spec.PerformanceInsightsKMSKeyID == nil {
+		latestKo.Spec.PerformanceInsightsKMSKeyID = observedKo.Spec.PerformanceInsightsKMSKeyID
+	}
+	if observedKo.Spec.PerformanceInsightsRetentionPeriod != nil && latestKo.Spec.PerformanceInsightsRetentionPeriod == nil {
+		latestKo.Spec.PerformanceInsightsRetentionPeriod = observedKo.Spec.PerformanceInsightsRetentionPeriod
+	}
 	if observedKo.Spec.Port != nil && latestKo.Spec.Port == nil {
 		latestKo.Spec.Port = observedKo.Spec.Port
 	}
@@ -311,6 +320,9 @@ func (rm *resourceManager) lateInitializeFromReadOneOutput(
 	}
 	if observedKo.Spec.StorageEncrypted != nil && latestKo.Spec.StorageEncrypted == nil {
 		latestKo.Spec.StorageEncrypted = observedKo.Spec.StorageEncrypted
+	}
+	if observedKo.Spec.StorageType != nil && latestKo.Spec.StorageType == nil {
+		latestKo.Spec.StorageType = observedKo.Spec.StorageType
 	}
 	return &resource{latestKo}
 }
