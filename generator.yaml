@@ -320,6 +320,8 @@ resources:
       DeletionProtection:
         late_initialize:
           skip_incomplete_check: {}
+        compare:
+          pre_delete_include: true
       EngineMode:
         late_initialize:
           skip_incomplete_check: {}
@@ -554,6 +556,7 @@ resources:
           skip_incomplete_check: {}
         compare:
           is_ignored: true
+          pre_delete_include: true
       EnableCloudwatchLogsExports:
         compare:
           is_ignored: true
@@ -670,6 +673,9 @@ resources:
       sdk_update_pre_build_request:
         template_path: hooks/global_cluster/sdk_update_pre_build_request.go.tpl
     fields:
+      DeletionProtection:
+        compare:
+          pre_delete_include: true
       GlobalClusterIdentifier:
         is_primary_key: true
       SourceDBClusterIdentifier:

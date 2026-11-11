@@ -1,6 +1,15 @@
 	res := desired.ko.DeepCopy()
 	res.Status = latest.ko.Status
 
+	// DeletionProtection of an Aurora or Multi-AZ DB cluster member is set on
+	// its DBCluster, and ModifyDBInstance rejects it for a member. The normal
+	// delta already ignores it for members (customPreCompare); the pre-delete
+	// delta does not, so skip an update that would only change it.
+	if latest.ko.Spec.DBClusterIdentifier != nil &&
+		!delta.DifferentExcept("Spec.DeletionProtection") {
+		return &resource{res}, nil
+	}
+
 	if instanceDeleting(latest) {
 		msg := "DB instance is currently being deleted"
 		ackcondition.SetSynced(&resource{res}, corev1.ConditionFalse, &msg, nil)

@@ -72,6 +72,17 @@ func (d *resourceDescriptor) Delta(a, b acktypes.AWSResource) *ackcompare.Delta 
 	return newResourceDelta(a.(*resource), b.(*resource))
 }
 
+// DeltaForPreDelete returns an `ackcompare.Delta` that includes fields
+// configured for pre-delete comparison, and a merged resource that is a deep
+// copy of b (observed) with only those differing fields overwritten from a
+// (desired). Used during pre-delete sync.
+func (d *resourceDescriptor) DeltaForPreDelete(
+	a, b acktypes.AWSResource,
+) (*ackcompare.Delta, acktypes.AWSResource) {
+	delta, merged := newResourceDeltaForPreDelete(a.(*resource), b.(*resource))
+	return delta, merged
+}
+
 // IsManaged returns true if the supplied AWSResource is under the management
 // of an ACK service controller. What this means in practice is that the
 // underlying custom resource (CR) in the AWSResource has had a
