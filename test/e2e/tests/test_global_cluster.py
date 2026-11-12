@@ -32,6 +32,8 @@ DELETE_WAIT_AFTER_SECONDS = 120
 
 MODIFY_WAIT_AFTER_SECONDS = 20
 
+DELETE_PROTECTED_WAIT_SECONDS = 30
+
 
 @pytest.fixture
 def postgresql_global_cluster():
@@ -109,6 +111,49 @@ def tagged_global_cluster():
     global_cluster.wait_until_deleted(global_cluster_id)
 
 
+@pytest.fixture
+def protected_global_cluster():
+    global_cluster_id = random_suffix_name("my-gc-dp", 20)
+
+    replacements = REPLACEMENT_VALUES.copy()
+    replacements["GLOBAL_CLUSTER_NAME"] = global_cluster_id
+    replacements["GLOBAL_CLUSTER_ENGINE"] = "aurora-postgresql"
+    replacements["GLOBAL_CLUSTER_DB_NAME"] = "testdb"
+
+    resource_data = load_rds_resource(
+        "global_cluster_deletion_protection",
+        additional_replacements=replacements,
+    )
+
+    ref = k8s.CustomResourceReference(
+        CRD_GROUP, CRD_VERSION, RESOURCE_PLURAL,
+        global_cluster_id, namespace="default",
+    )
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref)
+
+    assert cr is not None
+    assert 'status' in cr
+    assert 'status' in cr['status']
+    assert cr['status']['status'] == 'available'
+
+    yield (ref, cr, global_cluster_id)
+
+    # If the test failed before releasing the protection, release it so the
+    # delete can complete.
+    try:
+        if k8s.get_resource_exists(ref):
+            k8s.patch_custom_resource(
+                ref, {"spec": {"deletionProtection": False}},
+            )
+            time.sleep(MODIFY_WAIT_AFTER_SECONDS)
+            k8s.delete_custom_resource(ref, 3, 10)
+    except:
+        pass
+
+    global_cluster.wait_until_deleted(global_cluster_id)
+
+
 @service_marker
 @pytest.mark.canary
 class TestGlobalCluster:
@@ -168,3 +213,40 @@ class TestGlobalCluster:
         ]
         latest_tags = tag.clean(global_cluster.get_tags(arn))
         assert latest_tags == after_update_expected_tags
+
+    def test_delete_with_deletion_protection(
+            self, protected_global_cluster,
+    ):
+        """A CR deleted while deletionProtection is true stays in Terminating
+        and the GlobalCluster is kept. Setting deletionProtection to false on
+        the terminating CR is synced to AWS before the delete (pre-delete
+        sync), and both the CR and the GlobalCluster go away.
+        """
+        ref, _, global_cluster_id = protected_global_cluster
+
+        condition.assert_synced(ref)
+        latest = global_cluster.get(global_cluster_id)
+        assert latest is not None
+        assert latest['DeletionProtection'] is True
+
+        # RDS refuses the delete, so the CR must remain, terminating.
+        _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+        assert not deleted
+        time.sleep(DELETE_PROTECTED_WAIT_SECONDS)
+
+        cr = k8s.get_resource(ref)
+        assert cr is not None
+        assert 'deletionTimestamp' in cr['metadata']
+        latest = global_cluster.get(global_cluster_id)
+        assert latest is not None
+        assert latest['DeletionProtection'] is True
+
+        # Release the protection on the terminating CR.
+        k8s.patch_custom_resource(ref, {"spec": {"deletionProtection": False}})
+
+        global_cluster.wait_until_deleted(global_cluster_id)
+        for _ in range(12):
+            if not k8s.get_resource_exists(ref):
+                break
+            time.sleep(5)
+        assert not k8s.get_resource_exists(ref)
